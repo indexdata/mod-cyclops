@@ -1,0 +1,69 @@
+{
+  "id": "@artifactId@-@version@",
+  "name": "CYCLOPS module",
+  "provides": [
+    {
+      "id": "cyclops",
+      "version": "1.0",
+      "handlers": [
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/read",
+          "permissionsRequired": [
+            "cyclops.read"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/write",
+          "permissionsRequired": [
+            "cyclops.write"
+          ]
+        }
+      ]
+    }
+  ],
+  "requires": [],
+  "permissionSets": [
+    {
+      "displayName": "Read CYCLOPS data",
+      "permissionName": "cyclops.read",
+      "subPermissions": []
+    },
+    {
+      "displayName": "Write CYCLOPS data",
+      "permissionName": "cyclops.write",
+      "subPermissions": []
+    }
+  ],
+  "launchDescriptor": {
+    "dockerImage": "@artifactId@:@version@",
+    "dockerPull": false,
+    "dockerArgs": {
+      "HostConfig": {
+        "Memory": 100000000,
+        "PortBindings": {
+          "12370/tcp": [
+            {
+              "HostPort": "%p"
+            }
+          ]
+        }
+      }
+    },
+    "env": [
+      {
+        "name": "LOGCAT",
+        "value": "listen,path,op,status,db,error"
+      },
+      {
+        "name": "MOD_CYCLOPS_QUERY_TIMEOUT",
+        "value": "300"
+      }
+    ]
+  }
+}
