@@ -30,3 +30,22 @@ documentation:
       responses:
         204:
           description: No content is returned.
+  /filters:
+    description: "Filters that can narrow down records within a set"
+    get:
+      description: "Return a list of all known filters"
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include filters-schema.json
+              example: !include examples/filters-example.json
+    post:
+      description: "Create a new filter"
+      body:
+        application/json:
+          type: !include filter-schema.json
+          example: !include examples/filter-example.json
+      responses:
+        204:
+          description: No content is returned.

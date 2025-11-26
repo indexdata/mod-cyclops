@@ -1,0 +1,24 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A filter in a CYCLOPS system, used to capture a filtering criterion",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The short human-readable name of the filter"
+    },
+    "cond": {
+      "type": "string",
+      "description": "An SQL-like WHERE condition"
+    },
+    "template": {
+      "type": "string",
+      "description": "Optionally, the name of another filter to duplicate"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "name",
+    "cond"
+  ]
+}

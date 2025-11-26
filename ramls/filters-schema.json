@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A list of zero or more tags",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "$ref": "filter-schema.json"
+  }
+}

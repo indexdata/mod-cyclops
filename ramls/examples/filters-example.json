@@ -1,0 +1,12 @@
+[
+  {
+    "name": "jurassic",
+    "cond": "143100000 <= age AND age <= 205000000",
+    "template": "mesozoic"
+  },
+  {
+    "name": "cretaceous",
+    "cond": "66000000 <= age AND age <= 143100000",
+    "template": "mesozoic"
+  }
+]

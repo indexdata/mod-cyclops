@@ -1,0 +1,5 @@
+{
+  "name": "jurassic",
+  "cond": "143100000 <= age AND age <= 201400000",
+  "template": "mesozoic"
+}

@@ -13,10 +13,14 @@ lint: schemalint examplelint apilint
 schemalint:
 	z-schema tag-schema.json
 	z-schema tags-schema.json
+	z-schema filter-schema.json
+	z-schema filters-schema.json
 
 examplelint:
 	z-schema tag-schema.json examples/tag-example.json
 	z-schema tags-schema.json examples/tags-example.json
+	z-schema filter-schema.json examples/filter-example.json
+	z-schema filters-schema.json examples/filters-example.json
 
 apilint: cyclops.raml
 	env PATH=$(VENV)/bin:$$PATH api_lint.py -t RAML -d .
