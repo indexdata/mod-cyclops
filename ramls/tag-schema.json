@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A tag in a CYCLOPS system, used to mark objects within a list",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The short human-readable name of the tag"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "name"
+  ]
+}
