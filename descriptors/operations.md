@@ -36,7 +36,20 @@ The operations are (in pseudo-RAML):
 	POST (`create set`)
 	/{setName}
 		GET (`retrieve`)
-		POST (`insert` or `delete` depending on 'operation' parameter)
+		POST (`insert` or `delete` depending on 'op' parameter)
 		/tag/{tagName}
-			POST (`add tag` or `remove tag` depending on 'operation' parameter)
+			POST (`add tag` or `remove tag` depending on 'op' parameter)
+```
+So, for example, to add the tag 'dino' to some of the records in the `mike` set that are not identified by the "extant" or "recent" filters, we might use:
+```
+POST /cyclops/sets/mike/tag/dino
+
+{
+  "op": "add",
+  "cond": "title LIKE '%sauropod%' OR title LIKE '%theropod%'",
+  "filters": {
+    "exclude": true,
+    "list": ["extant", "recent"]
+  }
+}
 ```
