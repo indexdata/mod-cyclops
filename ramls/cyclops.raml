@@ -1,0 +1,32 @@
+#%RAML 1.0
+title: CYCLOPS (CCLP) API
+version: v1
+protocols: [ HTTP, HTTPS ]
+baseUri: https://github.com/indexdata/mod-cyclops/
+
+documentation:
+  - title: CYCLOPS (CCLP) API
+    content: API calls to interact with the various CCMS commands
+  - title: Overview
+    content: !include overview.md
+
+/cyclops:
+  /tags:
+    description: "Tags that can be applied to records in a set"
+    get:
+      description: "Return a list of all known tags"
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include tags-schema.json
+              example: !include examples/tags-example.json
+    post:
+      description: "Create a new tag"
+      body:
+        application/json:
+          type: !include tag-schema.json
+          example: !include examples/tag-example.json
+      responses:
+        204:
+          description: No content is returned.
