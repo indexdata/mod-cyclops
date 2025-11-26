@@ -72,6 +72,43 @@ documentation:
     /{setName}:
       get:
         description: "Retrieve elements of a set"
+        queryParameters:
+          set:
+            type: string
+            required: true
+            description: The name of the set to retrieve objects from
+          fields:
+            type: string
+            required: true
+            description: Either * (for all fields) or a comma-separated list
+          cond:
+            type: string
+            required: false
+            description: An SQL-like WHERE condition
+          filter:
+            type: string
+            required: false
+            description: The name of a filter to apply to the set
+          tag:
+            type: string
+            required: false
+            description: The name of a tag to which to restrict the retrieved objects
+          omitTag:
+            type: string
+            required: false
+            description: The name of a tag by which to exclude objects from the retrieved
+          sort:
+            type: string
+            required: false
+            description: a comma-separated list of fields to sort the objects on. The default order is undefined if this is not specified
+          offset:
+            type: number
+            required: false
+            description: number of objects that will be skipped and not returned as part of the result. This can be useful for retrieving objects one page of data a time. Note that 'sort' is required whenever this is used
+          limit:
+            type: string
+            required: false
+            description: a maximum number of objects that will be returned
         responses:
           200:
             body:
