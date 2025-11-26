@@ -49,3 +49,36 @@ documentation:
       responses:
         204:
           description: No content is returned.
+  /sets:
+    description: "Sets of objects (books, films, etc.)"
+    get:
+      description: "Return a list of the names of all known sets"
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include sets-schema.json
+              example: !include examples/sets-example.json
+    post:
+      description: "Create a new set"
+      body:
+        application/json:
+          type: !include set-schema.json
+          example: !include examples/set-example.json
+      responses:
+        204:
+          description: No content is returned.
+
+    /{setName}:
+      get:
+        description: "Retrieve elements of a set"
+        responses:
+          200:
+            body:
+              application/json:
+                type: !include retrieve-schema.json
+                example: !include examples/retrieve-example.json
+      post:
+      /tag:
+        /{tagName}:
+          post:

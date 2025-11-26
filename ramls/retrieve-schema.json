@@ -1,0 +1,56 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A response to a CYCLOPS retrieve command, containing values from some fields in a set of objects",
+  "type": "object",
+  "properties": {
+    "status": {
+      "type": "string",
+      "description": "Status of retrieveal, or 'error'"
+    },
+    "message": {
+      "type": "string",
+      "description": "Error message, only if status==error"
+    },
+    "fields": {
+      "type": "array",
+      "description": "Error message, only if status==error",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Name of a field included among the data rows"
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "name"
+        ]
+      }
+    },
+    "data": {
+      "type": "array",
+      "description": "List of returned data rows",
+      "items": {
+        "type": "object",
+        "properties": {
+          "values": {
+	    "type": "array",
+            "description": "XXX An array of data values, belonging to the fields named in the 'fields' top-level element",
+	    "items": {
+              "type": "string"
+	    }
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "values"
+        ]
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "status"
+  ]
+}

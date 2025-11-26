@@ -1,11 +1,11 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "A tag in a CYCLOPS system, used to mark objects within a set",
+  "description": "A set in a CYCLOPS system, representing a collections of objects",
   "type": "object",
   "properties": {
     "name": {
       "type": "string",
-      "description": "The short human-readable name of the tag"
+      "description": "The short human-readable name of the set"
     }
   },
   "additionalProperties": false,

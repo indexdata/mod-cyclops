@@ -1,0 +1,31 @@
+{
+  "status": "ok",
+  "message": "XXX This message should not exist, since status != 'error'",
+  "fields": [
+    {
+      "name": "id"
+    },
+    {
+      "name": "author"
+    },
+    {
+      "name": "title"
+    }
+  ],
+  "data": [
+    {
+      "values": [
+        "123",
+        "J. R. R. Tolkien",
+        "The Lord of the Rings"
+      ]
+    },
+    {
+      "values": [
+        "456",
+        "Douglas Adams",
+        "The Hitch-Hiker's Guide to the Galaxy"
+      ]
+    }
+  ]
+}
