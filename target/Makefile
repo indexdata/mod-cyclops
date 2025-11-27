@@ -5,7 +5,9 @@ TARGETS=Activate.json DeploymentDescriptor.json Discovery.json ModuleDescriptor.
 **make-default**: $(TARGETS)
 
 %.json: ../descriptors/%-template.json
+	rm -f $@
 	sed "s/@artifactId@/$(ARTIFACTID)/g;s/@version@/$(VERSION)/g" $< > $@
+	chmod ugo-w $@
 
 clean:
 	rm -f $(TARGETS) mod-reporting
