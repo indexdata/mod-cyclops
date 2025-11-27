@@ -70,6 +70,11 @@ documentation:
           description: No content is returned.
 
     /{setName}:
+      uriParameters:
+        setName:
+          description: The name of the set to retrieve from, modify or tag
+          type: string
+          required: true
       get:
         description: "Retrieve elements of a set"
         queryParameters:
@@ -130,6 +135,11 @@ documentation:
             description: No content is returned.
       /tag:
         /{tagName}:
+          uriParameters:
+            tagName:
+              description: The name of the tag to add or remove to object within the set. The path `/cyclops/sets/mike/tag/dino` represents the resource "the set of records that are tagged with `dino` in the set `mike`.
+              type: string
+              required: true
           post:
             description: "add tag to, or remove tag from, objects within in a set"
             body:
