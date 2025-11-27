@@ -4,16 +4,16 @@ Based on [section 2.3 (Commands)](https://d1f3dtrg62pav.cloudfront.net/ccms/#_co
 
 * 2.3.1. `add tag` -- operates on sets (using tags and filters)
 * 2.3.2. `create set` -- operates on sets
- * 2.3.3. `define filter` -- operates on filters (using other filters)
- * 2.3.4. `define tag` -- operates on tags
+* 2.3.3. `define filter` -- operates on filters (using other filters)
+* 2.3.4. `define tag` -- operates on tags
 * 2.3.5. `delete` -- operates on sets (using filters and tags)
 * 2.3.6. `help` -- (can be ignored)
 * 2.3.7. `insert` -- operates on sets (using other sets, filters and tags)
 * 2.3.8. `remove tag` -- operates on sets (using tags and filters)
 * 2.3.9. `retrieve` -- operates on sets (using filters and tags)
- * 2.3.10. `show filters` -- operates on filters
+* 2.3.10. `show filters` -- operates on filters
 * 2.3.11. `show sets` -- operates on sets
- * 2.3.12. `show tags` -- operates on tags
+* 2.3.12. `show tags` -- operates on tags
 
 This gives us three kinds of object:
 
@@ -23,34 +23,4 @@ This gives us three kinds of object:
 
 The operations on tags do not rely on any other kind of object. The operations on filters rely only on other filters. So the dependency graph is simple: we need to implement both tags and filters (in either order) before we can fully implement sets.
 
-The operations are (in pseudo-RAML):
-```
-/cyclops/tags
-	GET (`show tags`)
-	POST (`define tag`)
-/cyclops/filters
-	GET (`show filters`)
-	POST (`define filter`)
-/cyclops/sets
-	GET (`show sets`)
-	POST (`create set`)
-	/{setName}
-		GET (`retrieve`)
-		POST (`insert` or `delete` depending on 'op' parameter)
-		/tag/{tagName}
-			POST (`add tag` or `remove tag` depending on 'op' parameter)
-```
-So, for example, to add the tag 'dino' to some of the records in the `mike` set that are not identified by the "extant" or "recent" filters, we might use:
-```
-POST /cyclops/sets/mike/tag/dino
-
-{
-  "op": "add",
-  "cond": "title LIKE '%sauropod%' OR title LIKE '%theropod%'",
-  "filters": {
-    "exclude": true,
-    "list": ["extant", "recent"]
-  }
-}
-```
-I think I am OK with the idea that the path `/cyclops/sets/mike/tag/dino` represents the resource "the set of records that are tagged with `dino` in the set `mike`.
+The operations are described in [the RAML](../ramls/cyclops.raml).
