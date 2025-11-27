@@ -13,17 +13,17 @@ name: api-schema-lint
 # e.g. ''
 
 env:
-  API_DIRECTORIES: 'server/src/main/resources/openapi'
+  API_DIRECTORIES: 'ramls'
   API_EXCLUDES: ''
 
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'server/src/main/resources/openapi/**'
+      - 'ramls/**'
   pull_request:
     paths:
-      - 'server/src/main/resources/openapi/**'
+      - 'ramls/**'
 
 jobs:
   api-schema-lint:
