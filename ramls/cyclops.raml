@@ -119,15 +119,27 @@ documentation:
         description: "add objects to, or remove objects from, a set"
         body:
           application/json:
-            type: !include addremove-schema.json
+            type: !include addremoveobjects-schema.json
             examples:
               add:
-                value: !include examples/add-example.json
+                value: !include examples/addobject-example.json
               remove:
-                value: !include examples/remove-example.json
+                value: !include examples/removeobject-example.json
         responses:
           204:
             description: No content is returned.
       /tag:
         /{tagName}:
           post:
+            description: "add tag to, or remove tag from, objects within in a set"
+            body:
+              application/json:
+                type: !include addremovetag-schema.json
+                examples:
+                  add:
+                    value: !include examples/addtag-example.json
+                  remove:
+                    value: !include examples/removetag-example.json
+            responses:
+              204:
+                description: No content is returned.
