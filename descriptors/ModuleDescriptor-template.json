@@ -8,21 +8,92 @@
       "handlers": [
         {
           "methods": [
-            "POST"
+            "GET"
           ],
-          "pathPattern": "/cyclops/read",
+          "pathPattern": "/cyclops/tags",
           "permissionsRequired": [
-            "cyclops.read"
+            "cyclops.tags.read"
           ]
         },
         {
           "methods": [
             "POST"
           ],
-          "pathPattern": "/cyclops/write",
+          "pathPattern": "/cyclops/tags",
           "permissionsRequired": [
-            "cyclops.write"
+            "cyclops.tags.create"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/filters",
+          "permissionsRequired": [
+            "cyclops.filters.read"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/filters",
+          "permissionsRequired": [
+            "cyclops.filters.create"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/sets",
+          "permissionsRequired": [
+            "cyclops.sets.read"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/sets",
+          "permissionsRequired": [
+            "cyclops.sets.create"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/sets/{setName}",
+          "permissionsRequired": [
+            "cyclops.sets.retrieve"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/sets/{setName}",
+          "permissionsRequired": [
+            "cyclops.sets.modify"
+          ],
+          "permissionsDesired": [
+            "cyclops.sets.add-objects",
+            "cyclops.sets.remove-objects"
+	  ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/sets/{setName}/tags/{tagName}",
+          "permissionsRequired": [
+            "cyclops.sets.modify-tags"
+          ],
+          "permissionsDesired": [
+            "cyclops.sets.add-tags",
+            "cyclops.sets.remove-tags"
+	  ]
         }
       ]
     }
