@@ -1,0 +1,40 @@
+version: 2
+updates:
+  # Source code
+  - package-ecosystem: gomod
+    directory: "/src"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "deps"
+    groups:
+      go-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels: ["deps"]
+
+  # Dockerfiles (if you have any, adjust path or add more entries)
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels: ["deps"]
