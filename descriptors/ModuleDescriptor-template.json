@@ -101,14 +101,60 @@
   "requires": [],
   "permissionSets": [
     {
-      "displayName": "Read CYCLOPS data",
-      "permissionName": "cyclops.read",
-      "subPermissions": []
+      "permissionName": "cyclops.tags.read",
+      "displayName": "CYCLOPS: Read list of tags"
     },
     {
-      "displayName": "Write CYCLOPS data",
-      "permissionName": "cyclops.write",
-      "subPermissions": []
+      "permissionName": "cyclops.tags.create",
+      "displayName": "CYCLOPS: Create tag"
+    },
+    {
+      "permissionName": "cyclops.filters.read",
+      "displayName": "CYCLOPS: Read list of filters"
+    },
+    {
+      "permissionName": "cyclops.filters.create",
+      "displayName": "CYCLOPS: Create filter"
+    },
+    {
+      "permissionName": "cyclops.sets.read",
+      "displayName": "CYCLOPS: Read list of sets"
+    },
+    {
+      "permissionName": "cyclops.sets.create",
+      "displayName": "CYCLOPS: Create set"
+    },
+    {
+      "permissionName": "cyclops.sets.retrieve",
+      "displayName": "CYCLOPS: Retrieve objects from set"
+    },
+    {
+      "permissionName": "cyclops.sets.modify",
+      "displayName": "CYCLOPS: Add/remove objects to/from set"
+    },
+    {
+      "permissionName": "cyclops.sets.add-objects",
+      "displayName": "CYCLOPS: Add objects to set (UNIMPLEMENTED)",
+      "subPermissions": ["cyclops.sets.modify"]
+    },
+    {
+      "permissionName": "cyclops.sets.remove-objects",
+      "displayName": "CYCLOPS: Remove objects from set (UNIMPLEMENTED)",
+      "subPermissions": ["cyclops.sets.modify"]
+    },
+    {
+      "permissionName": "cyclops.sets.modify-tags",
+      "displayName": "CYCLOPS: Add/remove tags from objects in a set"
+    },
+    {
+      "permissionName": "cyclops.sets.add-tags",
+      "displayName": "CYCLOPS: Add tags to objects in a set (UNIMPLEMENTED)",
+      "subPermissions": ["cyclops.sets.modify-tags"]
+    },
+    {
+      "permissionName": "cyclops.sets.remove-tags",
+      "displayName": "CYCLOPS: Remove tags from objects in a set (UNIMPLEMENTED)",
+      "subPermissions": ["cyclops.sets.modify-tags"]
     }
   ],
   "launchDescriptor": {
