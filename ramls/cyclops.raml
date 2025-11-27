@@ -116,6 +116,18 @@ documentation:
                 type: !include retrieve-schema.json
                 example: !include examples/retrieve-example.json
       post:
+        description: "add objects to, or remove objects from, a set"
+        body:
+          application/json:
+            type: !include addremove-schema.json
+            examples:
+              add:
+                value: !include examples/add-example.json
+              remove:
+                value: !include examples/remove-example.json
+        responses:
+          204:
+            description: No content is returned.
       /tag:
         /{tagName}:
           post:

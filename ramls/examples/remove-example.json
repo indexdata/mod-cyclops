@@ -1,0 +1,7 @@
+{
+  "op": "remove",
+  "cond": "date < \"2025-01-01\"",
+  "filter": "cretaceous",
+  "tag": "dino",
+  "omitTag": "ptero,croc"
+}

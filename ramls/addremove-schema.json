@@ -1,0 +1,36 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A request to add objects to, or remove objects from, a set",
+  "type": "object",
+  "properties": {
+    "op": {
+      "type": "string",
+      "description": "Operation to perform: add or remove",
+      "enum": ["add", "remove"]
+    },
+    "from": {
+      "type": "string",
+      "description": "Name of the set from which records are to be added to this one. Mandatory for 'add', prohibited for 'delete'"
+    },
+    "cond": {
+      "type": "string",
+      "description": "An SQL-like WHERE condition specifying the selection of records included in the operation"
+    },
+    "filter": {
+      "type": "string",
+      "description": "The name of a filter to be applied to selection of records included in the operation"
+    },
+    "tag": {
+      "type": "string",
+      "description": "A comma-separated list of the names of tags, specifying that only those selected records with any of the tags will be be included in the operation"
+    },
+    "omitTag": {
+      "type": "string",
+      "description": "A comma-separated list of the names of tags, specifying that only those selected records without any of the tags will be be included in the operation"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "op"
+  ]
+}

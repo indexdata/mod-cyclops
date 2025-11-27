@@ -1,0 +1,8 @@
+{
+  "op": "add",
+  "from": "mike",
+  "cond": "date >= \"2025-01-01\"",
+  "filter": "jurassic",
+  "tag": "dino,ptero",
+  "omitTag": "croc"
+}
