@@ -77,8 +77,11 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 		runWithErrorHandling(w, req, server, handleTags)
 	} else {
 		// Unrecognized
-		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintln(w, "Not found")
+		status := http.StatusNotFound
+		message := http.StatusText(status)
+		w.WriteHeader(status)
+		fmt.Fprintln(w, message)
+		server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
 	}
 }
 
@@ -94,7 +97,8 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 		}
 		w.WriteHeader(status)
 		fmt.Fprintln(w, html.EscapeString(err.Error()))
-		server.Log("error", fmt.Sprintf("%s %s: %s", req.Method, req.RequestURI, err.Error()))
+		message := http.StatusText(status)
+		server.Log("error", fmt.Sprintf("%s %s: %d %s: %s", req.Method, req.RequestURI, status, message, err.Error()))
 	}
 }
 
