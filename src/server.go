@@ -73,10 +73,13 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 	} else if path == "/admin/health" {
 		fmt.Fprintln(w, "Behold! I live!!")
 		return
-	} else if strings.HasPrefix(path, "/cyclops/tags") {
-		runWithErrorHandling(w, req, server, handleTags)
+	} else if method == "GET" && path == "/cyclops/tags" {
+		runWithErrorHandling(w, req, server, handleListTags)
+	} else if method == "POST" && path == "/cyclops/tags" {
+		runWithErrorHandling(w, req, server, handleDefineTag)
+	} else if method == "GET" && strings.HasPrefix(path, "/cyclops/sets/") {
+		runWithErrorHandling(w, req, server, handleRetrieve)
 	} else {
-		// Unrecognized
 		status := http.StatusNotFound
 		message := http.StatusText(status)
 		w.WriteHeader(status)
@@ -102,6 +105,14 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 	}
 }
 
-func handleTags(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
-	return &HTTPError{http.StatusNotImplemented, "XXX to be done"}
+func handleListTags(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+	return &HTTPError{http.StatusNotImplemented, "LIST TAGS incomplete"}
+}
+
+func handleDefineTag(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+	return &HTTPError{http.StatusNotImplemented, "DEFINE TAG incomplete"}
+}
+
+func handleRetrieve(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+	return &HTTPError{http.StatusNotImplemented, "RETRIEVE incomplete"}
 }
