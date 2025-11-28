@@ -17,9 +17,9 @@ func (m *HTTPError) Error() string {
 }
 
 type ModCyclopsServer struct {
-	root     string
-	logger   *catlogger.Logger
-	server   http.Server
+	root   string
+	logger *catlogger.Logger
+	server http.Server
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer) error

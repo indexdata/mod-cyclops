@@ -8,11 +8,11 @@ import "github.com/MikeTaylor/catlogger"
 
 // PRIVATE to this file
 type config struct {
-	loggingPrefix string
+	loggingPrefix    string
 	loggingTimestamp bool
-	queryTimeout int
-	serverHost string
-	serverPort int
+	queryTimeout     int
+	serverHost       string
+	serverPort       int
 }
 
 func buildConfigFromEnv() *config {
