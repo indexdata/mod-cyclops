@@ -42,8 +42,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { handler(w, r, &server) })
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
-	fs2 := http.FileServer(http.Dir(root + "/htdocs"))
-	mux.Handle("/favicon.ico", fs2)
+	mux.Handle("/favicon.ico", fs)
 
 	return &server
 }
