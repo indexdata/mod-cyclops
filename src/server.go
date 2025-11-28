@@ -74,8 +74,8 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 		return
 	}
 
-	if strings.HasPrefix(path, "/cyclops/config/") {
-		runWithErrorHandling(w, req, server, handleConfigKey)
+	if strings.HasPrefix(path, "/cyclops/tags/") {
+		runWithErrorHandling(w, req, server, handleTags)
 	} else {
 		// Unrecognized
 		w.WriteHeader(http.StatusNotFound)
@@ -99,6 +99,6 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 	}
 }
 
-func handleConfigKey(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
-	return &HTTPError{http.StatusNotImplemented, "not part of the CYCLOPS API"}
+func handleTags(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+	return &HTTPError{http.StatusNotImplemented, "XXX to be done"}
 }
