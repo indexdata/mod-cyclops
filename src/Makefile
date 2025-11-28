@@ -1,4 +1,4 @@
-SRC=main.go
+SRC=main.go server.go
 TESTSRC=#config-file_test.go
 TARGET=../target/mod-cyclops
 

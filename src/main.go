@@ -1,6 +1,7 @@
 package main
 
 import "os"
+import "strconv"
 import "fmt"
 import "regexp"
 import "github.com/MikeTaylor/catlogger"
@@ -30,17 +31,18 @@ func main() {
 	logger := makeConfiguredLogger()
 	logger.Log("hello", "Hello, world!")
 
-	/*
-		server, err := MakeModCyclopsServer(logger, ".")
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: cannot create server: %s\n", os.Args[0], err)
-			os.Exit(2)
-		}
+	var timeout int
+	timeoutString := os.Getenv("MOD_CYCLOPS_QUERY_TIMEOUT")
+	if timeoutString != "" {
+		timeout, _ = strconv.Atoi(timeoutString)
+	} else {
+		timeout = 60
+	}
 
-		err = server.launch()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
-			os.Exit(3)
-		}
-	*/
+	server := MakeModCyclopsServer(logger, ".", timeout)
+	err := server.launch()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
+		os.Exit(3)
+	}
 }
