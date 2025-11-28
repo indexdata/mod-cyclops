@@ -72,9 +72,7 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 	} else if path == "/admin/health" {
 		fmt.Fprintln(w, "Behold! I live!!")
 		return
-	}
-
-	if strings.HasPrefix(path, "/cyclops/tags/") {
+	} else if strings.HasPrefix(path, "/cyclops/tags") {
 		runWithErrorHandling(w, req, server, handleTags)
 	} else {
 		// Unrecognized
