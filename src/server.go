@@ -67,20 +67,7 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 
 	if path == "/" {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintln(w, `
-This is <a href="https://github.com/indexdata/mod-cyclops">mod-cyclops</a>. Try:
-<ul>
-  <li><a href="/admin/health">Health check</a></li>
-  <li><a href="/htdocs/">Static area</a></li>
-  <li><a href="/cyclops/config">Legacy configuration WSAPI</a></li>
-  <li><a href="/cyclops/config/dbinfo">Legacy configuration 'dbinfo'</a></li>
-  <li><a href="/cyclops/db/tables">List tables from cyclops database</a></li>
-  <li><a href="/cyclops/db/columns?schema=folio_users&table=users">List columns for "users" table</a></li>
-  <li><a href="/cyclops/db/log">Logs</a></li>
-  <li><a href="/cyclops/db/version">Version</a></li>
-  <li><a href="/cyclops/db/updates">Updates</a></li>
-  <li><a href="/cyclops/db/processes">Processes</a></li>
-</ul>`)
+		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 		return
 	} else if path == "/admin/health" {
 		fmt.Fprintln(w, "Behold! I live!!")
