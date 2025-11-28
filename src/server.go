@@ -130,9 +130,6 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 	}
 }
 
-// XXX For now
 func handleConfigKey(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
-	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintln(w, "OK")
-	return nil
+	return &HTTPError{http.StatusNotImplemented, "not part of the CYCLOPS API"}
 }
