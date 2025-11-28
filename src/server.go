@@ -76,24 +76,6 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 
 	if strings.HasPrefix(path, "/cyclops/config/") {
 		runWithErrorHandling(w, req, server, handleConfigKey)
-	/*
-	} else if path == "/cyclops/db/tables" {
-		runWithErrorHandling(w, req, server, handleTables)
-	} else if path == "/cyclops/db/columns" {
-		runWithErrorHandling(w, req, server, handleColumns)
-	} else if path == "/cyclops/db/query" && req.Method == "POST" {
-		runWithErrorHandling(w, req, server, handleQuery)
-	} else if path == "/cyclops/db/reports" && req.Method == "POST" {
-		runWithErrorHandling(w, req, server, handleReport)
-	} else if path == "/cyclops/db/log" {
-		runWithErrorHandling(w, req, server, handleLogs)
-	} else if path == "/cyclops/db/version" {
-		runWithErrorHandling(w, req, server, handleVersion)
-	} else if path == "/cyclops/db/updates" {
-		runWithErrorHandling(w, req, server, handleUpdates)
-	} else if path == "/cyclops/db/processes" {
-		runWithErrorHandling(w, req, server, handleProcesses)
-	*/
 	} else {
 		// Unrecognized
 		w.WriteHeader(http.StatusNotFound)
