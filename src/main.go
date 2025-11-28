@@ -39,8 +39,21 @@ func main() {
 		timeout = 60
 	}
 
+	var port int
+	serverPortString := os.Getenv("SERVER_PORT")
+	if serverPortString != "" {
+		port, _ = strconv.Atoi(serverPortString)
+	} else {
+		port = 12370
+	}
+
+	host := os.Getenv("SERVER_HOST")
+	if host == "" {
+		host = "0.0.0.0"
+	}
+
 	server := MakeModCyclopsServer(logger, ".", timeout)
-	err := server.launch()
+	err := server.launch(host, port)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
 		os.Exit(3)

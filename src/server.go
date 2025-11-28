@@ -1,11 +1,9 @@
 package main
 
-import "os"
 import "fmt"
 import "net/http"
 import "time"
 import "strings"
-import "strconv"
 import "html"
 import "github.com/MikeTaylor/catlogger"
 
@@ -54,20 +52,7 @@ func (server *ModCyclopsServer) Log(cat string, args ...string) {
 	server.logger.Log(cat, args...)
 }
 
-func (server *ModCyclopsServer) launch() error {
-	var port int
-	serverPortString := os.Getenv("SERVER_PORT")
-	if serverPortString != "" {
-		port, _ = strconv.Atoi(serverPortString)
-	} else {
-		port = 12370
-	}
-
-	host := os.Getenv("SERVER_HOST")
-	if host == "" {
-		host = "0.0.0.0"
-	}
-
+func (server *ModCyclopsServer) launch(host string, port int) error {
 	hostspec := host + ":" + fmt.Sprint(port)
 	server.server.Addr = hostspec
 	server.Log("listen", "listening on", hostspec)
