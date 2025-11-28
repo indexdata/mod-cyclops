@@ -6,7 +6,7 @@ $(TARGET): $(SRC)
 	go build -o $@
 
 run: $(TARGET)
-	env LOGCAT=hello,listen,path,error $(TARGET)
+	cd ..; env LOGCAT=hello,listen,path,error src/$(TARGET)
 
 lint:
 	-go vet ./...
