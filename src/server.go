@@ -62,8 +62,9 @@ func (server *ModCyclopsServer) launch(host string, port int) error {
 }
 
 func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer) {
+	method := req.Method
 	path := req.URL.Path
-	server.Log("path", path)
+	server.Log("path", method, path)
 
 	if path == "/" {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -93,7 +94,7 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 		}
 		w.WriteHeader(status)
 		fmt.Fprintln(w, html.EscapeString(err.Error()))
-		server.Log("error", fmt.Sprintf("%s: %s", req.RequestURI, err.Error()))
+		server.Log("error", fmt.Sprintf("%s %s: %s", req.Method, req.RequestURI, err.Error()))
 	}
 }
 
