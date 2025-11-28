@@ -6,20 +6,46 @@ import "fmt"
 import "regexp"
 import "github.com/MikeTaylor/catlogger"
 
-func makeConfiguredLogger() *catlogger.Logger {
-	// catlogger.MakeLogger handes the category environment variables on its own
-	prefix := os.Getenv("LOGGING_PREFIX")
-	timestamp := false
+// PRIVATE to this file
+type config struct {
+	loggingPrefix string
+	loggingTimestamp bool
+	queryTimeout int
+	serverHost string
+	serverPort int
+}
+
+func buildConfigFromEnv() *config {
+	var cfg config;
+
+	cfg.loggingPrefix = os.Getenv("LOGGING_PREFIX")
+
+	cfg.loggingTimestamp = false
 	tsString := os.Getenv("LOGGING_TIMESTAMP")
 	if tsString != "" {
-		timestamp = true
+		cfg.loggingTimestamp = true
 	}
 
-	logger := catlogger.MakeLogger("", prefix, timestamp)
+	timeoutString := os.Getenv("MOD_CYCLOPS_QUERY_TIMEOUT")
+	if timeoutString != "" {
+		cfg.queryTimeout, _ = strconv.Atoi(timeoutString)
+	} else {
+		cfg.queryTimeout = 60
+	}
 
-	// We do not need this transformation yet, but will need something like it when we have authentication
-	logger.AddTransformation(regexp.MustCompile(`\\"pass\\":\\"[^"]*\\"`), `\"pass\":\"********\"`)
-	return logger
+	cfg.serverHost = os.Getenv("SERVER_HOST")
+	if cfg.serverHost == "" {
+		cfg.serverHost = "0.0.0.0"
+	}
+
+	serverPortString := os.Getenv("SERVER_PORT")
+	if serverPortString != "" {
+		cfg.serverPort, _ = strconv.Atoi(serverPortString)
+	} else {
+		cfg.serverPort = 12370
+	}
+
+	return &cfg;
 }
 
 func main() {
@@ -28,32 +54,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	logger := makeConfiguredLogger()
+	cfg := buildConfigFromEnv();
+
+	// catlogger.MakeLogger handes the category environment variables on its own
+	logger := catlogger.MakeLogger("", cfg.loggingPrefix, cfg.loggingTimestamp)
+	// We do not need this transformation yet, but will need something like it when we have authentication
+	logger.AddTransformation(regexp.MustCompile(`\\"pass\\":\\"[^"]*\\"`), `\"pass\":\"********\"`)
 	logger.Log("hello", "Hello, world!")
 
-	var timeout int
-	timeoutString := os.Getenv("MOD_CYCLOPS_QUERY_TIMEOUT")
-	if timeoutString != "" {
-		timeout, _ = strconv.Atoi(timeoutString)
-	} else {
-		timeout = 60
-	}
-
-	var port int
-	serverPortString := os.Getenv("SERVER_PORT")
-	if serverPortString != "" {
-		port, _ = strconv.Atoi(serverPortString)
-	} else {
-		port = 12370
-	}
-
-	host := os.Getenv("SERVER_HOST")
-	if host == "" {
-		host = "0.0.0.0"
-	}
-
-	server := MakeModCyclopsServer(logger, ".", timeout)
-	err := server.launch(host, port)
+	server := MakeModCyclopsServer(logger, ".", cfg.queryTimeout)
+	err := server.launch(cfg.serverHost, cfg.serverPort)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
 		os.Exit(3)
