@@ -16,7 +16,7 @@ type config struct {
 }
 
 func buildConfigFromEnv() *config {
-	var cfg config;
+	var cfg config
 
 	cfg.loggingPrefix = os.Getenv("LOGGING_PREFIX")
 
@@ -45,7 +45,7 @@ func buildConfigFromEnv() *config {
 		cfg.serverPort = 12370
 	}
 
-	return &cfg;
+	return &cfg
 }
 
 func main() {
@@ -54,7 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg := buildConfigFromEnv();
+	cfg := buildConfigFromEnv()
 
 	// catlogger.MakeLogger handes the category environment variables on its own
 	logger := catlogger.MakeLogger("", cfg.loggingPrefix, cfg.loggingTimestamp)
