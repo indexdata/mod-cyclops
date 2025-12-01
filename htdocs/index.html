@@ -1,19 +1,61 @@
-<title>Welcome to mod-cyclops</title>
-This is
-<a href="https://github.com/indexdata/mod-cyclops/">mod-cyclops</a>.
-Try:
-<ul>
- <li><a href="/admin/health">Health check</a></li>
- <li><a href="/htdocs">Static area</a></li>
- <li><a href="/favicon.ico">favicon</a> (representing
-     <a href="https://svpow.com/2011/02/23/please-welcome-brontomerus-mcintoshi-2/">the ilium of <i>Brontomerus</i></a>)</li>
- <li><a href="/path/to/nowhere">a bad URL</a></li>
-</ul>
-And the actual web services:
-<ul>
- <li><a href="/cyclops/tags">list of tags</a></li>
- <li><a href="/cyclops/filters">list of filters</a></li>
- <li><a href="/cyclops/sets">list of sets</a></li>
- <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
-</ul>
-In time, I may provide buttons to perform the five (or seven, depending on how you count them) POST actions.
+<html>
+ <head>
+  <title>Welcome to mod-cyclops</title>
+  <style>
+    .link-button {
+      background: none;
+      border: none;
+      color: blue;
+      padding: 0;
+      font: inherit;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+    .link-button:visited {
+      color: purple;
+    }
+  </style>
+  <script>
+  function postData() {
+    fetch('/cyclops/tags', {
+      method: 'POST',
+      headers: {
+	'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ foo: 42, bar: "baz" })
+    })
+    .then(async (response) => {
+      if (!response.ok) {
+	const errorText = await response.text().catch(() => "");
+	alert(`Request failed with status ${response.status}: ${errorText}`);
+      } else {
+	const result = await response.json().catch(() => null);
+	alert("Success:", result);
+      }
+    })
+    .catch((error) => {
+      alert("POST failed:", error);
+    });
+  }
+  </script>
+ </head>
+ <body>
+  This is
+  <a href="https://github.com/indexdata/mod-cyclops/">mod-cyclops</a>.
+  Try:
+  <ul>
+   <li><a href="/admin/health">Health check</a></li>
+   <li><a href="/htdocs">Static area</a></li>
+   <li><a href="/favicon.ico">favicon</a> (representing
+       <a href="https://svpow.com/2011/02/23/please-welcome-brontomerus-mcintoshi-2/">the ilium of <i>Brontomerus</i></a>)</li>
+   <li><a href="/path/to/nowhere">a bad URL</a></li>
+  </ul>
+  And the actual web services:
+  <ul>
+   <li><a href="/cyclops/tags">list of tags</a></li>
+   <li><button class="link-button" onclick="postData()">create tag [POST]</button></li>
+   <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
+  </ul>
+  In time, I may provide buttons to perform the five (or seven, depending on how you count them) POST actions.
+ </body>
+</html>
