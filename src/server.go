@@ -22,7 +22,7 @@ type ModCyclopsServer struct {
 	server http.Server
 }
 
-type handlerFn func(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer) error
+type handlerFn func(w http.ResponseWriter, req *http.Request) error
 
 func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *ModCyclopsServer {
 	tr := &http.Transport{}
@@ -39,7 +39,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		},
 	}
 
-	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { handler(w, r, &server) })
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { server.handler(w, r) })
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
 	mux.Handle("/favicon.ico", fs)
@@ -60,7 +60,7 @@ func (server *ModCyclopsServer) launch(host string, port int) error {
 	return err
 }
 
-func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer) {
+func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request) {
 	method := req.Method
 	path := req.URL.Path
 	server.Log("path", method, path)
@@ -73,11 +73,11 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 		fmt.Fprintln(w, "Behold! I live!!")
 		return
 	} else if method == "GET" && path == "/cyclops/tags" {
-		runWithErrorHandling(w, req, server, handleListTags)
+		server.runWithErrorHandling(w, req, server.handleListTags)
 	} else if method == "POST" && path == "/cyclops/tags" {
-		runWithErrorHandling(w, req, server, handleDefineTag)
+		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	} else if method == "GET" && strings.HasPrefix(path, "/cyclops/sets/") {
-		runWithErrorHandling(w, req, server, handleRetrieve)
+		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	} else {
 		status := http.StatusNotFound
 		message := http.StatusText(status)
@@ -87,8 +87,8 @@ func handler(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer)
 	}
 }
 
-func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModCyclopsServer, f handlerFn) {
-	err := f(w, req, server)
+func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn) {
+	err := f(w, req)
 	if err != nil {
 		var status int
 		switch e := err.(type) {
@@ -104,14 +104,15 @@ func runWithErrorHandling(w http.ResponseWriter, req *http.Request, server *ModC
 	}
 }
 
-func handleListTags(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+func (server *ModCyclopsServer) handleListTags(w http.ResponseWriter, req *http.Request) error {
 	return &HTTPError{http.StatusNotImplemented, "LIST TAGS incomplete"}
 }
 
-func handleDefineTag(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
 	return &HTTPError{http.StatusNotImplemented, "DEFINE TAG incomplete"}
 }
 
-func handleRetrieve(w http.ResponseWriter, req *http.Request, session *ModCyclopsServer) error {
+func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
+	server.Log("hello", "we're in handleRetrieve")
 	return &HTTPError{http.StatusNotImplemented, "RETRIEVE incomplete"}
 }
