@@ -22,8 +22,6 @@ type ModCyclopsServer struct {
 	httpServer http.Server
 }
 
-type handlerFn func(w http.ResponseWriter, req *http.Request) error
-
 func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *ModCyclopsServer {
 	tr := &http.Transport{}
 	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
@@ -86,6 +84,8 @@ func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request
 		server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
 	}
 }
+
+type handlerFn func(w http.ResponseWriter, req *http.Request) error
 
 func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn) {
 	err := f(w, req)
