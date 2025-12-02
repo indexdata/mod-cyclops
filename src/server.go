@@ -118,7 +118,8 @@ func (server *ModCyclopsServer) handleListTags(w http.ResponseWriter, req *http.
 }
 
 func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
-	return &HTTPError{http.StatusNotImplemented, "DEFINE TAG incomplete"}
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 type FieldDescription struct {
