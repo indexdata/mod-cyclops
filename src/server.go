@@ -121,9 +121,38 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 	return &HTTPError{http.StatusNotImplemented, "DEFINE TAG incomplete"}
 }
 
+type FieldDescription struct {
+	Name string
+	// No other elements yet, but use a structure for future expansion
+}
+
+type DataRow struct {
+	Values []string
+	// No other elements yet, but use a structure for future expansion
+}
+
+type RetrieveResponse struct {
+	Status  string
+	Fields  []FieldDescription
+	Data    []DataRow
+	Message string
+}
+
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
-	server.Log("hello", "we're in handleRetrieve")
-	return &HTTPError{http.StatusNotImplemented, "RETRIEVE incomplete"}
+	field1 := FieldDescription{Name: "id"}
+	field2 := FieldDescription{Name: "title"}
+	fields := []FieldDescription{field1, field2}
+	datum1 := DataRow{Values: []string{"123", "The Lord of the Rings"}}
+	datum2 := DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
+	datum3 := DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
+	data := []DataRow{datum1, datum2, datum3}
+	rr := RetrieveResponse{
+		Status:  "retrieve",
+		Fields:  fields,
+		Data:    data,
+		Message: "",
+	}
+	return sendJSON(w, rr, "RETRIEVE")
 }
 
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
