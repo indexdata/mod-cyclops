@@ -5,6 +5,7 @@ import "net/http"
 import "time"
 import "strings"
 import "html"
+import "encoding/json"
 import "github.com/MikeTaylor/catlogger"
 
 type HTTPError struct {
@@ -104,8 +105,16 @@ func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req 
 	}
 }
 
+type TagList struct {
+	Tags []string `json:"tags"`
+	// No other elements yet, but use a structure for future expansion
+}
+
 func (server *ModCyclopsServer) handleListTags(w http.ResponseWriter, req *http.Request) error {
-	return &HTTPError{http.StatusNotImplemented, "LIST TAGS incomplete"}
+	tags := []string{"foo", "bar", "baz"}
+	tagList := TagList{Tags: tags}
+	fmt.Printf("tagList = %+v\n", tagList)
+	return sendJSON(w, tagList, "LIST TAGS")
 }
 
 func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
@@ -115,4 +124,17 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
 	server.Log("hello", "we're in handleRetrieve")
 	return &HTTPError{http.StatusNotImplemented, "RETRIEVE incomplete"}
+}
+
+func sendJSON(w http.ResponseWriter, data any, caption string) error {
+	bytes, err := json.Marshal(data)
+	if err != nil {
+		return fmt.Errorf("could not encode JSON for %s: %w", caption, err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	// If w.write fails there is no way to report this to the client: see MODREP-37.
+	_, _ = w.Write(bytes)
+	return nil
 }
