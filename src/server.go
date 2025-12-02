@@ -17,9 +17,9 @@ func (m *HTTPError) Error() string {
 }
 
 type ModCyclopsServer struct {
-	root   string
-	logger *catlogger.Logger
-	server http.Server
+	root       string
+	logger     *catlogger.Logger
+	httpServer http.Server
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request) error
@@ -32,7 +32,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	var server = ModCyclopsServer{
 		logger: logger,
 		root:   root,
-		server: http.Server{
+		httpServer: http.Server{
 			ReadTimeout:  time.Duration(timeout) * time.Second,
 			WriteTimeout: time.Duration(timeout) * time.Second,
 			Handler:      mux,
@@ -53,9 +53,9 @@ func (server *ModCyclopsServer) Log(cat string, args ...string) {
 
 func (server *ModCyclopsServer) launch(host string, port int) error {
 	hostspec := host + ":" + fmt.Sprint(port)
-	server.server.Addr = hostspec
+	server.httpServer.Addr = hostspec
 	server.Log("listen", "listening on", hostspec)
-	err := server.server.ListenAndServe()
+	err := server.httpServer.ListenAndServe()
 	server.Log("listen", "finished listening on", hostspec)
 	return err
 }
