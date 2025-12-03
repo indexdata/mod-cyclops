@@ -53,9 +53,26 @@
   And the actual web services:
   <ul>
    <li><a href="/cyclops/tags">list of tags</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/tags', { foo: 42, bar: 'baz' })">create tag [POST]</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/tags', { name: 'dino' })">define tag</button></li>
+   <li><a href="/cyclops/filters">list of filters</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000' })">define filter</button></li>
+   <li><a href="/cyclops/sets">list of sets</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'mike' })">create set</button></li>
    <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
-   <li>... more to come ...</li>
+   <li>
+    add or remove objects to a set:
+    <ul>
+     <li>add</li>
+     <li>remove</li>
+    </ul>
+   </li>
+   <li>
+    add or remove a tag to objects in a set:
+    <ul>
+     <li>add</li>
+     <li>remove</li>
+    </ul>
+   </li>
   </ul>
  </body>
 </html>
