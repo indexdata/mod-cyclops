@@ -42,8 +42,11 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
 	mux.Handle("/favicon.ico", fs)
 	mux.HandleFunc("/", server.handler)
-	mux.HandleFunc("/admin/health", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Behold! I live!!")
+	})
+	mux.HandleFunc("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleListTags)
 	})
 
 	return &server
@@ -71,8 +74,6 @@ func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 		return
-	} else if method == "GET" && path == "/cyclops/tags" {
-		server.runWithErrorHandling(w, req, server.handleListTags)
 	} else if method == "POST" && path == "/cyclops/tags" {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	} else if method == "GET" && strings.HasPrefix(path, "/cyclops/sets/") {
