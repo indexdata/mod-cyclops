@@ -4,7 +4,7 @@ ARTIFACTID=`sed -n 's/^module .*\/\(.*\)/\1/p' go.mod`
 VERSION ?= `git describe --tags --abbrev=0 | sed 's/^v\([0-9]\)/\1/'`
 DESCRIPTORS=Activate DeploymentDescriptor Discovery ModuleDescriptor
 TARGET_DESCRIPTORS=$(DESCRIPTORS:%=target/%.json)
-SRC=main.go cyclops/server.go
+SRC=main.go cyclops/server.go cyclops/handlers.go
 TARGET=target/mod-cyclops
 
 **default**: $(TARGET_DESCRIPTORS) $(TARGET) 
