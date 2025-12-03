@@ -5,6 +5,7 @@ import "strconv"
 import "fmt"
 import "regexp"
 import "github.com/MikeTaylor/catlogger"
+import "github.com/indexdata/mod-cyclops/cyclops"
 
 // PRIVATE to this file
 type config struct {
@@ -62,8 +63,8 @@ func main() {
 	logger.AddTransformation(regexp.MustCompile(`\\"pass\\":\\"[^"]*\\"`), `\"pass\":\"********\"`)
 	logger.Log("hello", "Hello, world!")
 
-	server := MakeModCyclopsServer(logger, ".", cfg.queryTimeout)
-	err := server.launch(cfg.serverHost, cfg.serverPort)
+	server := cyclops.MakeModCyclopsServer(logger, ".", cfg.queryTimeout)
+	err := server.Launch(cfg.serverHost, cfg.serverPort)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
 		os.Exit(3)

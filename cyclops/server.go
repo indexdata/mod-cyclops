@@ -1,4 +1,4 @@
-package main
+package cyclops
 
 import "fmt"
 import "net/http"
@@ -79,7 +79,7 @@ func (server *ModCyclopsServer) Log(cat string, args ...string) {
 	server.logger.Log(cat, args...)
 }
 
-func (server *ModCyclopsServer) launch(host string, port int) error {
+func (server *ModCyclopsServer) Launch(host string, port int) error {
 	hostspec := host + ":" + fmt.Sprint(port)
 	server.httpServer.Addr = hostspec
 	server.Log("listen", "listening on", hostspec)
