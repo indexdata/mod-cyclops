@@ -57,7 +57,15 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
-	mux.HandleFunc("/{anythingElse...}", server.handler)
+
+	/*
+	// XXX install 404 handler
+	status := http.StatusNotFound
+	message := http.StatusText(status)
+	w.WriteHeader(status)
+	fmt.Fprintln(w, message)
+	server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
+	*/
 
 	return &server
 }
@@ -73,15 +81,6 @@ func (server *ModCyclopsServer) launch(host string, port int) error {
 	err := server.httpServer.ListenAndServe()
 	server.Log("listen", "finished listening on", hostspec)
 	return err
-}
-
-func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request) {
-
-	status := http.StatusNotFound
-	message := http.StatusText(status)
-	w.WriteHeader(status)
-	fmt.Fprintln(w, message)
-	server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request) error
