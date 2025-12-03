@@ -44,8 +44,8 @@
   <a href="https://github.com/indexdata/mod-cyclops/">mod-cyclops</a>.
   Try:
   <ul>
-   <li><a href="/admin/health">Health check</a></li>
-   <li><a href="/htdocs/">Static area</a></li>
+   <li><a href="/admin/health">health check</a></li>
+   <li><a href="/htdocs/">static area</a></li>
    <li><a href="/favicon.ico">favicon</a> (representing
        <a href="https://svpow.com/2011/02/23/please-welcome-brontomerus-mcintoshi-2/">the ilium of <i>Brontomerus</i></a>)</li>
    <li><a href="/path/to/nowhere">a bad URL</a></li>
@@ -53,26 +53,16 @@
   And the actual web services:
   <ul>
    <li><a href="/cyclops/tags">list of tags</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/tags', { name: 'dino' })">define tag</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/tags', { name: 'dino' })">define tag "dino"</button></li>
    <li><a href="/cyclops/filters">list of filters</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000' })">define filter</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000' })">define filter "jurassic"</button></li>
    <li><a href="/cyclops/sets">list of sets</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'mike' })">create set</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'mike' })">create set "mike"</button></li>
    <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
-   <li>
-    add or remove objects to a set:
-    <ul>
-     <li>add</li>
-     <li>remove</li>
-    </ul>
-   </li>
-   <li>
-    add or remove a tag to objects in a set:
-    <ul>
-     <li>add</li>
-     <li>remove</li>
-    </ul>
-   </li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'add', from: 'allobjects', cond: 'date >= 2025-01-01', filter: 'jurassic', tag: 'dino,ptero' })">add objects to set "mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'remove', cond: 'date < 2025-01-01', filter: 'cretaceous', omitTag: 'ptero,croc' })">remove objects from set "mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'ptero' })">add tag "dino" to records in set "mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'dino' })">remove tag "dino" from records in set "mike"</button></li>
   </ul>
  </body>
 </html>
