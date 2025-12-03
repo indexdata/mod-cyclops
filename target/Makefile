@@ -10,7 +10,7 @@ TARGETS=Activate.json DeploymentDescriptor.json Discovery.json ModuleDescriptor.
 	chmod ugo-w $@
 
 clean:
-	rm -f $(TARGETS) mod-reporting
+	rm -f $(TARGETS) mod-cyclops
 
 debug:
 	@echo ARTIFACTID=$(ARTIFACTID)
