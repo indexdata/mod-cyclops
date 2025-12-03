@@ -46,7 +46,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	})
 
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
-	r.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
+	r.Handle("/htdocs/*", http.StripPrefix("/htdocs/", fs))
 	r.Handle("/favicon.ico", fs)
 	r.HandleFunc("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Behold! I live!!")
