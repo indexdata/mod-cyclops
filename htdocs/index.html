@@ -16,27 +16,27 @@
     }
   </style>
   <script>
-  function postData() {
-    fetch('/cyclops/tags', {
-      method: 'POST',
-      headers: {
-	'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ foo: 42, bar: "baz" })
-    })
-    .then(async (response) => {
-      if (!response.ok) {
-	const errorText = await response.text().catch(() => "");
-	alert(`Request failed with status ${response.status}: ${errorText}`);
-      } else {
-	const result = await response.json().catch(() => null);
-	alert("Success:", result);
-      }
-    })
-    .catch((error) => {
-      alert("POST failed:", error);
-    });
-  }
+    function postData(path, data) {
+      fetch(path, {
+	method: 'POST',
+	headers: {
+	  'Content-Type': 'application/json'
+	},
+	body: JSON.stringify(data)
+      })
+      .then(async (response) => {
+	if (!response.ok) {
+	  const errorText = await response.text().catch(() => '');
+	  alert(`Request failed with status ${response.status}: ${errorText}`);
+	} else {
+	  const result = await response.json().catch(() => null);
+	  alert('Success:', result);
+	}
+      })
+      .catch((error) => {
+	alert(`POST to ${path} failed:`, error);
+      });
+    }
   </script>
  </head>
  <body>
@@ -53,7 +53,7 @@
   And the actual web services:
   <ul>
    <li><a href="/cyclops/tags">list of tags</a></li>
-   <li><button class="link-button" onclick="postData()">create tag [POST]</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/tags', { foo: 42, bar: 'baz' })">create tag [POST]</button></li>
    <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
    <li>... more to come ...</li>
   </ul>
