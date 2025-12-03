@@ -3,7 +3,6 @@ package main
 import "fmt"
 import "net/http"
 import "time"
-import "strings"
 import "html"
 import "encoding/json"
 import "github.com/MikeTaylor/catlogger"
@@ -41,13 +40,20 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
 	mux.Handle("/favicon.ico", fs)
-	mux.HandleFunc("/", server.handler)
 	mux.HandleFunc("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Behold! I live!!")
 	})
 	mux.HandleFunc("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleListTags)
 	})
+	mux.HandleFunc("/cyclops/sets/", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleRetrieve)
+	})
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
+	})
+	mux.HandleFunc("/cyclops/{anythingElse...}", server.handler)
 
 	return &server
 }
@@ -70,14 +76,8 @@ func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request
 	path := req.URL.Path
 	server.Log("path", method, path)
 
-	if path == "/" {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
-		return
-	} else if method == "POST" && path == "/cyclops/tags" {
+	if method == "POST" && path == "/cyclops/tags" {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
-	} else if method == "GET" && strings.HasPrefix(path, "/cyclops/sets/") {
-		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	} else {
 		status := http.StatusNotFound
 		message := http.StatusText(status)
