@@ -37,6 +37,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		},
 	}
 
+	// XXX use ?middleware to do: server.Log("path", req.Method, req.URL.Path)
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
 	mux.Handle("/favicon.ico", fs)
@@ -46,14 +47,17 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	mux.HandleFunc("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleListTags)
 	})
+	mux.HandleFunc("POST /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleDefineTag)
+	})
 	mux.HandleFunc("/cyclops/sets/", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	})
-	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/{$}", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
-	mux.HandleFunc("/cyclops/{anythingElse...}", server.handler)
+	mux.HandleFunc("/{anythingElse...}", server.handler)
 
 	return &server
 }
@@ -72,19 +76,12 @@ func (server *ModCyclopsServer) launch(host string, port int) error {
 }
 
 func (server *ModCyclopsServer) handler(w http.ResponseWriter, req *http.Request) {
-	method := req.Method
-	path := req.URL.Path
-	server.Log("path", method, path)
 
-	if method == "POST" && path == "/cyclops/tags" {
-		server.runWithErrorHandling(w, req, server.handleDefineTag)
-	} else {
-		status := http.StatusNotFound
-		message := http.StatusText(status)
-		w.WriteHeader(status)
-		fmt.Fprintln(w, message)
-		server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
-	}
+	status := http.StatusNotFound
+	message := http.StatusText(status)
+	w.WriteHeader(status)
+	fmt.Fprintln(w, message)
+	server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request) error
