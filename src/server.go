@@ -64,15 +64,13 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
-
-	/*
-	// XXX install 404 handler
-	status := http.StatusNotFound
-	message := http.StatusText(status)
-	w.WriteHeader(status)
-	fmt.Fprintln(w, message)
-	server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
-	*/
+	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
+		status := http.StatusNotFound
+		message := http.StatusText(status)
+		w.WriteHeader(status)
+		fmt.Fprintln(w, message)
+		server.Log("error", fmt.Sprintf("%s %s: %d %s", req.Method, req.RequestURI, status, message))
+	})
 
 	return &server
 }
