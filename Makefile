@@ -1,13 +1,23 @@
 # See also: ramls/Makefile (used only for validation and documentation)
 
+ARTIFACTID=`sed -n 's/^module .*\/\(.*\)/\1/p' go.mod`
+VERSION ?= `git describe --tags --abbrev=0 | sed 's/^v\([0-9]\)/\1/'`
+DESCRIPTORS=Activate DeploymentDescriptor Discovery ModuleDescriptor
+TARGET_DESCRIPTORS=$(DESCRIPTORS:%=target/%.json)
 SRC=main.go cyclops/server.go
-TESTSRC=#config-file_test.go
 TARGET=target/mod-cyclops
 
-**default**: target/ModuleDescriptor.json $(TARGET)
+**default**: $(TARGET_DESCRIPTORS) $(TARGET) 
 
-target/ModuleDescriptor.json:
-	(cd target; make)
+debug:
+	@echo ARTIFACTID=$(ARTIFACTID)
+	@echo VERSION=$(VERSION)
+	@echo TARGET_DESCRIPTORS=$(TARGET_DESCRIPTORS)
+
+target/%.json: descriptors/%-template.json
+	rm -f $@
+	sed "s/@artifactId@/$(ARTIFACTID)/g;s/@version@/$(VERSION)/g" $< > $@
+	chmod ugo-w $@
 
 $(TARGET): $(SRC)
 	go build -o $@
@@ -34,7 +44,7 @@ fmt:
 	go fmt ./...
 
 clean:
-	rm -f $(TARGET) coverage.out coverage.json
+	rm -f $(TARGET_DESCRIPTORS) $(TARGET) coverage.out coverage.json
 
 run: $(TARGET)
 	env LOGCAT=hello,listen,path,error $(TARGET)
