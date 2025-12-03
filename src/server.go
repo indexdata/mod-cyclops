@@ -38,7 +38,13 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		},
 	}
 
-	// XXX use ?middleware to do: server.Log("path", req.Method, req.URL.Path)
+	r.Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+			server.Log("path", req.Method, req.URL.Path)
+			next.ServeHTTP(w, req)
+		})
+	})
+
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	r.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
 	r.Handle("/favicon.ico", fs)
