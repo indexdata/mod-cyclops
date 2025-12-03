@@ -5,6 +5,7 @@ import "net/http"
 import "time"
 import "html"
 import "encoding/json"
+import "github.com/go-chi/chi/v5"
 import "github.com/MikeTaylor/catlogger"
 
 type HTTPError struct {
@@ -26,7 +27,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	tr := &http.Transport{}
 	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
 
-	mux := http.NewServeMux()
+	mux := chi.NewRouter()
 	var server = ModCyclopsServer{
 		logger: logger,
 		root:   root,
@@ -50,10 +51,10 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	mux.HandleFunc("POST /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	})
-	mux.HandleFunc("/cyclops/sets/", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	})
-	mux.HandleFunc("/{$}", func(w http.ResponseWriter, req *http.Request) {
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
