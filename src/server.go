@@ -27,34 +27,34 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	tr := &http.Transport{}
 	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
 
-	mux := chi.NewRouter()
+	r := chi.NewRouter()
 	var server = ModCyclopsServer{
 		logger: logger,
 		root:   root,
 		httpServer: http.Server{
 			ReadTimeout:  time.Duration(timeout) * time.Second,
 			WriteTimeout: time.Duration(timeout) * time.Second,
-			Handler:      mux,
+			Handler:      r,
 		},
 	}
 
 	// XXX use ?middleware to do: server.Log("path", req.Method, req.URL.Path)
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
-	mux.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
-	mux.Handle("/favicon.ico", fs)
-	mux.HandleFunc("/admin/health", func(w http.ResponseWriter, req *http.Request) {
+	r.Handle("/htdocs/", http.StripPrefix("/htdocs/", fs))
+	r.Handle("/favicon.ico", fs)
+	r.HandleFunc("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Behold! I live!!")
 	})
-	mux.HandleFunc("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleListTags)
 	})
-	mux.HandleFunc("POST /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("POST /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	})
-	mux.HandleFunc("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	})
-	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+	r.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
