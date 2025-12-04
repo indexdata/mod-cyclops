@@ -1,5 +1,5 @@
 {
   "op": "remove",
   "cond": "author LIKE \"%taylor%\"",
-  "filter": "dino"
+  "filter": "cretaceous"
 }

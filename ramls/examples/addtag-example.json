@@ -1,5 +1,5 @@
 {
   "op": "add",
   "cond": "title LIKE \"%saur\"",
-  "filter": "ptero"
+  "filter": "jurassic"
 }

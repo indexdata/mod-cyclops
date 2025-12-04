@@ -61,8 +61,8 @@
    <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'add', from: 'allobjects', cond: 'date >= 2025-01-01', filter: 'jurassic', tag: 'dino,ptero' })">add objects to set "mike"</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'remove', cond: 'date < 2025-01-01', filter: 'cretaceous', omitTag: 'ptero,croc' })">remove objects from set "mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'ptero' })">add tag "dino" to records in set "mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'dino' })">remove tag "dino" from records in set "mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'cretaceous' })">remove tag "dino" from records in set "mike"</button></li>
   </ul>
  </body>
 </html>
