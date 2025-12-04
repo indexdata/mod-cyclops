@@ -51,5 +51,5 @@ clean:
 	rm -f $(TARGET_DESCRIPTORS) $(TARGET) coverage.out coverage.json
 
 run: $(TARGET)
-	env LOGCAT=hello,listen,path,error $(TARGET)
+	./run.sh
 
