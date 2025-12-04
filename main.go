@@ -87,7 +87,6 @@ func main() {
 	logger := catlogger.MakeLogger("", cfg.loggingPrefix, cfg.loggingTimestamp)
 	// We do not need this transformation yet, but will need something like it when we have authentication
 	logger.AddTransformation(regexp.MustCompile(`\\"pass\\":\\"[^"]*\\"`), `\"pass\":\"********\"`)
-	logger.Log("hello", "Hello, world!")
 
 	server := cyclops.MakeModCyclopsServer(logger, cfg.ccmsClient, ".", cfg.queryTimeout)
 	err := server.Launch(cfg.serverHost, cfg.serverPort)
