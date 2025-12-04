@@ -29,7 +29,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, roo
 
 	r := chi.NewRouter()
 	var server = ModCyclopsServer{
-		logger: logger,
+		logger:     logger,
 		ccmsClient: ccmsClient,
 		httpServer: http.Server{
 			ReadTimeout:  time.Duration(timeout) * time.Second,
