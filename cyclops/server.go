@@ -17,7 +17,6 @@ func (m *HTTPError) Error() string {
 }
 
 type ModCyclopsServer struct {
-	root       string
 	logger     *catlogger.Logger
 	httpServer http.Server
 }
@@ -29,7 +28,6 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	r := chi.NewRouter()
 	var server = ModCyclopsServer{
 		logger: logger,
-		root:   root,
 		httpServer: http.Server{
 			ReadTimeout:  time.Duration(timeout) * time.Second,
 			WriteTimeout: time.Duration(timeout) * time.Second,
