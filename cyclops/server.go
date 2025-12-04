@@ -45,6 +45,10 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	})
 
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
+	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
+	})
 	r.Handle("/htdocs/*", http.StripPrefix("/htdocs/", fs))
 	r.Handle("/favicon.ico", fs)
 	r.Get("/admin/health", func(w http.ResponseWriter, req *http.Request) {
@@ -70,10 +74,6 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	})
 	r.Get("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
-	})
-	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
