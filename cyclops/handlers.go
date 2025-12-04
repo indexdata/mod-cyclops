@@ -30,7 +30,15 @@ type FilterList struct {
 }
 
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
-	filters := []string{"triassic", "jurassic", "cretaceous"}
+	resp, err := server.ccmsClient.Send("show filters")
+	if err != nil {
+		return fmt.Errorf("could not fetch show-filters response: %w", err)
+	}
+
+	filters := make([]string, len(resp.Data))
+	for i, val := range resp.Data {
+		filters[i] = val.Values[0]
+	}
 	filterList := FilterList{Filters: filters}
 	return sendJSON(w, filterList, "SHOW FILTERS")
 }
