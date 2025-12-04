@@ -78,6 +78,9 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	r.Post("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleAddRemoveObjects)
 	})
+	r.Post("/cyclops/sets/{setName}/tag/{tagName}", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleAddRemoveTags)
+	})
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
 		message := http.StatusText(status)
