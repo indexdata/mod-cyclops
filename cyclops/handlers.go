@@ -44,6 +44,26 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+type SetList struct {
+	Sets []string `json:"sets"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+func (server *ModCyclopsServer) handleListSets(w http.ResponseWriter, req *http.Request) error {
+	sets := []string{"mike", "test", "uob"}
+	setList := SetList{Sets: sets}
+	return sendJSON(w, setList, "LIST SETS")
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http.Request) error {
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 type FieldDescription struct {
 	Name string
 	// No other elements yet, but use a structure for future expansion

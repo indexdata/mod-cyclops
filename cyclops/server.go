@@ -62,6 +62,12 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	r.Post("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineFilter)
 	})
+	r.Get("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleListSets)
+	})
+	r.Post("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleCreateSet)
+	})
 	r.Get("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	})
