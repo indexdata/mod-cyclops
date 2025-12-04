@@ -100,6 +100,14 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 
 // -----------------------------------------------------------------------------
 
+func (server *ModCyclopsServer) handleAddRemoveObjects(w http.ResponseWriter, req *http.Request) error {
+	// It seems weird to just shrug and say "fine" for anything posted, but for now it will suffice.
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
 	bytes, err := json.Marshal(data)
 	if err != nil {
