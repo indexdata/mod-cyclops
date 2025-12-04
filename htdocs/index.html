@@ -58,7 +58,7 @@
    <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000' })">define filter "jurassic"</button></li>
    <li><a href="/cyclops/sets">list of sets</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'mike' })">create set "mike"</button></li>
-   <li><a href="/cyclops/sets/mike">records from set <code>mike</code></a></li>
+   <li><a href="/cyclops/sets/mike?fields=%2A&cond=143100000%20%3C%3D%20age%20AND%20age%20%3C%3D%20201400000&filter=jurassic&tag=dino,ptero&sort=author,title&offset=20&limit=10">retrieve from set <code>mike</code></a></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'add', from: 'allobjects', cond: 'date >= 2025-01-01', filter: 'jurassic', tag: 'dino,ptero' })">add objects to set "mike"</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/mike', { op: 'remove', cond: 'date < 2025-01-01', filter: 'cretaceous', omitTag: 'ptero,croc' })">remove objects from set "mike"</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "mike"</button></li>
