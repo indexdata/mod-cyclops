@@ -1,8 +1,11 @@
 package cyclops
 
+import "errors"
+import "strings"
 import "fmt"
 import "net/http"
 import "encoding/json"
+import "github.com/go-chi/chi/v5"
 
 type TagList struct {
 	Tags []string `json:"tags"`
@@ -97,7 +100,74 @@ type RetrieveResponse struct {
 	Message string
 }
 
+func makeRetrieveCommand(req *http.Request) (string, error) {
+	var b strings.Builder
+
+	fields := req.URL.Query().Get("fields")
+	if fields == "" {
+		return "", errors.New("no 'fields' parameter supplied")
+	}
+	b.WriteString("retrieve ")
+	b.WriteString(fields)
+
+	setName := chi.URLParam(req, "setName")
+	b.WriteString(" from ")
+	b.WriteString(setName)
+
+	cond := req.URL.Query().Get("cond")
+	if cond != "" {
+		b.WriteString(" where ")
+		b.WriteString(cond)
+	}
+
+	filter := req.URL.Query().Get("filter")
+	if filter != "" {
+		b.WriteString(" filter ")
+		b.WriteString(filter)
+	}
+
+	tag := req.URL.Query().Get("tag")
+	omitTag := req.URL.Query().Get("omitTag")
+	if tag != "" && omitTag != "" {
+		return "", errors.New("both 'tag' and 'omitTag' parameters supplied")
+	}
+
+	if tag != "" {
+		b.WriteString(" tag ")
+		b.WriteString(tag)
+	} else if omitTag != "" {
+		b.WriteString(" tag not ")
+		b.WriteString(omitTag)
+	}
+
+	sort := req.URL.Query().Get("sort")
+	if sort != "" {
+		b.WriteString(" sort ")
+		b.WriteString(sort)
+	}
+
+	offset := req.URL.Query().Get("offset")
+	if offset != "" {
+		b.WriteString(" offset ")
+		b.WriteString(offset)
+	}
+
+	limit := req.URL.Query().Get("limit")
+	if limit != "" {
+		b.WriteString(" limit ")
+		b.WriteString(limit)
+	}
+
+	return b.String(), nil
+}
+
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
+	command, err := makeRetrieveCommand(req)
+	if err != nil {
+		return fmt.Errorf("cannot retrieve: %w", err)
+	}
+	server.Log("command", command)
+
 	field1 := FieldDescription{Name: "id"}
 	field2 := FieldDescription{Name: "title"}
 	fields := []FieldDescription{field1, field2}
