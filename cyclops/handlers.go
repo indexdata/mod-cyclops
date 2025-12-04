@@ -4,7 +4,6 @@ import "fmt"
 import "net/http"
 import "encoding/json"
 
-
 type TagList struct {
 	Tags []string `json:"tags"`
 	// No other elements yet, but use a structure for future expansion
@@ -13,14 +12,37 @@ type TagList struct {
 func (server *ModCyclopsServer) handleListTags(w http.ResponseWriter, req *http.Request) error {
 	tags := []string{"foo", "bar", "baz"}
 	tagList := TagList{Tags: tags}
-	fmt.Printf("tagList = %+v\n", tagList)
 	return sendJSON(w, tagList, "LIST TAGS")
 }
+
+// -----------------------------------------------------------------------------
 
 func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
+
+// -----------------------------------------------------------------------------
+
+type FilterList struct {
+	Filters []string `json:"filters"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+func (server *ModCyclopsServer) handleListFilters(w http.ResponseWriter, req *http.Request) error {
+	filters := []string{"triassic", "jurassic", "cretaceous"}
+	filterList := FilterList{Filters: filters}
+	return sendJSON(w, filterList, "LIST FILTERS")
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *http.Request) error {
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
 
 type FieldDescription struct {
 	Name string
@@ -55,6 +77,8 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	}
 	return sendJSON(w, rr, "RETRIEVE")
 }
+
+// -----------------------------------------------------------------------------
 
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
 	bytes, err := json.Marshal(data)
