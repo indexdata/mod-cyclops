@@ -47,19 +47,19 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 	fs := http.FileServer(http.Dir(root + "/htdocs"))
 	r.Handle("/htdocs/*", http.StripPrefix("/htdocs/", fs))
 	r.Handle("/favicon.ico", fs)
-	r.HandleFunc("GET /admin/health", func(w http.ResponseWriter, req *http.Request) {
+	r.Get("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintln(w, "Behold! I live!!")
 	})
-	r.HandleFunc("GET /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+	r.Get("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleListTags)
 	})
-	r.HandleFunc("POST /cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
+	r.Post("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	})
-	r.HandleFunc("GET /cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
+	r.Get("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleRetrieve)
 	})
-	r.HandleFunc("GET /", func(w http.ResponseWriter, req *http.Request) {
+	r.Get("/", func(w http.ResponseWriter, req *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		fmt.Fprintln(w, `<a href="/htdocs/">Static area</a>`)
 	})
