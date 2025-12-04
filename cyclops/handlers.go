@@ -55,9 +55,7 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		return fmt.Errorf("could not fetch show-sets response: %w", err)
 	}
 
-	fmt.Printf("resp = %+v, err = %+v, len = %d\n", resp, err, len(resp.Data))
-	sets := []string{"mike", "test", "uob"}
-	sets = make([]string, len(resp.Data))
+	sets := make([]string, len(resp.Data))
 	for i, val := range resp.Data {
 		sets[i] = val.Values[0]
 	}
