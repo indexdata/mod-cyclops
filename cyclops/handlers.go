@@ -50,7 +50,17 @@ type SetList struct {
 }
 
 func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request) error {
+	resp, err := server.ccmsClient.Send("show sets")
+	if err != nil {
+		return fmt.Errorf("could not fetch show-sets response: %w", err)
+	}
+
+	fmt.Printf("resp = %+v, err = %+v, len = %d\n", resp, err, len(resp.Data))
 	sets := []string{"mike", "test", "uob"}
+	sets = make([]string, len(resp.Data))
+	for i, val := range resp.Data {
+		sets[i] = val.Values[0]
+	}
 	setList := SetList{Sets: sets}
 	return sendJSON(w, setList, "SHOW SETS")
 }

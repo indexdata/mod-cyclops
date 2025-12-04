@@ -6,6 +6,7 @@ import "time"
 import "html"
 import "github.com/go-chi/chi/v5"
 import "github.com/MikeTaylor/catlogger"
+import "github.com/indexdata/ccms"
 
 type HTTPError struct {
 	status  int
@@ -18,16 +19,18 @@ func (m *HTTPError) Error() string {
 
 type ModCyclopsServer struct {
 	logger     *catlogger.Logger
+	ccmsClient *ccms.Client
 	httpServer http.Server
 }
 
-func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *ModCyclopsServer {
+func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, root string, timeout int) *ModCyclopsServer {
 	tr := &http.Transport{}
 	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
 
 	r := chi.NewRouter()
 	var server = ModCyclopsServer{
 		logger: logger,
+		ccmsClient: ccmsClient,
 		httpServer: http.Server{
 			ReadTimeout:  time.Duration(timeout) * time.Second,
 			WriteTimeout: time.Duration(timeout) * time.Second,

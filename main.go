@@ -5,6 +5,7 @@ import "strconv"
 import "fmt"
 import "regexp"
 import "github.com/MikeTaylor/catlogger"
+import "github.com/indexdata/ccms"
 import "github.com/indexdata/mod-cyclops/cyclops"
 
 // PRIVATE to this file
@@ -14,6 +15,25 @@ type config struct {
 	queryTimeout     int
 	serverHost       string
 	serverPort       int
+	ccmsClient       *ccms.Client
+}
+
+func makeCCMSClient() *ccms.Client {
+	port := os.Getenv("CCMS_PORT")
+	if port == "" {
+		port = "8504"
+	}
+
+	client := ccms.Client{
+		Host:          os.Getenv("CCMS_HOST"),
+		Port:          port,
+		User:          os.Getenv("CCMS_USER"),
+		Password:      os.Getenv("CCMS_PASSWORD"),
+		NoTLS:         true, // insecure, but server does not yet support TLS
+		TLSSkipVerify: true, // likewise
+	}
+
+	return &client
 }
 
 func buildConfigFromEnv() *config {
@@ -46,6 +66,8 @@ func buildConfigFromEnv() *config {
 		cfg.serverPort = 12370
 	}
 
+	cfg.ccmsClient = makeCCMSClient()
+
 	return &cfg
 }
 
@@ -56,6 +78,10 @@ func main() {
 	}
 
 	cfg := buildConfigFromEnv()
+	if cfg.ccmsClient.Host == "" {
+		fmt.Fprintf(os.Stderr, "%s: bad configuration (no CCMS server)\n", os.Args[0])
+		os.Exit(2)
+	}
 
 	// catlogger.MakeLogger handes the category environment variables on its own
 	logger := catlogger.MakeLogger("", cfg.loggingPrefix, cfg.loggingTimestamp)
@@ -63,7 +89,7 @@ func main() {
 	logger.AddTransformation(regexp.MustCompile(`\\"pass\\":\\"[^"]*\\"`), `\"pass\":\"********\"`)
 	logger.Log("hello", "Hello, world!")
 
-	server := cyclops.MakeModCyclopsServer(logger, ".", cfg.queryTimeout)
+	server := cyclops.MakeModCyclopsServer(logger, cfg.ccmsClient, ".", cfg.queryTimeout)
 	err := server.Launch(cfg.serverHost, cfg.serverPort)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%s: cannot launch server: %s\n", os.Args[0], err)
