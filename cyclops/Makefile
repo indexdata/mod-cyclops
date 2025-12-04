@@ -2,7 +2,7 @@
 	(cd ..; make)
 
 run:
-	(cd ..; ./run.sh)
+	(cd ..; make run)
 
 lint:
 	(cd ..; make lint)
