@@ -9,10 +9,10 @@ type TagList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleListTags(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
 	tags := []string{"foo", "bar", "baz"}
 	tagList := TagList{Tags: tags}
-	return sendJSON(w, tagList, "LIST TAGS")
+	return sendJSON(w, tagList, "SHOW TAGS")
 }
 
 // -----------------------------------------------------------------------------
@@ -29,10 +29,10 @@ type FilterList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleListFilters(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
 	filters := []string{"triassic", "jurassic", "cretaceous"}
 	filterList := FilterList{Filters: filters}
-	return sendJSON(w, filterList, "LIST FILTERS")
+	return sendJSON(w, filterList, "SHOW FILTERS")
 }
 
 // -----------------------------------------------------------------------------
@@ -49,10 +49,10 @@ type SetList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleListSets(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request) error {
 	sets := []string{"mike", "test", "uob"}
 	setList := SetList{Sets: sets}
-	return sendJSON(w, setList, "LIST SETS")
+	return sendJSON(w, setList, "SHOW SETS")
 }
 
 // -----------------------------------------------------------------------------

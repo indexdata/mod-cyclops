@@ -51,19 +51,19 @@ func MakeModCyclopsServer(logger *catlogger.Logger, root string, timeout int) *M
 		fmt.Fprintln(w, "Behold! I live!!")
 	})
 	r.Get("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleListTags)
+		server.runWithErrorHandling(w, req, server.handleShowTags)
 	})
 	r.Post("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineTag)
 	})
 	r.Get("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleListFilters)
+		server.runWithErrorHandling(w, req, server.handleShowFilters)
 	})
 	r.Post("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleDefineFilter)
 	})
 	r.Get("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleListSets)
+		server.runWithErrorHandling(w, req, server.handleShowSets)
 	})
 	r.Post("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleCreateSet)
