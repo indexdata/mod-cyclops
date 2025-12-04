@@ -3,7 +3,6 @@ package cyclops
 import "fmt"
 import "net/http"
 import "time"
-import "html"
 import "github.com/go-chi/chi/v5"
 import "github.com/MikeTaylor/catlogger"
 import "github.com/indexdata/ccms"
@@ -119,7 +118,7 @@ func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req 
 			status = http.StatusInternalServerError
 		}
 		w.WriteHeader(status)
-		fmt.Fprintln(w, html.EscapeString(err.Error()))
+		fmt.Fprintln(w, err.Error())
 		message := http.StatusText(status)
 		server.Log("error", fmt.Sprintf("%s %s: %d %s: %s", req.Method, req.RequestURI, status, message, err.Error()))
 	}
