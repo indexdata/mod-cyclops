@@ -75,7 +75,36 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 
 // -----------------------------------------------------------------------------
 
+type DefineFilter struct {
+	Name     string `json:"name"`
+	Cond     string `json:"cond"`
+	Template string `json:"template"`
+}
+
 func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *http.Request) error {
+	var filter DefineFilter
+	err := unmarshalBody(req, &filter)
+	if err != nil {
+		return fmt.Errorf("define filter: %w", err)
+	}
+
+	command := "define filter " + filter.Name
+	if filter.Cond != "" {
+		command += " where " + filter.Cond
+	}
+	if filter.Template != "" {
+		command += " template " + filter.Template
+	}
+	server.Log("command", command)
+
+	resp, err := server.ccmsClient.Send(command)
+	if err != nil {
+		return fmt.Errorf("could not define filter %s: %w", filter.Name, err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("define filter %s failed: %s", filter.Name, resp.Message)
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
