@@ -86,6 +86,10 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 
 // -----------------------------------------------------------------------------
 
+// It's annoying that we have to make these descriptions that are
+// parallel to those in the ccms package, but it seems the only way to
+// specify the JSON encoding.
+
 type FieldDescription struct {
 	Name string `json:"name"`
 	// No other elements yet, but use a structure for future expansion
@@ -171,6 +175,8 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	}
 	server.Log("command", command)
 
+	// Comment this out until CCMS supports the RETRIEVE command, and dummy up a response instead
+	/*
 	resp, err := server.ccmsClient.Send(command)
 	if err != nil {
 		return fmt.Errorf("could not retrieve: %w", err)
@@ -178,6 +184,7 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	if resp.Status == "error" {
 		return fmt.Errorf("retrieve failed: %s", resp.Message)
 	}
+	*/
 
 	field1 := FieldDescription{Name: "id"}
 	field2 := FieldDescription{Name: "title"}
