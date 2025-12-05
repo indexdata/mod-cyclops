@@ -27,15 +27,10 @@ type DefineTag struct {
 }
 
 func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
-	b, err := io.ReadAll(req.Body)
-	if err != nil {
-		return fmt.Errorf("could not read HTTP request body: %w", err)
-	}
-
 	var tag DefineTag
-	err = json.Unmarshal(b, &tag)
+	err := unmarshalBody(req, &tag)
 	if err != nil {
-		return fmt.Errorf("could not deserialize JSON from body: %w", err)
+		return fmt.Errorf("define tag: %w", err)
 	}
 
 	setName := tag.Name
@@ -281,6 +276,20 @@ func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *
 }
 
 // -----------------------------------------------------------------------------
+
+func unmarshalBody[T any](req *http.Request, data *T) error {
+	b, err := io.ReadAll(req.Body)
+	if err != nil {
+		return fmt.Errorf("could not read HTTP request body: %w", err)
+	}
+
+	err = json.Unmarshal(b, &data)
+	if err != nil {
+		return fmt.Errorf("could not deserialize JSON from body: %w", err)
+	}
+
+	return nil
+}
 
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
 	b, err := json.Marshal(data)
