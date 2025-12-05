@@ -6,6 +6,7 @@ import "fmt"
 import "net/http"
 import "encoding/json"
 import "github.com/go-chi/chi/v5"
+import "github.com/indexdata/ccms"
 
 type TagList struct {
 	Tags []string `json:"tags"`
@@ -162,27 +163,51 @@ type DataRow struct {
 }
 
 type RetrieveResponse struct {
-	Status  string `json:"status"`
+	Status  string             `json:"status"`
 	Fields  []FieldDescription `json:"fields"`
-	Data    []DataRow `json:"data"`
-	Message string `json:"message"`
+	Data    []DataRow          `json:"data"`
+	Message string             `json:"message"`
 }
 
-func makeDummyResponse() RetrieveResponse {
-	field1 := FieldDescription{Name: "id"}
-	field2 := FieldDescription{Name: "title"}
-	fields := []FieldDescription{field1, field2}
-	datum1 := DataRow{Values: []string{"123", "The Lord of the Rings"}}
-	datum2 := DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
-	datum3 := DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
-	data := []DataRow{datum1, datum2, datum3}
-	rr := RetrieveResponse{
+func makeDummyResponse() *ccms.Response {
+	field1 := ccms.FieldDescription{Name: "id"}
+	field2 := ccms.FieldDescription{Name: "title"}
+	fields := []ccms.FieldDescription{field1, field2}
+	datum1 := ccms.DataRow{Values: []string{"123", "The Lord of the Rings"}}
+	datum2 := ccms.DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
+	datum3 := ccms.DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
+	data := []ccms.DataRow{datum1, datum2, datum3}
+	rr := ccms.Response{
 		Status:  "retrieve",
 		Fields:  fields,
 		Data:    data,
 		Message: "",
 	}
-	return rr
+	return &rr
+}
+
+// Translate from CCMS's structure into an identical one with JSON encoding instructions
+// It feels like there has to be a better way to do this
+func ccms2local(rr *ccms.Response) RetrieveResponse {
+	localFields := make([]FieldDescription, len(rr.Fields))
+	for i, val := range rr.Fields {
+		localFields[i].Name = val.Name
+	}
+
+	localData := make([]DataRow, len(rr.Data))
+	for i, val := range rr.Data {
+		localData[i] = DataRow{
+			Values: make([]string, len(val.Values)),
+		}
+		copy(localData[i].Values, val.Values)
+	}
+
+	return RetrieveResponse{
+		Status:  rr.Status,
+		Fields:  localFields,
+		Data:    localData,
+		Message: rr.Message,
+	}
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
@@ -192,20 +217,23 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	}
 	server.Log("command", command)
 
-	// Comment this out until CCMS supports the RETRIEVE command, and dummy up a response instead
-	/*
-	resp, err := server.ccmsClient.Send(command)
-	if err != nil {
-		return fmt.Errorf("could not retrieve: %w", err)
+	// Use the dummy until CCMS can provide a response
+	var resp *ccms.Response
+	if false {
+		resp, err = server.ccmsClient.Send(command)
+		if err != nil {
+			return fmt.Errorf("could not retrieve: %w", err)
+		}
+		if resp.Status == "error" {
+			return fmt.Errorf("retrieve failed: %s", resp.Message)
+		}
+	} else {
+		resp = makeDummyResponse()
 	}
-	if resp.Status == "error" {
-		return fmt.Errorf("retrieve failed: %s", resp.Message)
-	}
-	*/
 
-	rr := makeDummyResponse()
+	localrr := ccms2local(resp)
 
-	return sendJSON(w, rr, "RETRIEVE")
+	return sendJSON(w, localrr, "RETRIEVE")
 }
 
 // -----------------------------------------------------------------------------
