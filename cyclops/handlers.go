@@ -35,7 +35,10 @@ type FilterList struct {
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
 	resp, err := server.ccmsClient.Send("show filters")
 	if err != nil {
-		return fmt.Errorf("could not fetch show-filters response: %w", err)
+		return fmt.Errorf("could not show filters: %w", err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("show filters failed: %s", resp.Message)
 	}
 
 	filters := make([]string, len(resp.Data))
@@ -164,9 +167,17 @@ func makeRetrieveCommand(req *http.Request) (string, error) {
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
 	command, err := makeRetrieveCommand(req)
 	if err != nil {
-		return fmt.Errorf("cannot retrieve: %w", err)
+		return fmt.Errorf("could not make retrieve command: %w", err)
 	}
 	server.Log("command", command)
+
+	resp, err := server.ccmsClient.Send(command)
+	if err != nil {
+		return fmt.Errorf("could not retrieve: %w", err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("retrieve failed: %s", resp.Message)
+	}
 
 	field1 := FieldDescription{Name: "id"}
 	field2 := FieldDescription{Name: "title"}
