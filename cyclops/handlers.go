@@ -2,6 +2,7 @@ package cyclops
 
 import "errors"
 import "strings"
+import "io"
 import "fmt"
 import "net/http"
 import "encoding/json"
@@ -21,7 +22,34 @@ func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.
 
 // -----------------------------------------------------------------------------
 
+type DefineTag struct {
+	Name string `json:"name"`
+}
+
 func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
+	b, err := io.ReadAll(req.Body)
+	if err != nil {
+		return fmt.Errorf("could not read HTTP request body: %w", err)
+	}
+
+	var tag DefineTag
+	err = json.Unmarshal(b, &tag)
+	if err != nil {
+		return fmt.Errorf("could not deserialize JSON from body: %w", err)
+	}
+
+	setName := tag.Name
+	command := "define tag " + setName
+	server.Log("command", command)
+
+	resp, err := server.ccmsClient.Send(command)
+	if err != nil {
+		return fmt.Errorf("could not define tag %s: %w", setName, err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("define tag %s failed: %s", setName, resp.Message)
+	}
+
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
