@@ -168,6 +168,23 @@ type RetrieveResponse struct {
 	Message string `json:"message"`
 }
 
+func makeDummyResponse() RetrieveResponse {
+	field1 := FieldDescription{Name: "id"}
+	field2 := FieldDescription{Name: "title"}
+	fields := []FieldDescription{field1, field2}
+	datum1 := DataRow{Values: []string{"123", "The Lord of the Rings"}}
+	datum2 := DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
+	datum3 := DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
+	data := []DataRow{datum1, datum2, datum3}
+	rr := RetrieveResponse{
+		Status:  "retrieve",
+		Fields:  fields,
+		Data:    data,
+		Message: "",
+	}
+	return rr
+}
+
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
 	command, err := makeRetrieveCommand(req)
 	if err != nil {
@@ -186,19 +203,8 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	}
 	*/
 
-	field1 := FieldDescription{Name: "id"}
-	field2 := FieldDescription{Name: "title"}
-	fields := []FieldDescription{field1, field2}
-	datum1 := DataRow{Values: []string{"123", "The Lord of the Rings"}}
-	datum2 := DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
-	datum3 := DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
-	data := []DataRow{datum1, datum2, datum3}
-	rr := RetrieveResponse{
-		Status:  "retrieve",
-		Fields:  fields,
-		Data:    data,
-		Message: "",
-	}
+	rr := makeDummyResponse()
+
 	return sendJSON(w, rr, "RETRIEVE")
 }
 
