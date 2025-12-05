@@ -283,7 +283,7 @@ func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *
 // -----------------------------------------------------------------------------
 
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
-	bytes, err := json.Marshal(data)
+	b, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("could not encode JSON for %s: %w", caption, err)
 	}
@@ -291,6 +291,6 @@ func sendJSON(w http.ResponseWriter, data any, caption string) error {
 	w.Header().Set("Content-Type", "application/json")
 
 	// If w.write fails there is no way to report this to the client: see MODREP-37.
-	_, _ = w.Write(bytes)
+	_, _ = w.Write(b)
 	return nil
 }
