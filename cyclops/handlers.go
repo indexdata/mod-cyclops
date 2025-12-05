@@ -87,20 +87,20 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 // -----------------------------------------------------------------------------
 
 type FieldDescription struct {
-	Name string
+	Name string `json:"name"`
 	// No other elements yet, but use a structure for future expansion
 }
 
 type DataRow struct {
-	Values []string
+	Values []string `json:"values"`
 	// No other elements yet, but use a structure for future expansion
 }
 
 type RetrieveResponse struct {
-	Status  string
-	Fields  []FieldDescription
-	Data    []DataRow
-	Message string
+	Status  string `json:"status"`
+	Fields  []FieldDescription `json:"fields"`
+	Data    []DataRow `json:"data"`
+	Message string `json:"message"`
 }
 
 func makeRetrieveCommand(req *http.Request) (string, error) {
