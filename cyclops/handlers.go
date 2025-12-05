@@ -86,27 +86,6 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 
 // -----------------------------------------------------------------------------
 
-// It's annoying that we have to make these descriptions that are
-// parallel to those in the ccms package, but it seems the only way to
-// specify the JSON encoding.
-
-type FieldDescription struct {
-	Name string `json:"name"`
-	// No other elements yet, but use a structure for future expansion
-}
-
-type DataRow struct {
-	Values []string `json:"values"`
-	// No other elements yet, but use a structure for future expansion
-}
-
-type RetrieveResponse struct {
-	Status  string `json:"status"`
-	Fields  []FieldDescription `json:"fields"`
-	Data    []DataRow `json:"data"`
-	Message string `json:"message"`
-}
-
 func makeRetrieveCommand(req *http.Request) (string, error) {
 	var b strings.Builder
 
@@ -166,6 +145,27 @@ func makeRetrieveCommand(req *http.Request) (string, error) {
 	}
 
 	return b.String(), nil
+}
+
+// It's annoying that we have to make these descriptions that are
+// parallel to those in the ccms package, but it seems the only way to
+// specify the JSON encoding.
+
+type FieldDescription struct {
+	Name string `json:"name"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+type DataRow struct {
+	Values []string `json:"values"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+type RetrieveResponse struct {
+	Status  string `json:"status"`
+	Fields  []FieldDescription `json:"fields"`
+	Data    []DataRow `json:"data"`
+	Message string `json:"message"`
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
