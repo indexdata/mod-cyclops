@@ -97,13 +97,11 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 	}
 	server.Log("command", command)
 
-	resp, err := server.ccmsClient.Send(command)
+	resp, err := server.sendToCCMS("define filter " + filter.Name, command)
 	if err != nil {
-		return fmt.Errorf("could not define filter %s: %w", filter.Name, err)
+		return err
 	}
-	if resp.Status == "error" {
-		return fmt.Errorf("define filter %s failed: %s", filter.Name, resp.Message)
-	}
+	fmt.Printf("define filter response: %*v\n", resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -318,6 +316,17 @@ func unmarshalBody[T any](req *http.Request, data *T) error {
 	}
 
 	return nil
+}
+
+func (server *ModCyclopsServer) sendToCCMS(action string, command string) (*ccms.Response, error) {
+	resp, err := server.ccmsClient.Send(command)
+	if err != nil {
+		return nil, fmt.Errorf("could not %s: %w", action, err)
+	}
+	if resp.Status == "error" {
+		return nil, fmt.Errorf("%s failed: %s", action, resp.Message)
+	}
+	return resp, nil
 }
 
 func sendJSON(w http.ResponseWriter, data any, caption string) error {
