@@ -315,13 +315,13 @@ func unmarshalBody[T any](req *http.Request, data *T) error {
 	return nil
 }
 
-func (server *ModCyclopsServer) sendToCCMS(action string, command string) (*ccms.Response, error) {
+func (server *ModCyclopsServer) sendToCCMS(caption string, command string) (*ccms.Response, error) {
 	resp, err := server.ccmsClient.Send(command)
 	if err != nil {
-		return nil, fmt.Errorf("could not %s: %w", action, err)
+		return nil, fmt.Errorf("could not %s: %w", caption, err)
 	}
 	if resp.Status == "error" {
-		return nil, fmt.Errorf("%s failed: %s", action, resp.Message)
+		return nil, fmt.Errorf("%s failed: %s", caption, resp.Message)
 	}
 	return resp, nil
 }
