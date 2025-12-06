@@ -17,7 +17,7 @@ type TagList struct {
 func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
 	tags := []string{"foo", "bar", "baz"}
 	tagList := TagList{Tags: tags}
-	return sendJSON(w, tagList, "SHOW TAGS")
+	return respondWithJSON(w, tagList, "SHOW TAGS")
 }
 
 // -----------------------------------------------------------------------------
@@ -67,7 +67,7 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 		filters[i] = val.Values[0]
 	}
 	filterList := FilterList{Filters: filters}
-	return sendJSON(w, filterList, "SHOW FILTERS")
+	return respondWithJSON(w, filterList, "SHOW FILTERS")
 }
 
 // -----------------------------------------------------------------------------
@@ -122,7 +122,7 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		sets[i] = val.Values[0]
 	}
 	setList := SetList{Sets: sets}
-	return sendJSON(w, setList, "SHOW SETS")
+	return respondWithJSON(w, setList, "SHOW SETS")
 }
 
 // -----------------------------------------------------------------------------
@@ -280,7 +280,7 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 
 	localrr := ccms2local(resp)
 
-	return sendJSON(w, localrr, "RETRIEVE")
+	return respondWithJSON(w, localrr, "RETRIEVE")
 }
 
 // -----------------------------------------------------------------------------
@@ -326,7 +326,7 @@ func (server *ModCyclopsServer) sendToCCMS(action string, command string) (*ccms
 	return resp, nil
 }
 
-func sendJSON(w http.ResponseWriter, data any, caption string) error {
+func respondWithJSON(w http.ResponseWriter, data any, caption string) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("could not encode JSON for %s: %w", caption, err)
