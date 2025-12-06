@@ -33,17 +33,14 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 		return fmt.Errorf("define tag: %w", err)
 	}
 
-	setName := tag.Name
-	command := "define tag " + setName
+	command := "define tag " + tag.Name
 	server.Log("command", command)
 
-	resp, err := server.ccmsClient.Send(command)
+	resp, err := server.sendToCCMS("define tag "+tag.Name, command)
 	if err != nil {
-		return fmt.Errorf("could not define tag %s: %w", setName, err)
+		return err
 	}
-	if resp.Status == "error" {
-		return fmt.Errorf("define tag %s failed: %s", setName, resp.Message)
-	}
+	fmt.Printf("define tag response: %+v\n", resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -97,11 +94,11 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 	}
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS("define filter " + filter.Name, command)
+	resp, err := server.sendToCCMS("define filter "+filter.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("define filter response: %*v\n", resp)
+	fmt.Printf("define filter response: %+v\n", resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
