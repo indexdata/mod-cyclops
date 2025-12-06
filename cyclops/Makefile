@@ -7,3 +7,6 @@ run:
 lint:
 	(cd ..; make lint)
 
+clean:
+	(cd ..; make clean)
+
