@@ -21,9 +21,9 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, label st
 	}
 
 	var data string
-	if label == "SHOW TAGS" {
+	if label == "show tags" {
 		data = dummyShowTagsResponse
-	} else if label == "RETRIEVE" {
+	} else if label == "retrieve" {
 		data = dummyRetrieveResponse
 	} else {
 		return false, fmt.Errorf("'%s' dummy not yet implemented", label)

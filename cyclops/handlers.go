@@ -15,7 +15,7 @@ type TagList struct {
 }
 
 func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "SHOW TAGS")
+	sent, err := server.respondWithDummy(w, "show tags")
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
@@ -32,7 +32,7 @@ func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.
 		tags[i] = val.Values[0]
 	}
 	tagList := TagList{Tags: tags}
-	return respondWithJSON(w, tagList, "SHOW TAGS")
+	return respondWithJSON(w, tagList, "show tags")
 }
 
 // -----------------------------------------------------------------------------
@@ -79,7 +79,7 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 		filters[i] = val.Values[0]
 	}
 	filterList := FilterList{Filters: filters}
-	return respondWithJSON(w, filterList, "SHOW FILTERS")
+	return respondWithJSON(w, filterList, "show filters")
 }
 
 // -----------------------------------------------------------------------------
@@ -134,7 +134,7 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		sets[i] = val.Values[0]
 	}
 	setList := SetList{Sets: sets}
-	return respondWithJSON(w, setList, "SHOW SETS")
+	return respondWithJSON(w, setList, "show sets")
 }
 
 // -----------------------------------------------------------------------------
@@ -253,7 +253,7 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "RETRIEVE")
+	sent, err := server.respondWithDummy(w, "retrieve")
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
@@ -276,7 +276,7 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 
 	localrr := ccms2local(resp)
 
-	return respondWithJSON(w, localrr, "RETRIEVE")
+	return respondWithJSON(w, localrr, "retrieve")
 }
 
 // -----------------------------------------------------------------------------
