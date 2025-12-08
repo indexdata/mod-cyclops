@@ -10,10 +10,8 @@ import "net/http"
  * environment variable is set, then a premade response is sent back
  * to the client. Otherwise, an error is returned.
  *
- * It's bad because:
- * 1. It calls Getenv directly, which is otherwise done only in main
- * 2. It knows about data-types otherwise private to handlers.go
- * But all that will go away soon.
+ * It's bad because it calls Getenv directly, which is otherwise done
+ * only in main. But all this will go away soon.
  */
 
 func (server *ModCyclopsServer) sendDummyResponse(w http.ResponseWriter, label string) (bool, error) {
