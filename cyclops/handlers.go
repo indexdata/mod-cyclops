@@ -216,23 +216,6 @@ type RetrieveResponse struct {
 	Message string             `json:"message"`
 }
 
-func makeDummyResponse() *ccms.Response {
-	field1 := ccms.FieldDescription{Name: "id"}
-	field2 := ccms.FieldDescription{Name: "title"}
-	fields := []ccms.FieldDescription{field1, field2}
-	datum1 := ccms.DataRow{Values: []string{"123", "The Lord of the Rings"}}
-	datum2 := ccms.DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
-	datum3 := ccms.DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
-	data := []ccms.DataRow{datum1, datum2, datum3}
-	rr := ccms.Response{
-		Status:  "retrieve",
-		Fields:  fields,
-		Data:    data,
-		Message: "",
-	}
-	return &rr
-}
-
 // Translate from CCMS's structure into an identical one with JSON encoding instructions
 // It feels like there has to be a better way to do this
 func ccms2local(rr *ccms.Response) RetrieveResponse {
@@ -258,24 +241,25 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
+	sent, err := server.sendDummyResponse(w, "RETRIEVE")
+	if err != nil {
+		return fmt.Errorf("could not make dummy response: %w", err)
+	} else if sent {
+		return nil
+	}
+
 	command, err := makeRetrieveCommand(req)
 	if err != nil {
 		return fmt.Errorf("could not make retrieve command: %w", err)
 	}
 	server.Log("command", command)
 
-	// Use the dummy until CCMS can provide a response
-	var resp *ccms.Response
-	if false {
-		resp, err = server.ccmsClient.Send(command)
-		if err != nil {
-			return fmt.Errorf("could not retrieve: %w", err)
-		}
-		if resp.Status == "error" {
-			return fmt.Errorf("retrieve failed: %s", resp.Message)
-		}
-	} else {
-		resp = makeDummyResponse()
+	resp, err := server.ccmsClient.Send(command)
+	if err != nil {
+		return fmt.Errorf("could not retrieve: %w", err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("retrieve failed: %s", resp.Message)
 	}
 
 	localrr := ccms2local(resp)
