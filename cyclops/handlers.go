@@ -22,12 +22,9 @@ func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.
 		return nil
 	}
 
-	resp, err := server.ccmsClient.Send("show tags")
+	resp, err := server.sendToCCMS("show tags", "show tags")
 	if err != nil {
-		return fmt.Errorf("could not show tags: %w", err)
-	}
-	if resp.Status == "error" {
-		return fmt.Errorf("show tags failed: %s", resp.Message)
+		return err
 	}
 
 	tags := make([]string, len(resp.Data))
@@ -72,12 +69,9 @@ type FilterList struct {
 }
 
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
-	resp, err := server.ccmsClient.Send("show filters")
+	resp, err := server.sendToCCMS("show filters", "show filters")
 	if err != nil {
-		return fmt.Errorf("could not show filters: %w", err)
-	}
-	if resp.Status == "error" {
-		return fmt.Errorf("show filters failed: %s", resp.Message)
+		return err
 	}
 
 	filters := make([]string, len(resp.Data))
