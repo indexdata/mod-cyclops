@@ -22,27 +22,50 @@ func (server *ModCyclopsServer) sendDummyResponse(w http.ResponseWriter, label s
 		return false, nil
 	}
 
+	var data string
 	if label == "RETRIEVE" {
-		resp := makeDummyRetrieveResponse()
-		return true, respondWithJSON(w, resp, label)
+		data = dummyRetrieveResponse
+	} else {
+		return false, fmt.Errorf("'%s' dummy not yet implemented", label)
 	}
 
-	return false, fmt.Errorf("'%s' dummy not yet implemented", label)
+	w.Header().Set("Content-Type", "application/json")
+	_, _ = w.Write([]byte(data))
+	return true, nil
+
 }
 
-func makeDummyRetrieveResponse() *RetrieveResponse {
-	field1 := FieldDescription{Name: "id"}
-	field2 := FieldDescription{Name: "title"}
-	fields := []FieldDescription{field1, field2}
-	datum1 := DataRow{Values: []string{"123", "The Lord of the Rings"}}
-	datum2 := DataRow{Values: []string{"456", "The Hitch Hiker's Guide to the Galaxy"}}
-	datum3 := DataRow{Values: []string{"789", "The Man Who Was Thursday"}}
-	data := []DataRow{datum1, datum2, datum3}
-	rr := RetrieveResponse{
-		Status:  "retrieve",
-		Fields:  fields,
-		Data:    data,
-		Message: "",
-	}
-	return &rr
+const dummyRetrieveResponse = `
+{
+  "status": "retrieve",
+  "fields": [
+    {
+      "name": "id"
+    },
+    {
+      "name": "title"
+    }
+  ],
+  "data": [
+    {
+      "values": [
+        "123",
+        "The Lord of the Rings"
+      ]
+    },
+    {
+      "values": [
+        "456",
+        "The Hitch Hiker's Guide to the Galaxy"
+      ]
+    },
+    {
+      "values": [
+        "789",
+        "The Man Who Was Thursday"
+      ]
+    }
+  ],
+  "message": ""
 }
+`;
