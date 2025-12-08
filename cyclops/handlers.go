@@ -15,7 +15,25 @@ type TagList struct {
 }
 
 func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
-	tags := []string{"foo", "bar", "baz"}
+	sent, err := server.sendDummyResponse(w, "SHOW TAGS")
+	if err != nil {
+		return fmt.Errorf("could not make dummy response: %w", err)
+	} else if sent {
+		return nil
+	}
+
+	resp, err := server.ccmsClient.Send("show tags")
+	if err != nil {
+		return fmt.Errorf("could not show tags: %w", err)
+	}
+	if resp.Status == "error" {
+		return fmt.Errorf("show tags failed: %s", resp.Message)
+	}
+
+	tags := make([]string, len(resp.Data))
+	for i, val := range resp.Data {
+		tags[i] = val.Values[0]
+	}
 	tagList := TagList{Tags: tags}
 	return respondWithJSON(w, tagList, "SHOW TAGS")
 }

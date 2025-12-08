@@ -21,7 +21,9 @@ func (server *ModCyclopsServer) sendDummyResponse(w http.ResponseWriter, label s
 	}
 
 	var data string
-	if label == "RETRIEVE" {
+	if label == "SHOW TAGS" {
+		data = dummyShowTagsResponse
+	} else if label == "RETRIEVE" {
 		data = dummyRetrieveResponse
 	} else {
 		return false, fmt.Errorf("'%s' dummy not yet implemented", label)
@@ -32,6 +34,14 @@ func (server *ModCyclopsServer) sendDummyResponse(w http.ResponseWriter, label s
 	return true, nil
 
 }
+
+const dummyShowTagsResponse = `
+[
+  "foo",
+  "bar",
+  "baz"
+]
+`
 
 const dummyRetrieveResponse = `
 {
@@ -72,4 +82,4 @@ const dummyRetrieveResponse = `
   ],
   "message": ""
 }
-`;
+`
