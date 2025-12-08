@@ -1,6 +1,7 @@
 package cyclops
 
 import "os"
+import "strings"
 import "fmt"
 import "net/http"
 
@@ -20,85 +21,23 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption 
 		return false, nil
 	}
 
-	var data string
-	if caption == "show tags" {
-		data = dummyShowTagsResponse
-	} else if caption == "show filters" {
-		data = dummyShowFiltersResponse
-	} else if caption == "show sets" {
-		data = dummyShowSetsResponse
-	} else if caption == "retrieve" {
-		data = dummyRetrieveResponse
+	if caption == "show tags" ||
+		caption == "show filters" ||
+		caption == "show sets" ||
+		caption == "retrieve" {
 	} else {
 		return false, fmt.Errorf("'%s' dummy not yet implemented", caption)
 	}
 
+	frag := strings.ReplaceAll(caption, " ", "-")
+	path := "ramls/examples/" + frag + "-example.json"
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return false, fmt.Errorf("'%s' dummy data file: %w", caption, err)
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_, _ = w.Write([]byte(data))
+	_, _ = w.Write(data)
 	return true, nil
 
 }
-
-const dummyShowTagsResponse = `
-[
-  "dino",
-  "ptero",
-  "croc"
-]
-`
-
-const dummyShowFiltersResponse = `
-[
-  "jurassic",
-  "cretaceous"
-]
-`
-
-const dummyShowSetsResponse = `
-[
-  "mike",
-  "test",
-  "uob"
-]
-`
-
-const dummyRetrieveResponse = `
-{
-  "status": "retrieve",
-  "fields": [
-    {
-      "name": "id"
-    },
-    {
-      "name": "author"
-    },
-    {
-      "name": "title"
-    }
-  ],
-  "data": [
-    {
-      "values": [
-        "123",
-        "J. R. R. Tolkien",
-        "The Lord of the Rings"
-      ]
-    },
-    {
-      "values": [
-        "456",
-        "Douglas Adams",
-        "The Hitch Hiker's Guide to the Galaxy"
-      ]
-    },
-    {
-      "values": [
-        "789",
-        "G. K. Chesterton",
-        "The Man Who Was Thursday"
-      ]
-    }
-  ],
-  "message": ""
-}
-`
