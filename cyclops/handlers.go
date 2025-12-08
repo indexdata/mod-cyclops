@@ -131,6 +131,13 @@ type SetList struct {
 }
 
 func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request) error {
+	sent, err := server.respondWithDummy(w, "show sets")
+	if err != nil {
+		return fmt.Errorf("could not make dummy response: %w", err)
+	} else if sent {
+		return nil
+	}
+
 	resp, err := server.ccmsClient.Send("show sets")
 	if err != nil {
 		return fmt.Errorf("could not fetch show-sets response: %w", err)
