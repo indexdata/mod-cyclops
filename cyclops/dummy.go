@@ -14,19 +14,19 @@ import "net/http"
  * only in main. But all this will go away soon.
  */
 
-func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, label string) (bool, error) {
+func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption string) (bool, error) {
 	sendDummy := os.Getenv("MOD_CYCLOPS_DUMMY_DATA")
 	if sendDummy == "" {
 		return false, nil
 	}
 
 	var data string
-	if label == "show tags" {
+	if caption == "show tags" {
 		data = dummyShowTagsResponse
-	} else if label == "retrieve" {
+	} else if caption == "retrieve" {
 		data = dummyRetrieveResponse
 	} else {
-		return false, fmt.Errorf("'%s' dummy not yet implemented", label)
+		return false, fmt.Errorf("'%s' dummy not yet implemented", caption)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
