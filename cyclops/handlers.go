@@ -15,7 +15,7 @@ type TagList struct {
 }
 
 func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.sendDummyResponse(w, "SHOW TAGS")
+	sent, err := server.respondWithDummy(w, "SHOW TAGS")
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
@@ -253,7 +253,7 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.sendDummyResponse(w, "RETRIEVE")
+	sent, err := server.respondWithDummy(w, "RETRIEVE")
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {

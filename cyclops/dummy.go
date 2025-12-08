@@ -14,7 +14,7 @@ import "net/http"
  * only in main. But all this will go away soon.
  */
 
-func (server *ModCyclopsServer) sendDummyResponse(w http.ResponseWriter, label string) (bool, error) {
+func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, label string) (bool, error) {
 	sendDummy := os.Getenv("MOD_CYCLOPS_DUMMY_DATA")
 	if sendDummy == "" {
 		return false, nil
