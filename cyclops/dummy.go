@@ -41,6 +41,9 @@ const dummyRetrieveResponse = `
       "name": "id"
     },
     {
+      "name": "author"
+    },
+    {
       "name": "title"
     }
   ],
@@ -48,18 +51,21 @@ const dummyRetrieveResponse = `
     {
       "values": [
         "123",
+        "J. R. R. Tolkien",
         "The Lord of the Rings"
       ]
     },
     {
       "values": [
         "456",
+        "Douglas Adams",
         "The Hitch Hiker's Guide to the Galaxy"
       ]
     },
     {
       "values": [
         "789",
+        "G. K. Chesterton",
         "The Man Who Was Thursday"
       ]
     }
