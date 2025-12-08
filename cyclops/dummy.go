@@ -23,6 +23,8 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption 
 	var data string
 	if caption == "show tags" {
 		data = dummyShowTagsResponse
+	} else if caption == "show filters" {
+		data = dummyShowFiltersResponse
 	} else if caption == "retrieve" {
 		data = dummyRetrieveResponse
 	} else {
@@ -40,6 +42,13 @@ const dummyShowTagsResponse = `
   "foo",
   "bar",
   "baz"
+]
+`
+
+const dummyShowFiltersResponse = `
+[
+  "jurassic",
+  "cretaceous"
 ]
 `
 

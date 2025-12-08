@@ -69,6 +69,13 @@ type FilterList struct {
 }
 
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
+	sent, err := server.respondWithDummy(w, "show filters")
+	if err != nil {
+		return fmt.Errorf("could not make dummy response: %w", err)
+	} else if sent {
+		return nil
+	}
+
 	resp, err := server.sendToCCMS("show filters", "show filters")
 	if err != nil {
 		return err
