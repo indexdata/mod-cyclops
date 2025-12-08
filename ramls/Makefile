@@ -23,11 +23,11 @@ schemalint:
 
 examplelint:
 	z-schema tag-schema.json examples/tag-example.json
-	z-schema tags-schema.json examples/tags-example.json
+	z-schema tags-schema.json examples/show-tags-example.json
 	z-schema filter-schema.json examples/filter-example.json
-	z-schema filters-schema.json examples/filters-example.json
+	z-schema filters-schema.json examples/show-filters-example.json
 	z-schema set-schema.json examples/set-example.json
-	z-schema sets-schema.json examples/sets-example.json
+	z-schema sets-schema.json examples/show-sets-example.json
 	z-schema retrieve-schema.json examples/retrieve-example.json
 	z-schema addremoveobjects-schema.json examples/addobject-example.json
 	z-schema addremoveobjects-schema.json examples/removeobject-example.json
