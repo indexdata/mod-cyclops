@@ -39,9 +39,9 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption 
 
 const dummyShowTagsResponse = `
 [
-  "foo",
-  "bar",
-  "baz"
+  "dino",
+  "ptero",
+  "croc"
 ]
 `
 
