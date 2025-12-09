@@ -14,15 +14,15 @@ type TagList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "show tags")
+func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request, caption string) error {
+	sent, err := server.respondWithDummy(w, caption)
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
 		return nil
 	}
 
-	resp, err := server.sendToCCMS("show tags", "show tags")
+	resp, err := server.sendToCCMS(caption, "show tags")
 	if err != nil {
 		return err
 	}
@@ -32,7 +32,7 @@ func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.
 		tags[i] = val.Values[0]
 	}
 	tagList := TagList{Tags: tags}
-	return respondWithJSON(w, tagList, "show tags")
+	return respondWithJSON(w, tagList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -41,21 +41,21 @@ type DefineTag struct {
 	Name string `json:"name"`
 }
 
-func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http.Request, caption string) error {
 	var tag DefineTag
 	err := unmarshalBody(req, &tag)
 	if err != nil {
-		return fmt.Errorf("define tag: %w", err)
+		return fmt.Errorf("%s: %w", caption, err)
 	}
 
 	command := "define tag " + tag.Name
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS("define tag "+tag.Name, command)
+	resp, err := server.sendToCCMS(caption+" "+tag.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("define tag response: %+v\n", resp)
+	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -68,15 +68,15 @@ type FilterList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "show filters")
+func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request, caption string) error {
+	sent, err := server.respondWithDummy(w, caption)
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
 		return nil
 	}
 
-	resp, err := server.sendToCCMS("show filters", "show filters")
+	resp, err := server.sendToCCMS(caption, "show filters")
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 		filters[i] = val.Values[0]
 	}
 	filterList := FilterList{Filters: filters}
-	return respondWithJSON(w, filterList, "show filters")
+	return respondWithJSON(w, filterList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -97,11 +97,11 @@ type DefineFilter struct {
 	Template string `json:"template"`
 }
 
-func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *http.Request, caption string) error {
 	var filter DefineFilter
 	err := unmarshalBody(req, &filter)
 	if err != nil {
-		return fmt.Errorf("define filter: %w", err)
+		return fmt.Errorf("%s: %w", caption, err)
 	}
 
 	command := "define filter " + filter.Name
@@ -113,11 +113,11 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 	}
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS("define filter "+filter.Name, command)
+	resp, err := server.sendToCCMS(caption+" "+filter.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("define filter response: %+v\n", resp)
+	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -130,8 +130,8 @@ type SetList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
-func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "show sets")
+func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request, caption string) error {
+	sent, err := server.respondWithDummy(w, caption)
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
@@ -148,12 +148,12 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		sets[i] = val.Values[0]
 	}
 	setList := SetList{Sets: sets}
-	return respondWithJSON(w, setList, "show sets")
+	return respondWithJSON(w, setList, caption)
 }
 
 // -----------------------------------------------------------------------------
 
-func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http.Request, caption string) error {
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
@@ -266,8 +266,8 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 	}
 }
 
-func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request) error {
-	sent, err := server.respondWithDummy(w, "retrieve")
+func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request, caption string) error {
+	sent, err := server.respondWithDummy(w, caption)
 	if err != nil {
 		return fmt.Errorf("could not make dummy response: %w", err)
 	} else if sent {
@@ -290,12 +290,12 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 
 	localrr := ccms2local(resp)
 
-	return respondWithJSON(w, localrr, "retrieve")
+	return respondWithJSON(w, localrr, caption)
 }
 
 // -----------------------------------------------------------------------------
 
-func (server *ModCyclopsServer) handleAddRemoveObjects(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleAddRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
 	// It seems weird to just shrug and say "fine" for anything posted, but for now it will suffice.
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -303,7 +303,7 @@ func (server *ModCyclopsServer) handleAddRemoveObjects(w http.ResponseWriter, re
 
 // -----------------------------------------------------------------------------
 
-func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *http.Request) error {
+func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *http.Request, caption string) error {
 	// It seems weird to just shrug and say "fine" for anything posted, but for now it will suffice.
 	w.WriteHeader(http.StatusNoContent)
 	return nil

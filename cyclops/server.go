@@ -55,31 +55,31 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, roo
 		fmt.Fprintln(w, "Behold! I live!!")
 	})
 	r.Get("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowTags)
+		server.runWithErrorHandling(w, req, server.handleShowTags, "show tags")
 	})
 	r.Post("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDefineTag)
+		server.runWithErrorHandling(w, req, server.handleDefineTag, "define tag")
 	})
 	r.Get("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowFilters)
+		server.runWithErrorHandling(w, req, server.handleShowFilters, "show filters")
 	})
 	r.Post("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDefineFilter)
+		server.runWithErrorHandling(w, req, server.handleDefineFilter, "define filter")
 	})
 	r.Get("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowSets)
+		server.runWithErrorHandling(w, req, server.handleShowSets, "show sets")
 	})
 	r.Post("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleCreateSet)
+		server.runWithErrorHandling(w, req, server.handleCreateSet, "create set")
 	})
 	r.Get("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleRetrieve)
+		server.runWithErrorHandling(w, req, server.handleRetrieve, "retrieve")
 	})
 	r.Post("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleAddRemoveObjects)
+		server.runWithErrorHandling(w, req, server.handleAddRemoveObjects, "add/remove objects")
 	})
 	r.Post("/cyclops/sets/{setName}/tag/{tagName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleAddRemoveTags)
+		server.runWithErrorHandling(w, req, server.handleAddRemoveTags, "add/remove tags")
 	})
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
@@ -105,10 +105,10 @@ func (server *ModCyclopsServer) Launch(host string, port int) error {
 	return err
 }
 
-type handlerFn func(w http.ResponseWriter, req *http.Request) error
+type handlerFn func(w http.ResponseWriter, req *http.Request, caption string) error
 
-func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn) {
-	err := f(w, req)
+func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn, caption string) {
+	err := f(w, req, caption)
 	if err != nil {
 		var status int
 		switch e := err.(type) {
