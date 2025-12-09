@@ -12,7 +12,8 @@ import "net/http"
  * to the client. Otherwise, an error is returned.
  *
  * It's bad because it calls Getenv directly, which is otherwise done
- * only in main. But all this will go away soon.
+ * only in main, and because it understands the different way
+ * different captions should work. But all this will go away soon.
  */
 
 func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption string) (bool, error) {
@@ -21,10 +22,19 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption 
 		return false, nil
 	}
 
-	if caption == "show tags" ||
+	if caption == "define tag" ||
+		caption == "define filter" ||
+		caption == "create set" ||
+		caption == "add/remove objects" ||
+		caption == "add/remove tags" {
+		// No response required
+		w.WriteHeader(http.StatusNoContent)
+		return true, nil
+	} else if caption == "show tags" ||
 		caption == "show filters" ||
 		caption == "show sets" ||
 		caption == "retrieve" {
+		// Fall through
 	} else {
 		return false, fmt.Errorf("'%s' dummy not yet implemented", caption)
 	}
