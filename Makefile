@@ -53,3 +53,6 @@ clean:
 run: $(TARGET)
 	./run.sh
 
+run-dummy: $(TARGET)
+	env MOD_CYCLOPS_DUMMY_DATA=1 ./run.sh
+
