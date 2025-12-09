@@ -15,13 +15,6 @@ type TagList struct {
 }
 
 func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.Request, caption string) error {
-	sent, err := server.respondWithDummy(w, caption)
-	if err != nil {
-		return fmt.Errorf("could not make dummy response: %w", err)
-	} else if sent {
-		return nil
-	}
-
 	resp, err := server.sendToCCMS(caption, "show tags")
 	if err != nil {
 		return err
@@ -69,13 +62,6 @@ type FilterList struct {
 }
 
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request, caption string) error {
-	sent, err := server.respondWithDummy(w, caption)
-	if err != nil {
-		return fmt.Errorf("could not make dummy response: %w", err)
-	} else if sent {
-		return nil
-	}
-
 	resp, err := server.sendToCCMS(caption, "show filters")
 	if err != nil {
 		return err
@@ -131,13 +117,6 @@ type SetList struct {
 }
 
 func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request, caption string) error {
-	sent, err := server.respondWithDummy(w, caption)
-	if err != nil {
-		return fmt.Errorf("could not make dummy response: %w", err)
-	} else if sent {
-		return nil
-	}
-
 	resp, err := server.ccmsClient.Send("show sets")
 	if err != nil {
 		return fmt.Errorf("could not fetch show-sets response: %w", err)
@@ -267,13 +246,6 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request, caption string) error {
-	sent, err := server.respondWithDummy(w, caption)
-	if err != nil {
-		return fmt.Errorf("could not make dummy response: %w", err)
-	} else if sent {
-		return nil
-	}
-
 	command, err := makeRetrieveCommand(req)
 	if err != nil {
 		return fmt.Errorf("could not make retrieve command: %w", err)

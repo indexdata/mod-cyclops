@@ -108,7 +108,15 @@ func (server *ModCyclopsServer) Launch(host string, port int) error {
 type handlerFn func(w http.ResponseWriter, req *http.Request, caption string) error
 
 func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn, caption string) {
-	err := f(w, req, caption)
+	sent, err := server.respondWithDummy(w, caption)
+	if sent {
+		return
+	} else if err != nil {
+		err = fmt.Errorf("could not make dummy response: %w", err)
+	} else {
+		err = f(w, req, caption)
+	}
+
 	if err != nil {
 		var status int
 		switch e := err.(type) {
