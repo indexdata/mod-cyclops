@@ -50,6 +50,23 @@ is automatically generated from
 [the RAML and JSON Schemas](ramls).
 
 
+## Development
+
+In order to use this module as part of a FOLIO system, the simplest approach is to run a FOLIO virtual machine and tunnel its Okapi port 9130 out to the host operating system. Once this has been done, the running mod-cyclops can be made available by posting the module descriptor to Okapi, then posting a deployment descriptor that points at the running process, and finally enabling the module for the `diku` tenant.
+```
+curl -w '\n' -X POST -D - -H "Content-type: application/json" -d @target/ModuleDescriptor.json http://localhost:9130/_/proxy/modules
+curl -w '\n' -X POST -D - -H "Content-type: application/json" -d '{"srvcId": "mod-cyclops-0.0.1", "instId": "127.0.0.1-12370-v2", "url" : "http://127.0.0.1:12370"}' http://localhost:9130/_/discovery/modules
+curl -w '\n' -X POST -D - -H "Content-type: application/json" -d '{"id": "mod-cyclops-0.0.1"}' http://localhost:9130/_/proxy/tenants/diku/modules
+```
+
+**Private note to self**: when SSHing from the development laptop to the desktop machine `widow` that hosts the FOLIO VM, use:
+```
+winston$ ssh -L 9130:localhost:9130 -L 3001:localhost:3000 -R 12370:localhost:12370 widow
+widow$ cd ~/metadb/folio-release; vagrant ssh
+vagrant$ ssh -L 12370:localhost:12370 mike@widow
+```
+And in another `vagrant ssh` window, `curl http://127.0.0.1:12370/admin/health` to check the double tunnel is working.
+
 ## Author
 
 Mike Taylor, [Index Data ApS](https://www.indexdata.com/).
