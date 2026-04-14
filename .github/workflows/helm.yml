@@ -31,15 +31,17 @@ jobs:
       - name: Calculate chart and app version with short SHA
         run: |
           SHORT_SHA=$(echo $GITHUB_SHA | cut -c1-7)
+          ARTIFACT_ID=$(sed -n 's|^module .*/||p' go.mod)
           CHART_VERSION="${{ matrix.chart_base_version }}+sha.$SHORT_SHA"
           APP_VERSION="sha-$SHORT_SHA"
+          echo "ARTIFACT_ID=$ARTIFACT_ID" >> $GITHUB_ENV
           echo "CHART_VERSION=$CHART_VERSION" >> $GITHUB_ENV
           echo "APP_VERSION=$APP_VERSION" >> $GITHUB_ENV
 
       - name: Process MD for okapi-hooks
         if: ${{ matrix.md_path }}
         run: |
-          sed -i "s/@version@/$CHART_VERSION/" ${{ matrix.md_path }}
+          sed -i -e "s/@artifactId@/$ARTIFACT_ID/g" -e "s/@version@/$CHART_VERSION/g" ${{ matrix.md_path }}
           sed 's/^/    /' ${{ matrix.md_path }} > indented.json
           sed -i -e '/@descriptor@/{
             r indented.json
