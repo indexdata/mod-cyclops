@@ -5,7 +5,7 @@ go 1.26.1 // also update the version in Dockerfile when bumping major/minor vers
 require (
 	github.com/MikeTaylor/catlogger v0.0.3
 	github.com/go-chi/chi/v5 v5.2.3
-	github.com/indexdata/ccms v0.0.20
+	github.com/indexdata/ccms v0.0.23
 )
 
 require (
