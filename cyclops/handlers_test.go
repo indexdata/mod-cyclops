@@ -86,7 +86,7 @@ func TestMakeRetrieveCommand(t *testing.T) {
 				contextWithChiRouteContext(req.Context(), rctx),
 			)
 
-			got, err := makeRetrieveCommand(req)
+			got, err := makeRetrieveCommand(req, false)
 
 			if tt.expectedErr != "" {
 				if err == nil {
