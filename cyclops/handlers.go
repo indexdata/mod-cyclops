@@ -2,6 +2,7 @@ package cyclops
 
 import "errors"
 import "strings"
+import "strconv"
 import "io"
 import "fmt"
 import "net/http"
@@ -229,9 +230,14 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 	return b.String(), nil
 }
 
-func makeRetrieveCommand(req *http.Request) (string, error) {
+func makeRetrieveCommand(req *http.Request, countOnly bool) (string, error) {
+	selectFields := req.URL.Query().Get("fields")
+	if (countOnly) {
+		selectFields = "COUNT(*)"
+	}
+
 	selectClause, err := makeSelectClause(
-		req.URL.Query().Get("fields"),
+		selectFields,
 		chi.URLParam(req, "setName"),
 		req.URL.Query().Get("cond"),
 		req.URL.Query().Get("filter"),
@@ -291,7 +297,16 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 }
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request, caption string) error {
-	command, err := makeRetrieveCommand(req)
+	coString := req.URL.Query().Get("countOnly")
+	if (coString == "") {
+		coString = "false"
+	}
+	countOnly, err := strconv.ParseBool(coString)
+	if err != nil {
+		return fmt.Errorf("could not parse boolean 'countOnly' parameter: %w", err)
+	}
+
+	command, err := makeRetrieveCommand(req, countOnly)
 	if err != nil {
 		return fmt.Errorf("could not make retrieve command: %w", err)
 	}

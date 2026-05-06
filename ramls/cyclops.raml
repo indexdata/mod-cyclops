@@ -110,6 +110,10 @@ documentation:
             type: string
             required: false
             description: a maximum number of objects that will be returned
+          countOnly:
+            type: boolean
+            required: false
+            description: If present and true, then no records are returned but an estimated count of how many records match the specified criteria. Perhaps surprisingly, this can take longer than actually retrieving some slice of the records.
         responses:
           200:
             body:
