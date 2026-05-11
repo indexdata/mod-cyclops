@@ -27,7 +27,7 @@ func (server *ModCyclopsServer) handleShowTags(w http.ResponseWriter, req *http.
 		tags = append(tags, val.Values()[0])
 	}
 	tagList := TagList{Tags: tags}
-	return respondWithJSON(w, tagList, caption)
+	return server.respondWithJSON(w, tagList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -75,7 +75,7 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 		filters = append(filters, val.Values()[0])
 	}
 	filterList := FilterList{Filters: filters}
-	return respondWithJSON(w, filterList, caption)
+	return server.respondWithJSON(w, filterList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -131,7 +131,7 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		sets = append(sets, val.Values()[0])
 	}
 	setList := SetList{Sets: sets}
-	return respondWithJSON(w, setList, caption)
+	return server.respondWithJSON(w, setList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -232,7 +232,7 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 
 func makeRetrieveCommand(req *http.Request, countOnly bool) (string, error) {
 	selectFields := req.URL.Query().Get("fields")
-	if (countOnly) {
+	if countOnly {
 		selectFields = "COUNT(*)"
 	}
 
@@ -298,7 +298,7 @@ func ccms2local(rr *ccms.Response) RetrieveResponse {
 
 func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.Request, caption string) error {
 	coString := req.URL.Query().Get("countOnly")
-	if (coString == "") {
+	if coString == "" {
 		coString = "false"
 	}
 	countOnly, err := strconv.ParseBool(coString)
@@ -318,7 +318,7 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 	}
 
 	localrr := ccms2local(resp)
-	return respondWithJSON(w, localrr, caption)
+	return server.respondWithJSON(w, localrr, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -333,7 +333,7 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 	}
 
 	localrr := ccms2local(resp)
-	return respondWithJSON(w, localrr, caption)
+	return server.respondWithJSON(w, localrr, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -464,7 +464,7 @@ func (server *ModCyclopsServer) handleShowProjects(w http.ResponseWriter, req *h
 	}
 
 	projectList := ProjectList{Projects: projects}
-	return respondWithJSON(w, projectList, caption)
+	return server.respondWithJSON(w, projectList, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -519,7 +519,7 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 		}
 	}
 
-	return respondWithJSON(w, project, caption)
+	return server.respondWithJSON(w, project, caption)
 }
 
 // -----------------------------------------------------------------------------
@@ -560,6 +560,10 @@ func (server *ModCyclopsServer) sendToCCMS(caption string, command string) (*ccm
 	if err != nil {
 		return nil, fmt.Errorf("could not %s: %w", caption, err)
 	}
+
+	respString := respToString(resp)
+	server.Log("ccms", respString)
+
 	result := readResults(resp)[0]
 	if result.Status() == "error" {
 		return nil, fmt.Errorf("%s failed: %s", caption, result.Message())
@@ -567,11 +571,12 @@ func (server *ModCyclopsServer) sendToCCMS(caption string, command string) (*ccm
 	return resp, nil
 }
 
-func respondWithJSON(w http.ResponseWriter, data any, caption string) error {
+func (server *ModCyclopsServer) respondWithJSON(w http.ResponseWriter, data any, caption string) error {
 	b, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("could not encode JSON for %s: %w", caption, err)
 	}
+	server.Log("response", string(b))
 
 	w.Header().Set("Content-Type", "application/json")
 
