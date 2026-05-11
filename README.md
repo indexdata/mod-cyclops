@@ -35,6 +35,8 @@ Run `make` in the top-level directory to generate the binary, `mod-cyclops`, and
 
 Logging messages are emitted under the following categories, if those categories are included in the comma-separated list in the `LOGGING_CATEGORIES` or `LOGCAT` environment variable:
 
+* `client` -- Details of the client structure used to connect to CCMS.
+* `config` -- The configuration object generated from the environment.
 * `listen` -- Log when the server has been started up and begun to listen, noting the listening host and port.
 * `path` -- Log each incoming request with its method (GET, POST, etc.) and path.
 * `command` -- Log each complex generated CCMS command, e.g. Retrieve commands.
