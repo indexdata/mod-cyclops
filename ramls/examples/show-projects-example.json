@@ -2,7 +2,7 @@
   "projects": [
     {
       "id": 321,
-      "name": "Slavic studies",
+      "title": "Slavic studies",
       "altName": "palci_slavic",
       "action": {
 	"id": 123,
@@ -11,7 +11,7 @@
     },
     {
       "id": 456,
-      "name": "Literature of North Korea",
+      "title": "Literature of North Korea",
       "altName": "lit_nk",
       "action": {
 	"id": 654,
@@ -20,7 +20,7 @@
     },
     {
       "id": 789,
-      "name": "Ukrainian Culture",
+      "title": "Ukrainian Culture",
       "altName": "ukr1",
       "action": {
 	"id": 987,

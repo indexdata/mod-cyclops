@@ -1,12 +1,12 @@
 {
   "id": 321,
-  "name": "Slavic studies",
+  "title": "Slavic studies",
   "altName": "palci_slavic",
   "action": {
     "id": 123,
     "name": "Purchase"
   },
-  "mouLink": "https://www.miketaylor.org.uk/dino/pubs/",
+  "mou_link": "https://www.miketaylor.org.uk/dino/pubs/",
   "funds": [
     {
       "id": 345,

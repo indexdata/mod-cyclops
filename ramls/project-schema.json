@@ -7,7 +7,7 @@
       "type": "integer",
       "description": "Unique identifier (but not used as the identifier: see 'altName' below)"
     },
-    "name": {
+    "title": {
       "type": "string",
       "description": "Human-reeadable name"
     },
@@ -34,7 +34,7 @@
       },
       "additionalProperties": false
     },
-    "mouLink": {
+    "mou_link": {
       "type": "string",
       "format": "uri",
       "description": "An optional link to a memorandom of understanding"
