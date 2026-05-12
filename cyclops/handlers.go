@@ -475,7 +475,7 @@ type ProjectAction struct {
 }
 
 type ProjectFund struct {
-	Id int
+	Id string
 	Name string
 }
 
@@ -485,17 +485,17 @@ type ProjectPerson struct {
 }
 
 type ProjectLocation struct {
-	Id int
+	Id string
 	Name string
 }
 
 type ProjectTrack struct {
-	Id int
+	Id string
 	Name string
 }
 
 type Project struct {
-	Id int
+	Id      string        `json:"id"`
 	AltName string        `json:"altName"`
 	Title   string        `json:"title"`
 	Action  ProjectAction `json:"action"`
@@ -549,8 +549,33 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+// CCMS's "create project" facility literally only creates the
+// project, but doesn't set any of its fields. So we need to make two
+// calls: one to bring the empty project into existence, and once to
+// set the specified values.
+//
 func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	w.WriteHeader(http.StatusNotImplemented)
+	var project Project
+	err := unmarshalBody(req, &project)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+	if project.AltName == "" {
+		return fmt.Errorf("%s: no altName specified", caption)
+	}
+
+	command := "create project " + project.AltName + ";"
+	server.Log("command", command)
+
+	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s response: %+v\n", caption, resp)
+
+	// XXX now set the fields
+
+	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
 
