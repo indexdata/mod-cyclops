@@ -474,12 +474,37 @@ type ProjectAction struct {
 	Name string `json:"name"`
 }
 
+type ProjectFund struct {
+	Id int
+	Name string
+}
+
+type ProjectPerson struct {
+	XId string
+	Role string
+}
+
+type ProjectLocation struct {
+	Id int
+	Name string
+}
+
+type ProjectTrack struct {
+	Id int
+	Name string
+}
+
 type Project struct {
+	Id int
 	AltName string        `json:"altName"`
 	Title   string        `json:"title"`
 	Action  ProjectAction `json:"action"`
 	MouLink string        `json:"mou_link"`
 	Funds   string        `json:"funds"`
+	// The line about should be: Funds []ProjectFund
+	People []ProjectPerson
+	Locations []ProjectLocation
+	Tracks []ProjectTrack
 }
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
