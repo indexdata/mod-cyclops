@@ -1,19 +1,19 @@
 {
-  "id": 321,
+  "id": "321",
   "title": "Slavic studies",
   "altName": "palci_slavic",
   "action": {
-    "id": 123,
+    "id": "123",
     "name": "Purchase"
   },
   "mou_link": "https://www.miketaylor.org.uk/dino/pubs/",
   "funds": [
     {
-      "id": 345,
+      "id": "345",
       "name": "PALCI cultural preservation"
     },
     {
-      "id": 456,
+      "id": "456",
       "name": "Coalition for Slavic literature"
     }
   ],
@@ -29,29 +29,29 @@
   ],
   "locations": [
     {
-      "id": 789,
+      "id": "789",
       "name": "Lehigh"
     },
     {
-      "id": 890,
+      "id": "890",
       "name": "NYU"
     },
     {
-      "id": 901,
+      "id": "901",
       "name": "CLOCKSS"
     }
   ],
   "tracks": [
     {
-      "id": 12,
+      "id": "12",
       "name": "Offsite"
     },
     {
-      "id": 123,
+      "id": "123",
       "name": "Reserve"
     },
     {
-      "id": 234,
+      "id": "234",
       "name": "Stacks"
     }
   ]
