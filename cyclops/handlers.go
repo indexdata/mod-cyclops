@@ -475,8 +475,8 @@ type ProjectAction struct {
 }
 
 type ProjectFund struct {
-	Id   string
-	Name string
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
 
 type ProjectPerson struct {
@@ -495,17 +495,35 @@ type ProjectTrack struct {
 }
 
 type Project struct {
-	Id      string        `json:"id"`
-	AltName string        `json:"altName"`
-	Title   string        `json:"title"`
-	Action  ProjectAction `json:"action"`
-	MouLink string        `json:"mou_link"`
-	Funds   string        `json:"funds"`
-	// The line about should be: Funds []ProjectFund
+	Id        string        `json:"id"`
+	AltName   string        `json:"altName"`
+	Title     string        `json:"title"`
+	Action    ProjectAction `json:"action"`
+	MouLink   string        `json:"mou_link"`
+	Funds     []ProjectFund `json:"funds"`
 	People    []ProjectPerson
 	Locations []ProjectLocation
 	Tracks    []ProjectTrack
 }
+
+// Although the funds in projects are addressed as their own
+// individual things, their representation when retrieving project is
+// as a single text-field of the form
+//	<slug1>:<desc1>|<slug2>:<desc2>
+// e.g.
+//	coalition_slavic_lit:Coalition for Slavic literature|palci_cultural:PALCI cultural preservation
+// It is a pipe-separated list of colon-separated id:description pairs.,
+// -
+func string2funds(s string) []ProjectFund {
+	parts := strings.Split(s, "|")
+	funds := make([]ProjectFund, len(parts))
+	for i, segment := range parts {
+		pair := strings.SplitN(segment, ":", 2)
+		funds[i] = ProjectFund{Id: pair[0], Name: pair[1]}
+	}
+	return funds
+}
+
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
 	projectId := chi.URLParam(req, "projectId")
@@ -536,9 +554,9 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 		case "mou_link":
 			project.MouLink = mustString(value)
 		case "funds":
-			// XXX This should not be a string, but an array of structures
-			// If necessary I can parse the string, but it would be nice not to
-			project.Funds = mustString(value)
+			// For now I have parse the string; maybe future CCMS will obviate this need
+			funds := mustString(value)
+			project.Funds = string2funds(funds)
 		default:
 			server.Log("data", "unrecognised Project field", key)
 		}
@@ -602,8 +620,11 @@ func project2command(projectId string, project Project) string {
 	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
 	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
 	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
-	b.WriteString("alter project " + projectId + " alter property funds add '" + project.Funds + "';")
-	// No point supporting the next two until we know what CCMS is going to do with them
+	for _, fund := range project.Funds {
+		b.WriteString("alter project " + projectId + " alter property funds add '" + fund.Id + "';\n")
+	}
+	// No point supporting the next three until we know what CCMS is going to do with them
+	// b.WriteString("alter project " + projectId + " alter property people set '" + project.People + "';\n")
 	// b.WriteString("alter project " + projectId + " alter property locations set '" + project.Locations + "';\n")
 	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
 	return b.String()
