@@ -655,9 +655,10 @@ func (server *ModCyclopsServer) sendToCCMS(caption string, command string) (*ccm
 	respString := respToString(resp)
 	server.Log("ccms", respString)
 
-	result := readResults(resp)[0]
-	if result.Status() == "error" {
-		return nil, fmt.Errorf("%s failed: %s", caption, result.Message())
+	for _, result := range readResults(resp) {
+		if result.Status() == "error" {
+			return nil, fmt.Errorf("%s failed: %s", caption, result.Message())
+		}
 	}
 	return resp, nil
 }
