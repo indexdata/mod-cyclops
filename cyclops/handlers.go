@@ -580,7 +580,18 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 }
 
 func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	w.WriteHeader(http.StatusNotImplemented)
+	projectId := chi.URLParam(req, "projectId")
+
+	command := "drop project " + projectId + ";"
+	server.Log("command", command)
+
+	resp, err := server.sendToCCMS(caption+" "+projectId, command)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s response: %+v\n", caption, resp)
+
+	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
 
