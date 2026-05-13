@@ -475,22 +475,22 @@ type ProjectAction struct {
 }
 
 type ProjectFund struct {
-	Id string
+	Id   string
 	Name string
 }
 
 type ProjectPerson struct {
-	XId string
+	XId  string
 	Role string
 }
 
 type ProjectLocation struct {
-	Id string
+	Id   string
 	Name string
 }
 
 type ProjectTrack struct {
-	Id string
+	Id   string
 	Name string
 }
 
@@ -502,9 +502,9 @@ type Project struct {
 	MouLink string        `json:"mou_link"`
 	Funds   string        `json:"funds"`
 	// The line about should be: Funds []ProjectFund
-	People []ProjectPerson
+	People    []ProjectPerson
 	Locations []ProjectLocation
-	Tracks []ProjectTrack
+	Tracks    []ProjectTrack
 }
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -553,7 +553,7 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 // project, but doesn't set any of its fields. So we need to make two
 // calls: one to bring the empty project into existence, and once to
 // set the specified values.
-//
+// -
 func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *http.Request, caption string) error {
 	var project Project
 	err := unmarshalBody(req, &project)
@@ -584,8 +584,34 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 	return nil
 }
 
+// -----------------------------------------------------------------------------
+
 func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	w.WriteHeader(http.StatusNotImplemented)
+	projectId := chi.URLParam(req, "projectId")
+	var project Project
+	err := unmarshalBody(req, &project)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	var b strings.Builder
+	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
+	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
+	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
+	b.WriteString("alter project " + projectId + " alter property funds set '" + project.Funds + "';")
+	// No point supporting the next two until we know what CCMS is going to do with them
+	// b.WriteString("alter project " + projectId + " alter property locations set '" + project.Locations + "';\n")
+	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
+	command := b.String()
+	server.Log("command", command)
+
+	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s response: %+v\n", caption, resp)
+
+	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
 
