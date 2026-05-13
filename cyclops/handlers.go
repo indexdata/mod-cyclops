@@ -564,7 +564,7 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: no altName specified", caption)
 	}
 
-	command := "create project " + project.AltName + ";"
+	command := "create project " + project.AltName + ";\n" + project2command(project.AltName, project)
 	server.Log("command", command)
 
 	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
@@ -586,14 +586,7 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
-func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId := chi.URLParam(req, "projectId")
-	var project Project
-	err := unmarshalBody(req, &project)
-	if err != nil {
-		return fmt.Errorf("%s: %w", caption, err)
-	}
-
+func project2command(projectId string, project Project) string {
 	var b strings.Builder
 	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
 	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
@@ -602,7 +595,18 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 	// No point supporting the next two until we know what CCMS is going to do with them
 	// b.WriteString("alter project " + projectId + " alter property locations set '" + project.Locations + "';\n")
 	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
-	command := b.String()
+	return b.String()
+}
+
+func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *http.Request, caption string) error {
+	projectId := chi.URLParam(req, "projectId")
+	var project Project
+	err := unmarshalBody(req, &project)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := project2command(projectId, project)
 	server.Log("command", command)
 
 	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
