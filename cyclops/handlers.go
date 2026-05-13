@@ -602,7 +602,7 @@ func project2command(projectId string, project Project) string {
 	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
 	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
 	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
-	b.WriteString("alter project " + projectId + " alter property funds set '" + project.Funds + "';")
+	b.WriteString("alter project " + projectId + " alter property funds add '" + project.Funds + "';")
 	// No point supporting the next two until we know what CCMS is going to do with them
 	// b.WriteString("alter project " + projectId + " alter property locations set '" + project.Locations + "';\n")
 	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
@@ -620,7 +620,7 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 	command := project2command(projectId, project)
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
+	resp, err := server.sendToCCMS(caption+" "+projectId, command)
 	if err != nil {
 		return err
 	}
