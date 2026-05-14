@@ -595,8 +595,6 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 	}
 	fmt.Printf("%s response: %+v\n", caption, resp)
 
-	// XXX now set the fields
-
 	w.WriteHeader(http.StatusNoContent)
 	return nil
 }
