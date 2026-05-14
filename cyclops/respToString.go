@@ -16,7 +16,12 @@ func respToString(resp *ccms.Response) string {
 			b.WriteString(result.Message())
 		} else {
 			renderFields(&b, result.Fields())
+			first := true
 			for row := range result.Data() {
+				if !first {
+					b.WriteString("\n")
+				}
+				first = false
 				renderRow(&b, row)
 			}
 		}
@@ -45,6 +50,4 @@ func renderRow(b *strings.Builder, row ccms.DataRow) {
 		}
 		b.WriteString("\"" + fmt.Sprint(value) + "\"")
 	}
-
-	b.WriteString("\n")
 }
