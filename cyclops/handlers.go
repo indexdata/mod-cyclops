@@ -520,11 +520,11 @@ type Project struct {
 // -
 func string2funds(s string) []ProjectFund {
 	parts := strings.Split(s, "|")
-	funds := make([]ProjectFund, len(parts))
 	if len(parts) == 1 && parts[0] == "" {
-		return funds
+		return []ProjectFund{}
 	}
 
+	funds := make([]ProjectFund, len(parts))
 	for i, segment := range parts {
 		pair := strings.SplitN(segment, ":", 2)
 		funds[i] = ProjectFund{Id: pair[0], Name: pair[1]}
