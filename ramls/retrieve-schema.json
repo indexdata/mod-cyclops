@@ -36,7 +36,7 @@
         "properties": {
           "values": {
 	    "type": "array",
-            "description": "XXX An array of data values, belonging to the fields named in the 'fields' top-level element",
+            "description": "An array of data values, belonging to the fields named in the 'fields' top-level element",
 	    "items": {
               "type": "string"
 	    }
