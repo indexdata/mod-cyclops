@@ -517,6 +517,10 @@ type Project struct {
 func string2funds(s string) []ProjectFund {
 	parts := strings.Split(s, "|")
 	funds := make([]ProjectFund, len(parts))
+	if len(parts) == 1 && parts[0] == "" {
+		return funds
+	}
+
 	for i, segment := range parts {
 		pair := strings.SplitN(segment, ":", 2)
 		funds[i] = ProjectFund{Id: pair[0], Name: pair[1]}
@@ -620,6 +624,7 @@ func project2command(projectId string, project Project) string {
 	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
 	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
 	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
+	b.WriteString("alter project " + projectId + " alter property funds drop all;\n")
 	for _, fund := range project.Funds {
 		b.WriteString("alter project " + projectId + " alter property funds add '" + fund.Id + "';\n")
 	}
