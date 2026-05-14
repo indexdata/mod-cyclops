@@ -509,9 +509,13 @@ type Project struct {
 // Although the funds in projects are addressed as their own
 // individual things, their representation when retrieving project is
 // as a single text-field of the form
+//
 //	<slug1>:<desc1>|<slug2>:<desc2>
+//
 // e.g.
+//
 //	coalition_slavic_lit:Coalition for Slavic literature|palci_cultural:PALCI cultural preservation
+//
 // It is a pipe-separated list of colon-separated id:description pairs.,
 // -
 func string2funds(s string) []ProjectFund {
@@ -527,7 +531,6 @@ func string2funds(s string) []ProjectFund {
 	}
 	return funds
 }
-
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
 	projectId := chi.URLParam(req, "projectId")
