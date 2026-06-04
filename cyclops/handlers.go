@@ -534,7 +534,9 @@ func string2funds(s string) []ProjectFund {
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
 	projectId := chi.URLParam(req, "projectId")
-	resp, err := server.sendToCCMS(caption, "show project "+projectId+";")
+	command := "show project " + projectId + ";"
+	server.Log("command", command)
+	resp, err := server.sendToCCMS(caption, command)
 	if err != nil {
 		return err
 	}
@@ -623,7 +625,7 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 func project2command(projectId string, project Project) string {
 	var b strings.Builder
 	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
-	b.WriteString("alter project " + projectId + " alter property action set '" + project.Action.Name + "';\n")
+	b.WriteString("alter project " + projectId + " alter property action set " + project.Action.Name + ";\n")
 	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
 	b.WriteString("alter project " + projectId + " alter property funds drop all;\n")
 	for _, fund := range project.Funds {
