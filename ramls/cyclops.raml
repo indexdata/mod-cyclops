@@ -207,3 +207,22 @@ documentation:
         responses:
           204:
             description: No content is returned.
+  /funds:
+    description: "Funds that can be associated with a project or assigned to a spectre"
+    get:
+      description: "Return a list of all known funds"
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include funds-schema.json
+              example: !include examples/show-funds-example.json
+    post:
+      description: "Create a new fund"
+      body:
+        application/json:
+          type: !include fund-schema.json
+          example: !include examples/fund-example.json
+      responses:
+        204:
+          description: No content is returned.

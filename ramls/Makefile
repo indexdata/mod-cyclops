@@ -24,6 +24,8 @@ schemalint:
 	z-schema addremovetag-schema.json
 	z-schema project-schema.json
 	z-schema projects-schema.json
+	z-schema fund-schema.json
+	z-schema funds-schema.json
 
 examplelint:
 	z-schema tag-schema.json examples/tag-example.json
@@ -39,6 +41,8 @@ examplelint:
 	z-schema addremovetag-schema.json examples/removetag-example.json
 	z-schema project-schema.json examples/project-example.json
 	z-schema projects-schema.json examples/show-projects-example.json
+	z-schema fund-schema.json examples/fund-example.json
+	z-schema funds-schema.json examples/show-funds-example.json
 
 apilint: cyclops.raml
 	env PATH=$(VENV)/bin:$$PATH api_lint.py -t RAML -d .

@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A fund in a CYCLOPS system, used to associate with projects and mark objects within a set",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "The short human-readable name of the fund"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "name"
+  ]
+}

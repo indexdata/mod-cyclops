@@ -153,6 +153,24 @@
           "permissionsRequired": [
             "cyclops.projects.put"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/funds",
+          "permissionsRequired": [
+            "cyclops.funds.read"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/funds",
+          "permissionsRequired": [
+            "cyclops.funds.create"
+          ]
         }
       ]
     }
@@ -232,6 +250,14 @@
     {
       "permissionName": "cyclops.projects.put",
       "displayName": "CYCLOPS: Modify projects"
+    },
+    {
+      "permissionName": "cyclops.funds.read",
+      "displayName": "CYCLOPS: Read list of funds"
+    },
+    {
+      "permissionName": "cyclops.funds.create",
+      "displayName": "CYCLOPS: Create fund"
     }
   ],
   "launchDescriptor": {
