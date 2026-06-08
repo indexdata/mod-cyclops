@@ -61,6 +61,10 @@
    <li><button class="link-button" onclick="deleteObject('/cyclops/projects/korea_lit')">delete project "literature of North Korea"</button></li>
    <li><button class="link-button" onclick="putData('/cyclops/projects/korea_lit', { id: '456', title: 'Literature South Korea', action: { id: '124', name: 'Acquire' }, mou_link: 'https://www.miketaylor.org.uk/dino/pubs', funds: [{ id: 'coalition_slavic_lit' }, { id: 'palci_cultural' }] })">modify project "literature of North Korea"</button></li>
   </ul>
+  <ul>
+   <li><a href="/cyclops/funds">list of funds</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/funds', { name: 'palci_development' })">define fund "palci_development"</button></li>
+  </ul>
   See also:
   <a href="form.html">the interactive form</a>
   focussed on what the current version of CCMS can actually do.
