@@ -661,6 +661,54 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
+type FundList struct {
+	Funds []any `json:"funds"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+func (server *ModCyclopsServer) handleShowFunds(w http.ResponseWriter, req *http.Request, caption string) error {
+	resp, err := server.sendToCCMS(caption, "show funds;")
+	if err != nil {
+		return err
+	}
+
+	result := readResults(resp)[0]
+	funds := make([]any, 0)
+	for val := range result.Data() {
+		funds = append(funds, val.Values()[0])
+	}
+	fundList := FundList{Funds: funds}
+	return server.respondWithJSON(w, fundList, caption)
+}
+
+// -----------------------------------------------------------------------------
+
+type CreateFund struct {
+	Name string `json:"name"`
+}
+
+func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *http.Request, caption string) error {
+	var fund CreateFund
+	err := unmarshalBody(req, &fund)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "create fund " + fund.Name + ";"
+	server.Log("command", command)
+
+	resp, err := server.sendToCCMS(caption+" "+fund.Name, command)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%s response: %+v\n", caption, resp)
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func unmarshalBody[T any](req *http.Request, data *T) error {
 	b, err := io.ReadAll(req.Body)
 	if err != nil {

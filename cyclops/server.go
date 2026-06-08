@@ -102,6 +102,12 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, roo
 	r.Put("/cyclops/projects/{projectId}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleUpdateProject, "update project")
 	})
+	r.Get("/cyclops/funds", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleShowFunds, "show funds")
+	})
+	r.Post("/cyclops/funds", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleCreateFund, "create fund")
+	})
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
 		message := http.StatusText(status)
