@@ -629,7 +629,7 @@ func project2command(projectId string, project Project) string {
 	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
 	b.WriteString("alter project " + projectId + " alter property funds drop all;\n")
 	for _, fund := range project.Funds {
-		b.WriteString("alter project " + projectId + " alter property funds add '" + fund.Id + "';\n")
+		b.WriteString("alter project " + projectId + " alter property funds add " + fund.Id + ";\n")
 	}
 	// No point supporting the next three until we know what CCMS is going to do with them
 	// b.WriteString("alter project " + projectId + " alter property people set '" + project.People + "';\n")
