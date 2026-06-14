@@ -469,46 +469,43 @@ func (server *ModCyclopsServer) handleShowProjects(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+type ProjectItem struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type ProjectAction struct {
 	Id   string `json:"id"`
 	Name string `json:"name"`
 }
 
-type ProjectFund struct {
-	Id   string `json:"id"`
-	Name string `json:"name"`
-}
+type ProjectFund = ProjectItem
 
 type ProjectPerson struct {
-	XId  string
-	Role string
+	XId  string `json:"xid"`
+	Role string `json:"role"`
 }
 
-type ProjectLocation struct {
-	Id   string
-	Name string
-}
+type ProjectLocation = ProjectItem
 
-type ProjectTrack struct {
-	Id   string
-	Name string
-}
+type ProjectTrack = ProjectItem
 
 type Project struct {
-	Id        string        `json:"id"`
-	AltName   string        `json:"altName"`
-	Title     string        `json:"title"`
-	Action    ProjectAction `json:"action"`
-	MouLink   string        `json:"mou_link"`
-	Funds     []ProjectFund `json:"funds"`
-	People    []ProjectPerson
-	Locations []ProjectLocation
-	Tracks    []ProjectTrack
+	Id           string            `json:"id"`
+	AltName      string            `json:"altName"`
+	Title        string            `json:"title"`
+	Action       ProjectAction     `json:"action"`
+	MouLink      string            `json:"mou_link"`
+	Funds        []ProjectFund     `json:"funds"`
+	People       []ProjectPerson   `json:"people"`
+	Origins      []ProjectLocation `json:"origins"`
+	Destinations []ProjectLocation `json:"destinations"`
+	Tracks       []ProjectTrack    `json:"tracks"`
 }
 
-// Although the funds in projects are addressed as their own
-// individual things, their representation when retrieving project is
-// as a single text-field of the form
+// The representation of list-valued fields when retrieving a project
+// from CCMS is as a single text-field that is a pipe-separated list
+// of colon-separated id:description pairs. It is of the form
 //
 //	<slug1>:<desc1>|<slug2>:<desc2>
 //
@@ -516,20 +513,19 @@ type Project struct {
 //
 //	coalition_slavic_lit:Coalition for Slavic literature|palci_cultural:PALCI cultural preservation
 //
-// It is a pipe-separated list of colon-separated id:description pairs.,
 // -
-func string2funds(s string) []ProjectFund {
+func string2array(s string) []ProjectItem {
 	parts := strings.Split(s, "|")
 	if len(parts) == 1 && parts[0] == "" {
-		return []ProjectFund{}
+		return []ProjectItem{}
 	}
 
-	funds := make([]ProjectFund, len(parts))
+	items := make([]ProjectItem, len(parts))
 	for i, segment := range parts {
 		pair := strings.SplitN(segment, ":", 2)
-		funds[i] = ProjectFund{Id: pair[0], Name: pair[1]}
+		items[i] = ProjectItem{Id: pair[0], Name: pair[1]}
 	}
-	return funds
+	return items
 }
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -563,11 +559,13 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 		case "mou_link":
 			project.MouLink = mustString(value)
 		case "funds":
-			// For now I have parse the string; maybe future CCMS will obviate this need
-			funds := mustString(value)
-			project.Funds = string2funds(funds)
+			project.Funds = string2array(mustString(value))
+		case "origins":
+			project.Origins = string2array(mustString(value))
+		case "destinations":
+			project.Destinations = string2array(mustString(value))
 		default:
-			server.Log("data", "unrecognised Project field", key)
+			server.Log("data", "unrecognised Project field", key, "=", fmt.Sprintf("%+v", value))
 		}
 	}
 
@@ -631,9 +629,15 @@ func project2command(projectId string, project Project) string {
 	for _, fund := range project.Funds {
 		b.WriteString("alter project " + projectId + " alter property funds add " + fund.Id + ";\n")
 	}
-	// No point supporting the next three until we know what CCMS is going to do with them
 	// b.WriteString("alter project " + projectId + " alter property people set '" + project.People + "';\n")
-	// b.WriteString("alter project " + projectId + " alter property locations set '" + project.Locations + "';\n")
+	b.WriteString("alter project " + projectId + " alter property origins drop all;\n")
+	for _, location := range project.Origins {
+		b.WriteString("alter project " + projectId + " alter property origins add " + location.Id + ";\n")
+	}
+	b.WriteString("alter project " + projectId + " alter property destinations drop all;\n")
+	for _, location := range project.Destinations {
+		b.WriteString("alter project " + projectId + " alter property destinations add " + location.Id + ";\n")
+	}
 	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
 	return b.String()
 }
