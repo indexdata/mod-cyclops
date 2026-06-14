@@ -10,7 +10,8 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/cyclops/version"
+          "pathPattern": "/cyclops/version",
+          "permissionsRequired": []
         },
         {
           "methods": [
