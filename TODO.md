@@ -7,7 +7,7 @@
 * in alter project
   * **DONE** name values used as identifiers are no longer enclosed in quotation marks
   * **N/A** values of the action property are now restricted to preset names (listed in the documentation)
-  * property locations has been superseded by new properties origins and destinations, and will be removed in the future
+  * **DONE** property locations has been superseded by new properties origins and destinations, and will be removed in the future
   * **DONE** added the action drop all
   * **N/A** an error is no longer returned when adding a subvalue to a composite property that already contains the subvalue
 * all documentation updated
