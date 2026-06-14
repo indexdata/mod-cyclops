@@ -27,7 +27,7 @@
       "role": "`Visionary"
     }
   ],
-  "locations": [
+  "origins": [
     {
       "id": "789",
       "name": "Lehigh"
@@ -35,7 +35,9 @@
     {
       "id": "890",
       "name": "NYU"
-    },
+    }
+  ],
+  "destinations": [
     {
       "id": "901",
       "name": "CLOCKSS"

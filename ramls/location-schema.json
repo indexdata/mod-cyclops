@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+   "description": "A single location used by the project",
+   "required": [
+     "id",
+     "name"
+   ],
+   "properties": {
+     "id": {
+       "type": "string",
+       "description": "Unique identifier of the location"
+     },
+     "name": {
+       "type": "string",
+       "description": "Human-readable name of the location"
+     }
+   },
+   "additionalProperties": false
+}

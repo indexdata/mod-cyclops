@@ -84,27 +84,20 @@
         "additionalProperties": false
       }
     },
-    "locations": {
+    "origins": {
       "type": "array",
-      "description": "The locations that can act as sources and destinations for the action associated with this project",
+      "description": "The locations that can act as origins for the action associated with this project",
       "items": {
         "type": "object",
-        "description": "A single location used by the project",
-        "required": [
-          "id",
-          "name"
-        ],
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier of the location"
-          },
-          "name": {
-            "type": "string",
-            "description": "Human-readable name of the location"
-          }
-        },
-        "additionalProperties": false
+	"$ref": "location-schema.json"
+      }
+    },
+    "destinations": {
+      "type": "array",
+      "description": "The locations that can be destinations for the action associated with this project",
+      "items": {
+        "type": "object",
+	"$ref": "location-schema.json"
       }
     },
     "tracks": {
