@@ -10,6 +10,12 @@
           "methods": [
             "GET"
           ],
+          "pathPattern": "/cyclops/version"
+        },
+        {
+          "methods": [
+            "GET"
+          ],
           "pathPattern": "/cyclops/tags",
           "permissionsRequired": [
             "cyclops.tags.read"

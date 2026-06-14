@@ -3,6 +3,7 @@ package cyclops
 import "fmt"
 import "net/http"
 import "time"
+import "runtime/debug"
 import "github.com/go-chi/chi/v5"
 import "github.com/MikeTaylor/catlogger"
 import "github.com/indexdata/ccms"
@@ -53,6 +54,14 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, roo
 	r.Handle("/favicon.ico", fs)
 	r.Get("/admin/health", func(w http.ResponseWriter, req *http.Request) {
 		_, _ = fmt.Fprintln(w, "Behold! I live!!")
+	})
+	r.Get("/cyclops/version", func(w http.ResponseWriter, req *http.Request) {
+		info, _ := debug.ReadBuildInfo()
+		for _, setting := range info.Settings {
+			if setting.Key == "vcs.revision" {
+				_, _ = fmt.Fprintln(w, setting.Value)
+			}
+		}
 	})
 	r.Get("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleShowTags, "show tags")
