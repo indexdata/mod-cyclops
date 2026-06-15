@@ -2,6 +2,8 @@
 
 ## Updates to CCMS needing corresponding work in mod-cyclops
 
+### Chunk 1
+
 * **DONE** added create fund and show funds commands
 * **DONE** added drop project command
 * in alter project
@@ -16,6 +18,22 @@
 The special `reserve` set is being superseded by project-specific sets named _project_.object, for example `palci_slavic.object` for the project `palci_slavic`.  These new `object` sets are like `reserve` but with the addition of spectre attributes.  They are created automatically by `create project`.
 
 In Mod-Cyclops, for the moment it would be sufficient to replace `reserve` in the from clause with `palci_slavic.object`.
+
+
+### Chunk 2
+
+* The `reserve` set has been superseded by the `object` set in each project.
+* Added the `update` command for changing `object` attributes.
+* Added the `show sets in project` command.
+* The project property `locations` has been removed.
+* Added the `archive project` command, to be used instead of `drop project`.
+* The `drop project`` command now only drops archived projects.
+* Added the `show projects archived` command.
+
+There is a `create property fund` command implemented but it isn't completely enabled yet.
+
+The main change above is the `update` command which allows updating spectre attributes (`fund` for the moment).
+
 
 
 ## Updates needed in CCMS
