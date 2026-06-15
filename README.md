@@ -43,6 +43,7 @@ Logging messages are emitted under the following categories, if those categories
 * `error` -- Log errors that are returned to the client.
 * `ccms` -- Responses received from CCMS.
 * `response` -- JSON responses returned to the client
+* `data` -- data fields in CCMS responses that are not handled by mod-cyclops code
 
 So, for example, if the server is run as `env LOGCAT=listen,error target/mod-cyclops`, then a message will be emitted at startup, when the server has begun to listen, but it will otherwise remain quiet apart from logging any errors that might occur.
 
