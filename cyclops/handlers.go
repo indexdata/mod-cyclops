@@ -327,13 +327,13 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 	command := "drop set " + chi.URLParam(req, "setName") + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+chi.URLParam(req, "setName"), command)
+	_, err := server.sendToCCMS(caption+" "+chi.URLParam(req, "setName"), command)
 	if err != nil {
 		return err
 	}
 
-	localrr := ccms2local(resp)
-	return server.respondWithJSON(w, localrr, caption)
+	w.WriteHeader(http.StatusNoContent);
+	return nil;
 }
 
 // -----------------------------------------------------------------------------
