@@ -246,3 +246,422 @@ func TestMakeRetrieveCommand(t *testing.T) {
 		})
 	}
 }
+
+// jsonRequest builds a request carrying the given chi URL params and a JSON
+// body. Pass a nil params map when no route params are needed, and an empty
+// body for handlers that don't read one.
+func jsonRequest(body string, params map[string]string) *http.Request {
+	req := httptest.NewRequest(http.MethodPost, "/test", strings.NewReader(body))
+	rctx := chi.NewRouteContext()
+	for k, v := range params {
+		rctx.URLParams.Add(k, v)
+	}
+	return req.WithContext(contextWithChiRouteContext(req.Context(), rctx))
+}
+
+// okResponse is the minimal non-error CCMS response. Handlers that only return
+// 204 still run it through sendToCCMS, which dereferences the response, so it
+// must be non-nil and carry a non-error result.
+func okResponse() *ccms.Response {
+	resp := ccms.NewResponse()
+	resp.AddResult(ccms.NewResult("ok"))
+	return resp
+}
+
+// listResponse builds an "ok" response whose single result has one data row per
+// value, each a single-column string. This matches what the show* handlers read.
+func listResponse(values ...string) *ccms.Response {
+	result := ccms.NewResult("ok")
+	for _, v := range values {
+		result.AddData([]any{v})
+	}
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	return resp
+}
+
+// assertStatus fails the test when the recorded HTTP status differs from want.
+func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if rr.Code != want {
+		t.Errorf("status code: got %d want %d", rr.Code, want)
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Read handlers: fixed command in, JSON list out.
+
+func TestHandleShowTags(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("vip", "staff")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowTags(rr, jsonRequest("", nil), "show tags")
+	if err != nil {
+		t.Fatalf("handleShowTags returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show tags;")
+
+	var got TagList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := TagList{Tags: []any{"vip", "staff"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleShowFilters(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("active", "archived")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowFilters(rr, jsonRequest("", nil), "show filters")
+	if err != nil {
+		t.Fatalf("handleShowFilters returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show filters;")
+
+	var got FilterList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := FilterList{Filters: []any{"active", "archived"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleShowSets(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("users", "books")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowSets(rr, jsonRequest("", nil), "show sets")
+	if err != nil {
+		t.Fatalf("handleShowSets returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show sets;")
+
+	var got SetList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := SetList{Sets: []any{"users", "books"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleShowFunds(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("general", "endowment")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowFunds(rr, jsonRequest("", nil), "show funds")
+	if err != nil {
+		t.Fatalf("handleShowFunds returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show funds;")
+
+	var got FundList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := FundList{Funds: []any{"general", "endowment"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleShowProjects(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("alpha", "beta")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowProjects(rr, jsonRequest("", nil), "show projects")
+	if err != nil {
+		t.Fatalf("handleShowProjects returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show projects;")
+
+	var got ProjectList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := ProjectList{Projects: []BriefProject{{AltName: "alpha"}, {AltName: "beta"}}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+// -----------------------------------------------------------------------------
+// Body-driven handlers that return 204 No Content.
+
+func TestHandleDefineTag(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDefineTag(rr, jsonRequest(`{"name":"vip"}`, nil), "define tag")
+	if err != nil {
+		t.Fatalf("handleDefineTag returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define tag vip")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDefineFilter(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"name":"active","cond":"age>18","template":"tmpl"}`
+	rr := httptest.NewRecorder()
+	err := server.handleDefineFilter(rr, jsonRequest(body, nil), "define filter")
+	if err != nil {
+		t.Fatalf("handleDefineFilter returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define filter active where age>18 template tmpl")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDefineFilterNameOnly(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDefineFilter(rr, jsonRequest(`{"name":"active"}`, nil), "define filter")
+	if err != nil {
+		t.Fatalf("handleDefineFilter returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define filter active")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleCreateSet(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleCreateSet(rr, jsonRequest(`{"name":"users"}`, nil), "create set")
+	if err != nil {
+		t.Fatalf("handleCreateSet returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create set users;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDropSet(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDropSet(rr, jsonRequest("", map[string]string{"setName": "users"}), "drop set")
+	if err != nil {
+		t.Fatalf("handleDropSet returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop set users;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleCreateFund(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleCreateFund(rr, jsonRequest(`{"name":"endowment"}`, nil), "create fund")
+	if err != nil {
+		t.Fatalf("handleCreateFund returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create fund endowment;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleAddObjects(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"from":"src","cond":"age>18","limit":"5"}`
+	rr := httptest.NewRecorder()
+	err := server.handleAddObjects(rr, jsonRequest(body, map[string]string{"setName": "dest"}), "add objects")
+	if err != nil {
+		t.Fatalf("handleAddObjects returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "insert into dest select * from src where age>18 limit 5;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleRemoveObjects(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleRemoveObjects(rr, jsonRequest(`{"cond":"age<10"}`, map[string]string{"setName": "dest"}), "remove objects")
+	if err != nil {
+		t.Fatalf("handleRemoveObjects returned error: %v", err)
+	}
+
+	// Note the double space: command is "delete from <set> " + clause, and the
+	// conditional clause itself begins with a leading space (" where ...").
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "delete from dest  where age<10;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDeleteProject(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDeleteProject(rr, jsonRequest("", map[string]string{"projectId": "p1"}), "delete project")
+	if err != nil {
+		t.Fatalf("handleDeleteProject returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop project p1;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleCreateProject(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"altName":"p1","title":"T","action":{"name":"approve"},"mou_link":"m",` +
+		`"funds":[{"id":"f1"},{"id":"f2"}],"origins":[{"id":"o1"},{"id":"o2"}],` +
+		`"destinations":[{"id":"d1"}]}`
+	rr := httptest.NewRecorder()
+	err := server.handleCreateProject(rr, jsonRequest(body, nil), "create project")
+	if err != nil {
+		t.Fatalf("handleCreateProject returned error: %v", err)
+	}
+
+	want := "create project p1;\n" +
+		"alter project p1 alter property title set 'T';\n" +
+		"alter project p1 alter property action set approve;\n" +
+		"alter project p1 alter property mou_link set 'm';\n" +
+		"alter project p1 alter property funds drop all;\n" +
+		"alter project p1 alter property funds add f1;\n" +
+		"alter project p1 alter property funds add f2;\n" +
+		"alter project p1 alter property origins drop all;\n" +
+		"alter project p1 alter property origins add o1;\n" +
+		"alter project p1 alter property origins add o2;\n" +
+		"alter project p1 alter property destinations drop all;\n" +
+		"alter project p1 alter property destinations add d1;\n"
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleCreateProjectNoAltName(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleCreateProject(rr, jsonRequest(`{"title":"T"}`, nil), "create project")
+	if err == nil {
+		t.Fatal("expected an error when altName is missing, got nil")
+	}
+	if !strings.Contains(err.Error(), "no altName specified") {
+		t.Errorf("error %q should mention the missing altName", err.Error())
+	}
+
+	// The handler must bail before sending anything to CCMS.
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+}
+
+func TestHandleUpdateProject(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"title":"T","action":{"name":"a"}}`
+	rr := httptest.NewRecorder()
+	err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
+	if err != nil {
+		t.Fatalf("handleUpdateProject returned error: %v", err)
+	}
+
+	want := "alter project p1 alter property title set 'T';\n" +
+		"alter project p1 alter property action set a;\n" +
+		"alter project p1 alter property mou_link set '';\n" +
+		"alter project p1 alter property funds drop all;\n" +
+		"alter project p1 alter property origins drop all;\n" +
+		"alter project p1 alter property destinations drop all;\n"
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+// -----------------------------------------------------------------------------
+// Handlers with their own response shapes.
+
+func TestHandleFetchProject(t *testing.T) {
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"title", "My Title"})
+	result.AddData([]any{"action", "approve"})
+	result.AddData([]any{"funds", "f1:Fund One|f2:Fund Two"})
+	result.AddData([]any{"origins", "seoul:Seoul"})
+	result.AddData([]any{"destinations", ""})
+	result.AddData([]any{"bogus", "ignored"}) // exercises the default branch
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+
+	fake := &fakeCCMS{resp: resp}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleFetchProject(rr, jsonRequest("", map[string]string{"projectId": "p1"}), "fetch project")
+	if err != nil {
+		t.Fatalf("handleFetchProject returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show project p1;")
+
+	var got Project
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := Project{
+		AltName:      "p1",
+		Title:        "My Title",
+		Action:       ProjectAction{Name: "approve"},
+		Funds:        []ProjectFund{{Id: "f1", Name: "Fund One"}, {Id: "f2", Name: "Fund Two"}},
+		Origins:      []ProjectLocation{{Id: "seoul", Name: "Seoul"}},
+		Destinations: []ProjectLocation{},
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+// -----------------------------------------------------------------------------
+// The tag add/remove endpoint is a no-op: it returns 204 and talks to nobody.
+
+func TestHandleAddRemoveTags(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleAddRemoveTags(rr, jsonRequest(`{"whatever":true}`, nil), "add/remove tags")
+	if err != nil {
+		t.Fatalf("handleAddRemoveTags returned error: %v", err)
+	}
+
+	assertStatus(t, rr, http.StatusNoContent)
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+}
