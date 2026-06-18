@@ -332,8 +332,8 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 		return err
 	}
 
-	w.WriteHeader(http.StatusNoContent);
-	return nil;
+	w.WriteHeader(http.StatusNoContent)
+	return nil
 }
 
 // -----------------------------------------------------------------------------
