@@ -46,6 +46,8 @@ func retrieveRequest(setName, rawQuery string) *http.Request {
 	return req.WithContext(contextWithChiRouteContext(req.Context(), rctx))
 }
 
+// -----------------------------------------------------------------------------
+
 // assertEqual fails the test, labelled with what, when got != want.
 func assertEqual(t *testing.T, what, got, want string) {
 	t.Helper()
@@ -62,6 +64,16 @@ func assertErrContains(t *testing.T, err error, want string) {
 		t.Errorf("error %q should contain %q", err.Error(), want)
 	}
 }
+
+// assertStatus fails the test when the recorded HTTP status differs from want.
+func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, want int) {
+	t.Helper()
+	if rr.Code != want {
+		t.Errorf("status code: got %d want %d", rr.Code, want)
+	}
+}
+
+// -----------------------------------------------------------------------------
 
 func TestHandleRetrieve(t *testing.T) {
 	// Build the CCMS response the fake will return, using the ccms package's
@@ -160,101 +172,6 @@ func TestHandleRetrieveCCMSError(t *testing.T) {
 	}
 }
 
-func TestMakeRetrieveCommand(t *testing.T) {
-	tests := []struct {
-		name        string
-		url         string
-		setName     string
-		expected    string
-		expectedErr string
-	}{
-		{
-			name:        "basic query with required fields",
-			url:         "/test?fields=id,name",
-			setName:     "users",
-			expected:    "select id,name from users limit 100;",
-			expectedErr: "",
-		},
-		{
-			name:        "missing fields should error",
-			url:         "/test",
-			setName:     "users",
-			expectedErr: "no 'fields' parameter supplied",
-		},
-		{
-			name:        "with condition and filter",
-			url:         "/test?fields=id&cond=age>18&filter=active",
-			setName:     "users",
-			expected:    "select id from users where age>18 filter active limit 100;",
-			expectedErr: "",
-		},
-		{
-			name:        "with tag",
-			url:         "/test?fields=id&tag=vip",
-			setName:     "users",
-			expected:    "select id from users tag vip limit 100;",
-			expectedErr: "",
-		},
-		{
-			name:        "with omitTag",
-			url:         "/test?fields=id&omitTag=vip",
-			setName:     "users",
-			expected:    "select id from users tag not vip limit 100;",
-			expectedErr: "",
-		},
-		{
-			name:        "both tag and omitTag should error",
-			url:         "/test?fields=id&tag=vip&omitTag=vip",
-			setName:     "users",
-			expectedErr: "both 'tag' and 'omitTag' parameters supplied",
-		},
-		{
-			name:        "with sort, limit and offset",
-			url:         "/test?fields=id&sort=name&limit=10&offset=5",
-			setName:     "users",
-			expected:    "select id from users order by name limit 10 offset 5;",
-			expectedErr: "",
-		},
-		{
-			name:        "default limit applied",
-			url:         "/test?fields=id",
-			setName:     "users",
-			expected:    "select id from users limit 100;",
-			expectedErr: "",
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
-
-			// Inject chi route param
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("setName", tt.setName)
-			req = req.WithContext(
-				contextWithChiRouteContext(req.Context(), rctx),
-			)
-
-			got, err := makeRetrieveCommand(req, false)
-
-			if tt.expectedErr != "" {
-				if err == nil {
-					t.Fatalf("expected error but got none")
-				} else if err.Error() != tt.expectedErr {
-					t.Fatalf("expected error %q but got %q", tt.expectedErr, err.Error())
-				}
-				return
-			}
-
-			if err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-
-			assertEqual(t, "retrieve command", got, tt.expected)
-		})
-	}
-}
-
 // jsonRequest builds a request carrying the given chi URL params and a JSON
 // body. Pass a nil params map when no route params are needed, and an empty
 // body for handlers that don't read one.
@@ -286,14 +203,6 @@ func listResponse(values ...string) *ccms.Response {
 	resp := ccms.NewResponse()
 	resp.AddResult(result)
 	return resp
-}
-
-// assertStatus fails the test when the recorded HTTP status differs from want.
-func assertStatus(t *testing.T, rr *httptest.ResponseRecorder, want int) {
-	t.Helper()
-	if rr.Code != want {
-		t.Errorf("status code: got %d want %d", rr.Code, want)
-	}
 }
 
 // -----------------------------------------------------------------------------
@@ -724,4 +633,101 @@ func TestHandleAddRemoveTags(t *testing.T) {
 
 	assertStatus(t, rr, http.StatusNoContent)
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+}
+
+// -----------------------------------------------------------------------------
+
+func TestMakeRetrieveCommand(t *testing.T) {
+	tests := []struct {
+		name        string
+		url         string
+		setName     string
+		expected    string
+		expectedErr string
+	}{
+		{
+			name:        "basic query with required fields",
+			url:         "/test?fields=id,name",
+			setName:     "users",
+			expected:    "select id,name from users limit 100;",
+			expectedErr: "",
+		},
+		{
+			name:        "missing fields should error",
+			url:         "/test",
+			setName:     "users",
+			expectedErr: "no 'fields' parameter supplied",
+		},
+		{
+			name:        "with condition and filter",
+			url:         "/test?fields=id&cond=age>18&filter=active",
+			setName:     "users",
+			expected:    "select id from users where age>18 filter active limit 100;",
+			expectedErr: "",
+		},
+		{
+			name:        "with tag",
+			url:         "/test?fields=id&tag=vip",
+			setName:     "users",
+			expected:    "select id from users tag vip limit 100;",
+			expectedErr: "",
+		},
+		{
+			name:        "with omitTag",
+			url:         "/test?fields=id&omitTag=vip",
+			setName:     "users",
+			expected:    "select id from users tag not vip limit 100;",
+			expectedErr: "",
+		},
+		{
+			name:        "both tag and omitTag should error",
+			url:         "/test?fields=id&tag=vip&omitTag=vip",
+			setName:     "users",
+			expectedErr: "both 'tag' and 'omitTag' parameters supplied",
+		},
+		{
+			name:        "with sort, limit and offset",
+			url:         "/test?fields=id&sort=name&limit=10&offset=5",
+			setName:     "users",
+			expected:    "select id from users order by name limit 10 offset 5;",
+			expectedErr: "",
+		},
+		{
+			name:        "default limit applied",
+			url:         "/test?fields=id",
+			setName:     "users",
+			expected:    "select id from users limit 100;",
+			expectedErr: "",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := httptest.NewRequest(http.MethodGet, tt.url, nil)
+
+			// Inject chi route param
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("setName", tt.setName)
+			req = req.WithContext(
+				contextWithChiRouteContext(req.Context(), rctx),
+			)
+
+			got, err := makeRetrieveCommand(req, false)
+
+			if tt.expectedErr != "" {
+				if err == nil {
+					t.Fatalf("expected error but got none")
+				} else if err.Error() != tt.expectedErr {
+					t.Fatalf("expected error %q but got %q", tt.expectedErr, err.Error())
+				}
+				return
+			}
+
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+
+			assertEqual(t, "retrieve command", got, tt.expected)
+		})
+	}
 }
