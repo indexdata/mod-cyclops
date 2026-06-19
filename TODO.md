@@ -20,6 +20,12 @@ The special `reserve` set is being superseded by project-specific sets named _pr
 In Mod-Cyclops, for the moment it would be sufficient to replace `reserve` in the from clause with `palci_slavic.object`.
 
 
+### Unit tests
+
+* **DONE** Unit tests for handlers
+* **DONE** Unit tests for server/router
+
+
 ### Chunk 2
 
 * The `reserve` set has been superseded by the `object` set in each project.
