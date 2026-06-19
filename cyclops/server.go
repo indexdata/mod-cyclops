@@ -30,9 +30,6 @@ type ModCyclopsServer struct {
 }
 
 func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root string, timeout int) *ModCyclopsServer {
-	tr := &http.Transport{}
-	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
-
 	r := chi.NewRouter()
 	var server = ModCyclopsServer{
 		logger:     logger,
