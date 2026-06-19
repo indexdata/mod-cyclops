@@ -3,8 +3,11 @@ package cyclops
 import "encoding/json"
 import "net/http"
 import "net/http/httptest"
+import "os"
+import "path/filepath"
 import "reflect"
 import "testing"
+import "github.com/MikeTaylor/catlogger"
 import "github.com/indexdata/ccms"
 
 // serve drives a request through the router the constructor installed on the
@@ -85,6 +88,59 @@ func TestMakeModCyclopsServerRoutesToHandler(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
+}
+
+// serverRootedAt builds a server whose static files are served from the given
+// directory. The htdocs FileServer reads from <root>/htdocs.
+func serverRootedAt(root string) *ModCyclopsServer {
+	logger := catlogger.MakeLogger("", "", false)
+	return MakeModCyclopsServer(logger, &fakeCCMS{}, root, 60)
+}
+
+// writeFixture creates <root>/htdocs/<name> with the given contents, making the
+// htdocs directory as needed, and fails the test if anything goes wrong.
+func writeFixture(t *testing.T, root, name, contents string) {
+	t.Helper()
+	path := filepath.Join(root, "htdocs", name)
+	err := os.MkdirAll(filepath.Dir(path), 0o755)
+	if err != nil {
+		t.Fatalf("could not create fixture dir: %v", err)
+	}
+	err = os.WriteFile(path, []byte(contents), 0o644)
+	if err != nil {
+		t.Fatalf("could not write fixture %q: %v", path, err)
+	}
+}
+
+// The /htdocs/* route strips the prefix and serves the named file from the
+// htdocs directory under root.
+func TestMakeModCyclopsServerHtdocs(t *testing.T) {
+	root := t.TempDir()
+	writeFixture(t, root, "hello.txt", "hello, world\n")
+	server := serverRootedAt(root)
+
+	t.Run("serves an existing file", func(t *testing.T) {
+		rr := serve(server, httptest.NewRequest(http.MethodGet, "/htdocs/hello.txt", nil))
+		assertStatus(t, rr, http.StatusOK)
+		assertEqual(t, "file body", rr.Body.String(), "hello, world\n")
+	})
+
+	t.Run("missing file yields 404", func(t *testing.T) {
+		rr := serve(server, httptest.NewRequest(http.MethodGet, "/htdocs/nope.txt", nil))
+		assertStatus(t, rr, http.StatusNotFound)
+	})
+}
+
+// The /favicon.ico route is handled by the same FileServer but without a
+// StripPrefix, so it serves htdocs/favicon.ico directly.
+func TestMakeModCyclopsServerFavicon(t *testing.T) {
+	root := t.TempDir()
+	writeFixture(t, root, "favicon.ico", "icon-bytes")
+	server := serverRootedAt(root)
+
+	rr := serve(server, httptest.NewRequest(http.MethodGet, "/favicon.ico", nil))
+	assertStatus(t, rr, http.StatusOK)
+	assertEqual(t, "favicon body", rr.Body.String(), "icon-bytes")
 }
 
 // A registered path that is hit with the wrong method should not fall through
