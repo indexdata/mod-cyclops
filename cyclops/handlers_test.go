@@ -2,6 +2,7 @@ package cyclops
 
 import "context"
 import "encoding/json"
+import "errors"
 import "net/http"
 import "net/http/httptest"
 import "reflect"
@@ -50,6 +51,15 @@ func assertEqual(t *testing.T, what, got, want string) {
 	t.Helper()
 	if got != want {
 		t.Errorf("%s: got %q want %q", what, got, want)
+	}
+}
+
+// assertErrContains fails the test when err's message does not contain want.
+// Callers are expected to have already established that err is non-nil.
+func assertErrContains(t *testing.T, err error, want string) {
+	t.Helper()
+	if !strings.Contains(err.Error(), want) {
+		t.Errorf("error %q should contain %q", err.Error(), want)
 	}
 }
 
@@ -141,9 +151,7 @@ func TestHandleRetrieveCCMSError(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error for a CCMS error status, got nil")
 	}
-	if !strings.Contains(err.Error(), "no such set") {
-		t.Errorf("error %q should mention the CCMS message %q", err.Error(), "no such set")
-	}
+	assertErrContains(t, err, "no such set")
 
 	// On the error path the handler returns before writing any response, so the
 	// caller can render the error itself. Confirm nothing was written.
@@ -410,17 +418,71 @@ func TestHandleShowProjects(t *testing.T) {
 // Body-driven handlers that return 204 No Content.
 
 func TestHandleDefineTag(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
+	t.Run("success", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
 
-	rr := httptest.NewRecorder()
-	err := server.handleDefineTag(rr, jsonRequest(`{"name":"vip"}`, nil), "define tag")
-	if err != nil {
-		t.Fatalf("handleDefineTag returned error: %v", err)
-	}
+		rr := httptest.NewRecorder()
+		err := server.handleDefineTag(rr, jsonRequest(`{"name":"vip"}`, nil), "define tag")
+		if err != nil {
+			t.Fatalf("handleDefineTag returned error: %v", err)
+		}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define tag vip")
-	assertStatus(t, rr, http.StatusNoContent)
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "define tag vip")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("malformed JSON body", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleDefineTag(rr, jsonRequest(`{"name":`, nil), "define tag")
+		if err == nil {
+			t.Fatal("expected an error for malformed JSON, got nil")
+		}
+		assertErrContains(t, err, "deserialize JSON")
+
+		// The handler must bail before sending anything to CCMS.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+
+	t.Run("CCMS error status", func(t *testing.T) {
+		result := ccms.NewResult("error")
+		result.AddMessage("tag already exists")
+		resp := ccms.NewResponse()
+		resp.AddResult(result)
+
+		fake := &fakeCCMS{resp: resp}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleDefineTag(rr, jsonRequest(`{"name":"vip"}`, nil), "define tag")
+		if err == nil {
+			t.Fatal("expected an error for a CCMS error status, got nil")
+		}
+		assertErrContains(t, err, "tag already exists")
+
+		// The command is sent before CCMS reports the error, but no 204 follows.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "define tag vip")
+		if rr.Body.Len() != 0 {
+			t.Errorf("expected no response body on error, got %q", rr.Body.String())
+		}
+	})
+
+	t.Run("CCMS unreachable", func(t *testing.T) {
+		fake := &fakeCCMS{err: errors.New("connection refused")}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleDefineTag(rr, jsonRequest(`{"name":"vip"}`, nil), "define tag")
+		if err == nil {
+			t.Fatal("expected an error when CCMS is unreachable, got nil")
+		}
+		assertErrContains(t, err, "connection refused")
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "define tag vip")
+	})
 }
 
 func TestHandleDefineFilter(t *testing.T) {
@@ -577,9 +639,7 @@ func TestHandleCreateProjectNoAltName(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected an error when altName is missing, got nil")
 	}
-	if !strings.Contains(err.Error(), "no altName specified") {
-		t.Errorf("error %q should mention the missing altName", err.Error())
-	}
+	assertErrContains(t, err, "no altName specified")
 
 	// The handler must bail before sending anything to CCMS.
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
