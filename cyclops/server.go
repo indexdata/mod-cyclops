@@ -17,13 +17,19 @@ func (m *HTTPError) Error() string {
 	return m.message
 }
 
+// CCMSClient is the subset of *ccms.Client that the server depends on. Keeping
+// it as an interface lets tests substitute a fake CCMS implementation.
+type CCMSClient interface {
+	Send(command string) (*ccms.Response, error)
+}
+
 type ModCyclopsServer struct {
 	logger     *catlogger.Logger
-	ccmsClient *ccms.Client
+	ccmsClient CCMSClient
 	httpServer http.Server
 }
 
-func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient *ccms.Client, root string, timeout int) *ModCyclopsServer {
+func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root string, timeout int) *ModCyclopsServer {
 	tr := &http.Transport{}
 	tr.RegisterProtocol("file", http.NewFileTransport(http.Dir(root)))
 

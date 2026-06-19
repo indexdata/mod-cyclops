@@ -10,6 +10,9 @@ run-dummy:
 lint:
 	(cd ..; make lint)
 
+test:
+	(cd ..; make test)
+
 clean:
 	(cd ..; make clean)
 
