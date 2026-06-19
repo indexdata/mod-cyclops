@@ -46,11 +46,10 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 	command := "define tag " + tag.Name
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+tag.Name, command)
+	_, err = server.sendToCCMS(caption+" "+tag.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -102,11 +101,10 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 	}
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+filter.Name, command)
+	_, err = server.sendToCCMS(caption+" "+filter.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -150,11 +148,10 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 	command := "create set " + set.Name + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+set.Name, command)
+	_, err = server.sendToCCMS(caption+" "+set.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -373,11 +370,10 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 	command := "insert into " + setName + " " + clause + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+setName, command)
+	_, err = server.sendToCCMS(caption+" "+setName, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -417,11 +413,10 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 	command := "delete from " + setName + " " + clause + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+setName, command)
+	_, err = server.sendToCCMS(caption+" "+setName, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -592,11 +587,10 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 	command := "create project " + project.AltName + ";\n" + project2command(project.AltName, project)
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+project.AltName, command)
+	_, err = server.sendToCCMS(caption+" "+project.AltName, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -608,11 +602,10 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 	command := "drop project " + projectId + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+projectId, command)
+	_, err := server.sendToCCMS(caption+" "+projectId, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -653,11 +646,10 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 	command := project2command(projectId, project)
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+projectId, command)
+	_, err = server.sendToCCMS(caption+" "+projectId, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
@@ -701,11 +693,10 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 	command := "create fund " + fund.Name + ";"
 	server.Log("command", command)
 
-	resp, err := server.sendToCCMS(caption+" "+fund.Name, command)
+	_, err = server.sendToCCMS(caption+" "+fund.Name, command)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%s response: %+v\n", caption, resp)
 
 	w.WriteHeader(http.StatusNoContent)
 	return nil
