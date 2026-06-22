@@ -418,19 +418,39 @@ func TestHandleDefineTag(t *testing.T) {
 }
 
 func TestHandleUpdateRecord(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
+	t.Run("simple case with non-faceted set-name", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
 
-	params := map[string]string{"setName": "mike", "recordId": "rec1"}
-	rr := httptest.NewRecorder()
-	err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
-	if err != nil {
-		t.Fatalf("handleUpdateRecord returned error: %v", err)
-	}
+		params := map[string]string{"setName": "mike", "recordId": "rec1"}
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
+		if err != nil {
+			t.Fatalf("handleUpdateRecord returned error: %v", err)
+		}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd,
-		"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1")
-	assertStatus(t, rr, http.StatusNoContent)
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// A qualified set name like "foo.bar" has the part after the period replaced
+	// with "object" before the command is built.
+	t.Run("complex case with faceted set-name", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "foo.bar", "recordId": "rec1"}
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
+		if err != nil {
+			t.Fatalf("handleUpdateRecord returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update foo.object set decision = true where id = rec1; update foo.object set fund = palci where id = rec1;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
 }
 
 func TestHandleDefineFilter(t *testing.T) {
