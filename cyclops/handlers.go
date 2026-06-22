@@ -655,6 +655,24 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 	return nil
 }
 
+func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, req *http.Request, caption string) error {
+	projectId := chi.URLParam(req, "projectId")
+	command := "show sets in project " + projectId + ";"
+	server.Log("command", command)
+	resp, err := server.sendToCCMS(caption+" "+projectId, command)
+	if err != nil {
+		return fmt.Errorf("could not fetch show-sets response: %w", err)
+	}
+
+	result := readResults(resp)[0]
+	sets := make([]any, 0)
+	for val := range result.Data() {
+		sets = append(sets, val.Values()[0])
+	}
+	setList := SetList{Sets: sets}
+	return server.respondWithJSON(w, setList, caption)
+}
+
 // -----------------------------------------------------------------------------
 
 type FundList struct {
