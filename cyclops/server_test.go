@@ -104,7 +104,7 @@ func TestMakeModCyclopsServerUpdateRecordRoute(t *testing.T) {
 
 		assertStatus(t, rr, http.StatusNoContent)
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1")
+			"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1;")
 	})
 
 	t.Run("static /add still wins over {recordId}", func(t *testing.T) {
