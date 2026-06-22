@@ -18,7 +18,7 @@
   <script src="sendRequest.js" defer></script>
   <script>
    function addRecord() {
-     postData('/cyclops/sets/test.mike/add', { from: 'reserve', cond: `author = 'Adams, John'` })
+     postData('/cyclops/sets/korea_lit.mike/add', { from: 'reserve', cond: `author = 'Adams, John'` })
    }
  </script>
  </head>
@@ -70,15 +70,15 @@
   </ul>
   <ul>
    <li><a href="/cyclops/sets">list of sets</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'test.mike' })">create set "test.mike"</button></li>
-   <li><button class="link-button" onclick="deleteObject('/cyclops/sets/test.mike')">delete set "test.mike"</button></li>
-   <li><a href="/cyclops/sets/test.mike?fields=%2A&cond=143100000%20%3C%3D%20age%20AND%20age%20%3C%3D%20201400000&filter=jurassic&tag=dino,ptero&sort=author,title&offset=20&limit=10">retrieve from set "test.mike"</a></li>
-   <li><a href="/cyclops/sets/test.mike?fields=%2A&cond=title='rings' or author='lewis'&sort=author&offset=20&limit=10">retrieve from set "test.mike" using only supported params</a></li>
-   <li><a href="/cyclops/sets/test.mike?fields=%2A">retrieve everything from set "test.mike"</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/test.mike/add', { from: 'reserve', cond: `author = 'Adams, John'` })">add objects to set "test.mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/test.mike/remove', { cond: 'id = 55017' })">remove item 55017 from set "test.mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/test.mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "test.mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/test.mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'cretaceous' })">remove tag "dino" from records in set "test.mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'korea_lit.mike' })">create set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="deleteObject('/cyclops/sets/korea_lit.mike')">delete set "korea_lit.mike"</button></li>
+   <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A&cond=143100000%20%3C%3D%20age%20AND%20age%20%3C%3D%20201400000&filter=jurassic&tag=dino,ptero&sort=author,title&offset=20&limit=10">retrieve from set "korea_lit.mike"</a></li>
+   <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A&cond=title='rings' or author='lewis'&sort=author&offset=20&limit=10">retrieve from set "korea_lit.mike" using only supported params</a></li>
+   <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A">retrieve everything from set "korea_lit.mike"</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/add', { from: 'reserve', cond: `author = 'Adams, John'` })">add objects to set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/remove', { cond: 'id = 55017' })">remove item 55017 from set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'cretaceous' })">remove tag "dino" from records in set "korea_lit.mike"</button></li>
   </ul>
   See also:
   <a href="form.html">the interactive form</a>
