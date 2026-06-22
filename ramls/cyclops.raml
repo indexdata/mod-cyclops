@@ -165,6 +165,21 @@ documentation:
             responses:
               204:
                 description: No content is returned.
+      /{recordId}:
+        uriParameters:
+          recordId:
+            description: The identifier of the record within the set to update
+            type: string
+            required: true
+        post:
+          description: "Update the fields of a single record within a set"
+          body:
+            application/json:
+              type: !include spectre-schema.json
+              example: !include examples/spectre-example.json
+          responses:
+            204:
+              description: No content is returned.
   /projects:
     description: "The projects in the system, in which collaborative collection management takes place"
     get:
