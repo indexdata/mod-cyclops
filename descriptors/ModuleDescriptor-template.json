@@ -165,6 +165,15 @@
           "methods": [
             "GET"
           ],
+          "pathPattern": "/cyclops/projects/{id}/sets",
+          "permissionsRequired": [
+            "cyclops.sets.read"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
           "pathPattern": "/cyclops/funds",
           "permissionsRequired": [
             "cyclops.funds.read"
