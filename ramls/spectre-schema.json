@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A request to update the fields of a single record within a set",
+  "type": "object",
+  "properties": {
+    "decision": {
+      "type": "boolean",
+      "description": "Whether the record has been approved"
+    },
+    "fund": {
+      "type": "string",
+      "description": "The name of the fund associated with the record"
+    }
+  },
+  "additionalProperties": false
+}
