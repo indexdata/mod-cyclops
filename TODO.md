@@ -28,8 +28,8 @@ In Mod-Cyclops, for the moment it would be sufficient to replace `reserve` in th
 
 ### Chunk 2
 
-* The `reserve` set has been superseded by the `object` set in each project.
-* Added the `update` command for changing `object` attributes.
+* **DONE** The `reserve` set has been superseded by the `object` set in each project.
+* **DONE** Added the `update` command for changing `object` attributes.
 * **DONE** Added the `show sets in project` command.
 * **DONE** The project property `locations` has been removed.
 * Added the `archive project` command, to be used instead of `drop project`.
