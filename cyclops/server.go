@@ -115,7 +115,7 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root 
 		server.runWithErrorHandling(w, req, server.handleUpdateProject, "update project")
 	})
 	r.Get("/cyclops/projects/{projectId}/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowSetsInProject, "show sets for project")
+		server.runWithErrorHandling(w, req, server.handleShowSetsInProject, "show sets in project")
 	})
 	r.Get("/cyclops/funds", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleShowFunds, "show funds")
