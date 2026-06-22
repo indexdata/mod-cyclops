@@ -439,7 +439,14 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := fmt.Sprintf("update %s set decision = %v where id = %s; update %s set fund = %s where id = %s",
+	// A qualified set name such as "foo.bar" refers to the objects within the
+	// set, which CCMS addresses as "foo.object".
+	prefix, _, found := strings.Cut(setName, ".")
+	if found {
+		setName = prefix + ".object"
+	}
+
+	command := fmt.Sprintf("update %s set decision = %v where id = %s; update %s set fund = %s where id = %s;",
 		setName, record.Decision, recordId, setName, record.Fund, recordId)
 	server.Log("command", command)
 
