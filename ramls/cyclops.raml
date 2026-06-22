@@ -207,6 +207,16 @@ documentation:
         responses:
           204:
             description: No content is returned.
+      /sets:
+        description: "Sets of objects (books, films, etc.) in this project"
+        get:
+          description: "Return a list of the names of all known sets in this project"
+          responses:
+            200:
+              body:
+                application/json:
+                  type: !include sets-schema.json
+                  example: !include examples/show-sets-example.json
   /funds:
     description: "Funds that can be associated with a project or assigned to a spectre"
     get:

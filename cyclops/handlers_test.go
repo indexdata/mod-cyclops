@@ -277,6 +277,29 @@ func TestHandleShowSets(t *testing.T) {
 	}
 }
 
+func TestHandleShowSetsInProject(t *testing.T) {
+	fake := &fakeCCMS{resp: listResponse("mike.object", "mike.endangered")}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowSetsInProject(rr, jsonRequest("", map[string]string{"projectId": "mike"}), "show sets in project")
+	if err != nil {
+		t.Fatalf("handleShowSets returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show sets in project mike;")
+
+	var got SetList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := SetList{Sets: []any{"mike.object", "mike.endangered"}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
 func TestHandleShowFunds(t *testing.T) {
 	fake := &fakeCCMS{resp: listResponse("general", "endowment")}
 	server := newTestServer(fake)
