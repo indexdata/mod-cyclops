@@ -31,9 +31,9 @@ In Mod-Cyclops, for the moment it would be sufficient to replace `reserve` in th
 * The `reserve` set has been superseded by the `object` set in each project.
 * Added the `update` command for changing `object` attributes.
 * Added the `show sets in project` command.
-* The project property `locations` has been removed.
+* **DONE** The project property `locations` has been removed.
 * Added the `archive project` command, to be used instead of `drop project`.
-* The `drop project`` command now only drops archived projects.
+* The `drop project` command now only drops archived projects.
 * Added the `show projects archived` command.
 
 There is a `create property fund` command implemented but it isn't completely enabled yet.
