@@ -99,6 +99,9 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root 
 	r.Post("/cyclops/sets/{setName}/tag/{tagName}", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleAddRemoveTags, "add/remove tags")
 	})
+	r.Post("/cyclops/sets/{setName}/{recordId}", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleUpdateRecord, "update record")
+	})
 	r.Get("/cyclops/projects", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleShowProjects, "show projects")
 	})

@@ -424,6 +424,36 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
+type UpdateRecord struct {
+	Decision bool   `json:"decision"`
+	Fund     string `json:"fund"`
+}
+
+func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *http.Request, caption string) error {
+	setName := chi.URLParam(req, "setName")
+	recordId := chi.URLParam(req, "recordId")
+
+	var record UpdateRecord
+	err := unmarshalBody(req, &record)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := fmt.Sprintf("update %s set decision = %v where id = %s; update %s set fund = %s where id = %s",
+		setName, record.Decision, recordId, setName, record.Fund, recordId)
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+setName+"/"+recordId, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *http.Request, caption string) error {
 	// It seems weird to just shrug and say "fine" for anything posted, but for now it will suffice.
 	w.WriteHeader(http.StatusNoContent)
