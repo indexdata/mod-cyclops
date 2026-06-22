@@ -417,6 +417,22 @@ func TestHandleDefineTag(t *testing.T) {
 	})
 }
 
+func TestHandleUpdateRecord(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	params := map[string]string{"setName": "mike", "recordId": "rec1"}
+	rr := httptest.NewRecorder()
+	err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
+	if err != nil {
+		t.Fatalf("handleUpdateRecord returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd,
+		"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
 func TestHandleDefineFilter(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)

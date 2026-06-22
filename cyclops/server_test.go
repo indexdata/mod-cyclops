@@ -6,6 +6,7 @@ import "net/http/httptest"
 import "os"
 import "path/filepath"
 import "reflect"
+import "strings"
 import "testing"
 import "github.com/MikeTaylor/catlogger"
 import "github.com/indexdata/ccms"
@@ -88,6 +89,35 @@ func TestMakeModCyclopsServerRoutesToHandler(t *testing.T) {
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
+}
+
+// The POST /cyclops/sets/{setName}/{recordId} route is a wildcard sibling of
+// the static /add, /remove and /tag sub-routes. Confirm the constructor wires
+// it to handleUpdateRecord, and that the static routes still take precedence.
+func TestMakeModCyclopsServerUpdateRecordRoute(t *testing.T) {
+	t.Run("dispatches to the update-record handler", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := strings.NewReader(`{"decision":true,"fund":"palci"}`)
+		rr := serve(server, httptest.NewRequest(http.MethodPost, "/cyclops/sets/mike/rec1", body))
+
+		assertStatus(t, rr, http.StatusNoContent)
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1")
+	})
+
+	t.Run("static /add still wins over {recordId}", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := strings.NewReader(`{"from":"src"}`)
+		rr := serve(server, httptest.NewRequest(http.MethodPost, "/cyclops/sets/mike/add", body))
+
+		assertStatus(t, rr, http.StatusNoContent)
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"insert into mike select * from src limit 100;")
+	})
 }
 
 // serverRootedAt builds a server whose static files are served from the given
