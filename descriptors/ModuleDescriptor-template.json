@@ -118,6 +118,15 @@
         },
         {
           "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/sets/{setName}/{recordId}",
+          "permissionsRequired": [
+            "cyclops.sets.spectre.update"
+          ]
+        },
+        {
+          "methods": [
             "GET"
           ],
           "pathPattern": "/cyclops/projects",
@@ -246,6 +255,10 @@
       "permissionName": "cyclops.sets.remove-tags",
       "displayName": "CYCLOPS: Remove tags from objects in a set (UNIMPLEMENTED)",
       "subPermissions": ["cyclops.sets.modify-tags"]
+    },
+    {
+      "permissionName": "cyclops.sets.spectre.update",
+      "displayName": "CYCLOPS: Update a record (spectre) within a set"
     },
     {
       "permissionName": "cyclops.projects.collection.get",
