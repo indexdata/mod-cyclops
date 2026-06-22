@@ -76,8 +76,8 @@
    <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A&cond=title='rings' or author='lewis'&sort=author&offset=20&limit=10">retrieve from set "korea_lit.mike" using only supported params</a></li>
    <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A">retrieve everything from set "korea_lit.mike"</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/add', { from: 'korea_lit.object', cond: `author = 'Adams, John'` })">add objects to set "korea_lit.mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/remove', { cond: 'id = 55017' })">remove item 55017 from set "korea_lit.mike"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/282837', { decision: true, fund: 'palci_cultural' })">set decision=true, fund=palci_cultural in item 282837</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/remove', { cond: 'id = 55017' })">remove spectre 55017 from set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/282837', { decision: true, fund: 'palci_cultural' })">set decision=true, fund=palci_cultural in spectre 282837</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tag/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "korea_lit.mike"</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tag/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'cretaceous' })">remove tag "dino" from records in set "korea_lit.mike"</button></li>
   </ul>
