@@ -41,6 +41,10 @@ There is a `create property fund` command implemented but it isn't completely en
 The main change above is the `update` command which allows updating spectre attributes (`fund` for the moment).
 
 
+### For me
+
+* Protect all generated SQL-like commands from injection
+
 
 ## Updates needed in CCMS
 
