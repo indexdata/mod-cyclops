@@ -1,6 +1,7 @@
 package cyclops
 
 import "errors"
+import "regexp"
 import "strings"
 import "strconv"
 import "io"
@@ -43,7 +44,12 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "define tag " + tag.Name
+	name, err := ident(tag.Name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "define tag " + name
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+tag.Name, command)
@@ -92,11 +98,20 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "define filter " + filter.Name
+	name, err := ident(filter.Name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "define filter " + name
 	if filter.Cond != "" {
+		// XXX injection risk: 'cond' is a free-form condition expression and is
+		// not sanitised; needs AST-based construction.
 		command += " where " + filter.Cond
 	}
 	if filter.Template != "" {
+		// XXX injection risk: 'template' is a free-form expression and is not
+		// sanitised; needs AST-based construction.
 		command += " template " + filter.Template
 	}
 	server.Log("command", command)
@@ -145,7 +160,12 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "create set " + set.Name + ";"
+	name, err := ident(set.Name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "create set " + name + ";"
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+set.Name, command)
@@ -164,12 +184,19 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 
 	if cond != "" {
 		b.WriteString(" where ")
+		// XXX injection risk: 'cond' is a free-form condition expression and is
+		// not sanitised. Safe handling needs AST-based construction (or a
+		// validating parser) rather than string interpolation.
 		b.WriteString(cond)
 	}
 
 	if filter != "" {
+		v, err := ident(filter)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" filter ")
-		b.WriteString(filter)
+		b.WriteString(v)
 	}
 
 	if tag != "" && omitTag != "" {
@@ -177,29 +204,49 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 	}
 
 	if tag != "" {
+		v, err := ident(tag)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" tag ")
-		b.WriteString(tag)
+		b.WriteString(v)
 	} else if omitTag != "" {
+		v, err := ident(omitTag)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" tag not ")
-		b.WriteString(omitTag)
+		b.WriteString(v)
 	}
 
 	if sort != "" {
+		v, err := sortList(sort)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" order by ")
-		b.WriteString(sort)
+		b.WriteString(v)
 	}
 
 	if limit != "*" {
 		if limit == "" {
 			limit = "100"
 		}
+		v, err := intval(limit)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" limit ")
-		b.WriteString(limit)
+		b.WriteString(v)
 	}
 
 	if offset != "" {
+		v, err := intval(offset)
+		if err != nil {
+			return "", err
+		}
 		b.WriteString(" offset ")
-		b.WriteString(offset)
+		b.WriteString(v)
 	}
 
 	return b.String(), nil
@@ -210,6 +257,16 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 		return "", errors.New("no 'fields' parameter supplied")
 	}
 
+	validFields, err := fieldList(fields)
+	if err != nil {
+		return "", err
+	}
+
+	validSet, err := ident(setName)
+	if err != nil {
+		return "", err
+	}
+
 	conditionalClause, err := makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset)
 	if err != nil {
 		return "", err
@@ -218,10 +275,10 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 	var b strings.Builder
 
 	b.WriteString("select ")
-	b.WriteString(fields)
+	b.WriteString(validFields)
 
 	b.WriteString(" from ")
-	b.WriteString(setName)
+	b.WriteString(validSet)
 
 	b.WriteString(conditionalClause)
 	return b.String(), nil
@@ -321,10 +378,15 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 // -----------------------------------------------------------------------------
 
 func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.Request, caption string) error {
-	command := "drop set " + chi.URLParam(req, "setName") + ";"
+	setName, err := ident(chi.URLParam(req, "setName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "drop set " + setName + ";"
 	server.Log("command", command)
 
-	_, err := server.sendToCCMS(caption+" "+chi.URLParam(req, "setName"), command)
+	_, err = server.sendToCCMS(caption+" "+setName, command)
 	if err != nil {
 		return err
 	}
@@ -345,10 +407,13 @@ type AddRecords struct {
 }
 
 func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *http.Request, caption string) error {
-	setName := chi.URLParam(req, "setName")
+	setName, err := ident(chi.URLParam(req, "setName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 
 	var params AddRecords
-	err := unmarshalBody(req, &params)
+	err = unmarshalBody(req, &params)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -390,10 +455,13 @@ type RemoveRecords struct {
 }
 
 func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
-	setName := chi.URLParam(req, "setName")
+	setName, err := ident(chi.URLParam(req, "setName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 
 	var params RemoveRecords
-	err := unmarshalBody(req, &params)
+	err = unmarshalBody(req, &params)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -446,8 +514,21 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 		setName = prefix + ".object"
 	}
 
+	validSet, err := ident(setName)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+	validId, err := ident(recordId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+	validFund, err := ident(record.Fund)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
 	command := fmt.Sprintf("update %s set decision = %v where id = %s; update %s set fund = %s where id = %s;",
-		setName, record.Decision, recordId, setName, record.Fund, recordId)
+		validSet, record.Decision, validId, validSet, validFund, validId)
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+setName+"/"+recordId, command)
@@ -561,7 +642,10 @@ func string2array(s string) []ProjectItem {
 }
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId := chi.URLParam(req, "projectId")
+	projectId, err := ident(chi.URLParam(req, "projectId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 	command := "show project " + projectId + ";"
 	server.Log("command", command)
 	resp, err := server.sendToCCMS(caption, command)
@@ -620,8 +704,16 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 	if project.AltName == "" {
 		return fmt.Errorf("%s: no altName specified", caption)
 	}
+	altName, err := ident(project.AltName)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 
-	command := "create project " + project.AltName + ";\n" + project2command(project.AltName, project)
+	body, err := project2command(altName, project)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+	command := "create project " + altName + ";\n" + body
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+project.AltName, command)
@@ -634,12 +726,15 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 }
 
 func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId := chi.URLParam(req, "projectId")
+	projectId, err := ident(chi.URLParam(req, "projectId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 
 	command := "drop project " + projectId + ";"
 	server.Log("command", command)
 
-	_, err := server.sendToCCMS(caption+" "+projectId, command)
+	_, err = server.sendToCCMS(caption+" "+projectId, command)
 	if err != nil {
 		return err
 	}
@@ -650,37 +745,72 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
-func project2command(projectId string, project Project) string {
+func project2command(projectId string, project Project) (string, error) {
+	id, err := ident(projectId)
+	if err != nil {
+		return "", err
+	}
+	title, err := sqlString(project.Title)
+	if err != nil {
+		return "", err
+	}
+	action, err := ident(project.Action.Name)
+	if err != nil {
+		return "", err
+	}
+	mouLink, err := sqlString(project.MouLink)
+	if err != nil {
+		return "", err
+	}
+
 	var b strings.Builder
-	b.WriteString("alter project " + projectId + " alter property title set '" + project.Title + "';\n")
-	b.WriteString("alter project " + projectId + " alter property action set " + project.Action.Name + ";\n")
-	b.WriteString("alter project " + projectId + " alter property mou_link set '" + project.MouLink + "';\n")
-	b.WriteString("alter project " + projectId + " alter property funds drop all;\n")
+	b.WriteString("alter project " + id + " alter property title set " + title + ";\n")
+	b.WriteString("alter project " + id + " alter property action set " + action + ";\n")
+	b.WriteString("alter project " + id + " alter property mou_link set " + mouLink + ";\n")
+	b.WriteString("alter project " + id + " alter property funds drop all;\n")
 	for _, fund := range project.Funds {
-		b.WriteString("alter project " + projectId + " alter property funds add " + fund.Id + ";\n")
+		fundId, err := ident(fund.Id)
+		if err != nil {
+			return "", err
+		}
+		b.WriteString("alter project " + id + " alter property funds add " + fundId + ";\n")
 	}
-	// b.WriteString("alter project " + projectId + " alter property people set '" + project.People + "';\n")
-	b.WriteString("alter project " + projectId + " alter property origins drop all;\n")
+	// b.WriteString("alter project " + id + " alter property people set '" + project.People + "';\n")
+	b.WriteString("alter project " + id + " alter property origins drop all;\n")
 	for _, location := range project.Origins {
-		b.WriteString("alter project " + projectId + " alter property origins add " + location.Id + ";\n")
+		locId, err := ident(location.Id)
+		if err != nil {
+			return "", err
+		}
+		b.WriteString("alter project " + id + " alter property origins add " + locId + ";\n")
 	}
-	b.WriteString("alter project " + projectId + " alter property destinations drop all;\n")
+	b.WriteString("alter project " + id + " alter property destinations drop all;\n")
 	for _, location := range project.Destinations {
-		b.WriteString("alter project " + projectId + " alter property destinations add " + location.Id + ";\n")
+		locId, err := ident(location.Id)
+		if err != nil {
+			return "", err
+		}
+		b.WriteString("alter project " + id + " alter property destinations add " + locId + ";\n")
 	}
-	// b.WriteString("alter project " + projectId + " alter property tracks set '" + project.Tracks + "'\n")
-	return b.String()
+	// b.WriteString("alter project " + id + " alter property tracks set '" + project.Tracks + "'\n")
+	return b.String(), nil
 }
 
 func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId := chi.URLParam(req, "projectId")
+	projectId, err := ident(chi.URLParam(req, "projectId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 	var project Project
-	err := unmarshalBody(req, &project)
+	err = unmarshalBody(req, &project)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := project2command(projectId, project)
+	command, err := project2command(projectId, project)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+projectId, command)
@@ -693,7 +823,10 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 }
 
 func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId := chi.URLParam(req, "projectId")
+	projectId, err := ident(chi.URLParam(req, "projectId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
 	command := "show sets in project " + projectId + ";"
 	server.Log("command", command)
 	resp, err := server.sendToCCMS(caption+" "+projectId, command)
@@ -745,7 +878,12 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "create fund " + fund.Name + ";"
+	name, err := ident(fund.Name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "create fund " + name + ";"
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+fund.Name, command)
@@ -810,6 +948,93 @@ func readResults(resp *ccms.Response) []ccms.Result {
 		results = append(results, r)
 	}
 	return results
+}
+
+// -----------------------------------------------------------------------------
+// Input-sanitisation helpers for command construction.
+//
+// Commands are built by interpolating user-supplied values into a SQL-like
+// language and sent verbatim to CCMS, which accepts multiple ';'-separated
+// statements in a single request. Unvalidated interpolation therefore allows
+// statement injection. Every value placed into a command must pass through one
+// of these helpers according to its syntactic role.
+
+// identRe matches a safe identifier (object/field/property name): a
+// dotted sequence of segments, each made of letters, digits, '_' and '-'.
+var identRe = regexp.MustCompile(`^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$`)
+
+// ident validates that s is a safe identifier and returns it unchanged.
+func ident(s string) (string, error) {
+	if !identRe.MatchString(s) {
+		return "", fmt.Errorf("invalid identifier: %q", s)
+	}
+	return s, nil
+}
+
+// intval validates that s is a decimal integer and returns its canonical form.
+func intval(s string) (string, error) {
+	n, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return "", fmt.Errorf("invalid integer: %q", s)
+	}
+	return strconv.FormatInt(n, 10), nil
+}
+
+// sqlString renders s as a CCMS string literal: wrapped in single quotes with
+// any embedded quote escaped by doubling it. Control characters have no
+// representation in the grammar and are rejected.
+func sqlString(s string) (string, error) {
+	if strings.ContainsAny(s, "\x00\n\r") {
+		return "", fmt.Errorf("illegal control character in string value")
+	}
+	return "'" + strings.ReplaceAll(s, "'", "''") + "'", nil
+}
+
+// fieldList validates a comma-separated list of field names, also allowing the
+// wildcard "*" and the aggregate "COUNT(*)".
+func fieldList(s string) (string, error) {
+	parts := strings.Split(s, ",")
+	out := make([]string, len(parts))
+	for i, p := range parts {
+		p = strings.TrimSpace(p)
+		if p == "*" || strings.EqualFold(p, "COUNT(*)") {
+			out[i] = p
+			continue
+		}
+		v, err := ident(p)
+		if err != nil {
+			return "", fmt.Errorf("invalid field: %q", p)
+		}
+		out[i] = v
+	}
+	return strings.Join(out, ","), nil
+}
+
+// sortList validates a comma-separated ORDER BY list: each term is a field name
+// with an optional "asc"/"desc" direction.
+func sortList(s string) (string, error) {
+	parts := strings.Split(s, ",")
+	out := make([]string, len(parts))
+	for i, p := range parts {
+		fields := strings.Fields(p)
+		if len(fields) == 0 || len(fields) > 2 {
+			return "", fmt.Errorf("invalid sort term: %q", p)
+		}
+		col, err := ident(fields[0])
+		if err != nil {
+			return "", fmt.Errorf("invalid sort field: %q", fields[0])
+		}
+		term := col
+		if len(fields) == 2 {
+			dir := strings.ToLower(fields[1])
+			if dir != "asc" && dir != "desc" {
+				return "", fmt.Errorf("invalid sort direction: %q", fields[1])
+			}
+			term += " " + dir
+		}
+		out[i] = term
+	}
+	return strings.Join(out, ","), nil
 }
 
 func mustString(v any) string {
