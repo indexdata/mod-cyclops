@@ -43,7 +43,14 @@ The main change above is the `update` command which allows updating spectre attr
 
 ### For me
 
-* Protect all generated SQL-like commands from injection
+* **DONE** Protect most generated SQL-like commands from injection
+* Protect templates in generated SQL-like commands from injection
+* Protect conditions in generated SQL-like commands from injection
+
+
+### Chunk 3
+
+* The “create filter” and “show filters” commands and the “filter()” operator are available in test/demo.  See documentation for more details.
 
 
 ## Updates needed in CCMS
