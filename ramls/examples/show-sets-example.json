@@ -1,11 +1,7 @@
-[
-  {
-    "name": "mike"
-  },
-  {
-    "name": "test"
-  },
-  {
-    "name": "uob"
-  }
-]
+{
+  "sets": [
+    "mike",
+    "test",
+    "uob"
+  ]
+}

@@ -1,9 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "A list of zero or more funds",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "$ref": "fund-schema.json"
-  }
+  "description": "A list of zero or more fund names",
+  "type": "object",
+  "properties": {
+    "funds": {
+      "description": "The names of the known funds",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "The short human-readable name of a fund"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "funds"
+  ]
 }

@@ -1,11 +1,7 @@
-[
-  {
-    "name": "dino"
-  },
-  {
-    "name": "ptero"
-  },
-  {
-    "name": "croc"
-  }
-]
+{
+  "tags": [
+    "dino",
+    "ptero",
+    "croc"
+  ]
+}

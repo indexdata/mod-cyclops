@@ -1,9 +1,19 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "A list of zero or more sets",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "$ref": "set-schema.json"
-  }
+  "description": "An object containing a list of zero or more set names",
+  "type": "object",
+  "properties": {
+    "sets": {
+      "description": "The names of the known sets",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "description": "The short human-readable name of a set"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "sets"
+  ]
 }
