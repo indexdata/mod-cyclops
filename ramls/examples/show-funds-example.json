@@ -1,11 +1,7 @@
-[
-  {
-    "name": "coalition_slavic_lit"
-  },
-  {
-    "name": "palci_cultural"
-  },
-  {
-    "name": "Internet Archive acquisition"
-  }
-]
+{
+  "funds": [
+    "coalition_slavic_lit",
+    "palci_cultural",
+    "Internet Archive acquisition"
+  ]
+}

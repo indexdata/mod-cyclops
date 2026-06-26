@@ -9,11 +9,11 @@
     },
     "message": {
       "type": "string",
-      "description": "Error message, only if status==error"
+      "description": "A message from CCMS, typically an error message when status=='error'. The field is always present, but may be empty when there is nothing to report."
     },
     "fields": {
       "type": "array",
-      "description": "Error message, only if status==error",
+      "description": "Descriptions of the fields whose values appear in each data row",
       "items": {
         "type": "object",
         "properties": {
@@ -36,9 +36,9 @@
         "properties": {
           "values": {
 	    "type": "array",
-            "description": "An array of data values, belonging to the fields named in the 'fields' top-level element",
+            "description": "An array of data values, belonging to the fields named in the 'fields' top-level element. Values are whatever type CCMS returns for the field, so a value may be a string, number, boolean or null.",
 	    "items": {
-              "type": "string"
+              "type": ["string", "number", "boolean", "null"]
 	    }
           }
         },
