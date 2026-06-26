@@ -731,7 +731,7 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "drop project " + projectId + ";"
+	command := "archive project " + projectId + ";"
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+projectId, command)
