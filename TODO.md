@@ -44,6 +44,8 @@ The main change above is the `update` command which allows updating spectre attr
 ### For me
 
 * **DONE** Protect most generated SQL-like commands from injection
+* JSON Schemas and examples need to be brought into alignment with reality.
+* mod-cyclops should handle "id:name" strings consistently
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
