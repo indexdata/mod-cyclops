@@ -1,6 +1,6 @@
 {
   "$schema": "http://json-schema.org/draft-04/schema#",
-  "description": "A list of zero or more tag names",
+  "description": "An object containing a list of zero or more tag names",
   "type": "object",
   "properties": {
     "tags": {
