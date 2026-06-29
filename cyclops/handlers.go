@@ -641,16 +641,12 @@ func string2array(s string) []ProjectItem {
 	return items
 }
 
-func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId, err := ident(chi.URLParam(req, "projectId"))
-	if err != nil {
-		return fmt.Errorf("%s: %w", caption, err)
-	}
+func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (Project, error) {
 	command := "show project " + projectId + ";"
 	server.Log("command", command)
 	resp, err := server.sendToCCMS(caption, command)
 	if err != nil {
-		return err
+		return Project{}, err
 	}
 
 	result := readResults(resp)[0]
@@ -658,9 +654,7 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 		AltName: projectId,
 	}
 
-	i := 0
 	for val := range result.Data() {
-		i += 1
 		pair := val.Values()
 		key := mustString(pair[0])
 		value := pair[1]
@@ -683,6 +677,20 @@ func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *h
 		default:
 			server.Log("data", "unrecognised Project field", key, "=", fmt.Sprintf("%+v", value))
 		}
+	}
+
+	return project, nil
+}
+
+func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
+	projectId, err := ident(chi.URLParam(req, "projectId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	project, err := server.fetchProject(caption, projectId)
+	if err != nil {
+		return err
 	}
 
 	return server.respondWithJSON(w, project, caption)
@@ -709,7 +717,8 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	body, err := project2command(altName, project)
+	// A freshly created project has no funds yet.
+	body, err := project2command(altName, project, nil)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -745,7 +754,7 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
-func project2command(projectId string, project Project) (string, error) {
+func project2command(projectId string, project Project, existingFunds []ProjectFund) (string, error) {
 	id, err := ident(projectId)
 	if err != nil {
 		return "", err
@@ -767,13 +776,36 @@ func project2command(projectId string, project Project) (string, error) {
 	b.WriteString("alter project " + id + " alter property title set " + title + ";\n")
 	b.WriteString("alter project " + id + " alter property action set " + action + ";\n")
 	b.WriteString("alter project " + id + " alter property mou_link set " + mouLink + ";\n")
-	b.WriteString("alter project " + id + " alter property funds drop all;\n")
+	// Compute the minimal set of fund changes by comparing the
+	// existing list of funds against the new one, rather than dropping
+	// all and re-adding.
+	oldFunds := make(map[string]bool)
+	for _, fund := range existingFunds {
+		fundId, err := ident(fund.Id)
+		if err != nil {
+			return "", err
+		}
+		oldFunds[fundId] = true
+	}
+	newFunds := make(map[string]bool)
 	for _, fund := range project.Funds {
 		fundId, err := ident(fund.Id)
 		if err != nil {
 			return "", err
 		}
-		b.WriteString("alter project " + id + " alter property funds add " + fundId + ";\n")
+		newFunds[fundId] = true
+	}
+	for _, fund := range project.Funds {
+		fundId, _ := ident(fund.Id)
+		if !oldFunds[fundId] {
+			b.WriteString("alter project " + id + " alter property funds add " + fundId + ";\n")
+		}
+	}
+	for _, fund := range existingFunds {
+		fundId, _ := ident(fund.Id)
+		if !newFunds[fundId] {
+			b.WriteString("alter project " + id + " alter property funds drop " + fundId + ";\n")
+		}
 	}
 	// b.WriteString("alter project " + id + " alter property people set '" + project.People + "';\n")
 	b.WriteString("alter project " + id + " alter property origins drop all;\n")
@@ -807,7 +839,14 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command, err := project2command(projectId, project)
+	// Fetch the current state of the project so that we can generate a
+	// minimal set of fund changes rather than dropping all and re-adding.
+	existing, err := server.fetchProject(caption, projectId)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command, err := project2command(projectId, project, existing.Funds)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}

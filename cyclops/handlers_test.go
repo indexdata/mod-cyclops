@@ -3,6 +3,7 @@ package cyclops
 import "context"
 import "encoding/json"
 import "errors"
+import "fmt"
 import "net/http"
 import "net/http/httptest"
 import "reflect"
@@ -586,7 +587,6 @@ func TestHandleCreateProject(t *testing.T) {
 		"alter project p1 alter property title set 'T';\n" +
 		"alter project p1 alter property action set approve;\n" +
 		"alter project p1 alter property mou_link set 'm';\n" +
-		"alter project p1 alter property funds drop all;\n" +
 		"alter project p1 alter property funds add f1;\n" +
 		"alter project p1 alter property funds add f2;\n" +
 		"alter project p1 alter property origins drop all;\n" +
@@ -624,14 +624,100 @@ func TestHandleUpdateProject(t *testing.T) {
 		t.Fatalf("handleUpdateProject returned error: %v", err)
 	}
 
+	// With no existing funds and no new funds, no fund commands are emitted.
 	want := "alter project p1 alter property title set 'T';\n" +
 		"alter project p1 alter property action set a;\n" +
 		"alter project p1 alter property mou_link set '';\n" +
-		"alter project p1 alter property funds drop all;\n" +
 		"alter project p1 alter property origins drop all;\n" +
 		"alter project p1 alter property destinations drop all;\n"
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
 	assertStatus(t, rr, http.StatusNoContent)
+}
+
+// TestHandleUpdateProjectFundDiff checks that updating a project's funds emits
+// the minimal set of add/drop commands by comparing the existing funds against
+// the new ones: only genuinely added or removed funds produce commands, and
+// funds present in both lists are left untouched.
+func TestHandleUpdateProjectFundDiff(t *testing.T) {
+	tests := []struct {
+		name      string
+		existing  string   // CCMS-style "id:desc|id:desc" list of current funds
+		newFunds  []string // fund ids in the update request
+		fundLines []string // expected fund commands, in order
+	}{
+		{
+			name:      "no funds at all",
+			existing:  "",
+			newFunds:  nil,
+			fundLines: nil,
+		},
+		{
+			name:      "unchanged funds emit nothing",
+			existing:  "f1:Fund One|f2:Fund Two",
+			newFunds:  []string{"f1", "f2"},
+			fundLines: nil,
+		},
+		{
+			name:      "add only",
+			existing:  "",
+			newFunds:  []string{"f1", "f2"},
+			fundLines: []string{"funds add f1", "funds add f2"},
+		},
+		{
+			name:      "drop only",
+			existing:  "f1:Fund One|f2:Fund Two",
+			newFunds:  nil,
+			fundLines: []string{"funds drop f1", "funds drop f2"},
+		},
+		{
+			name:      "add and drop, keeping overlap",
+			existing:  "f1:Fund One|f2:Fund Two",
+			newFunds:  []string{"f2", "f3"},
+			fundLines: []string{"funds add f3", "funds drop f1"},
+		},
+		{
+			name:      "complete replacement",
+			existing:  "f1:Fund One",
+			newFunds:  []string{"f2"},
+			fundLines: []string{"funds add f2", "funds drop f1"},
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			result := ccms.NewResult("ok")
+			result.AddData([]any{"funds", tc.existing})
+			resp := ccms.NewResponse()
+			resp.AddResult(result)
+			fake := &fakeCCMS{resp: resp}
+			server := newTestServer(fake)
+
+			funds := make([]string, len(tc.newFunds))
+			for i, id := range tc.newFunds {
+				funds[i] = fmt.Sprintf("{\"id\":%q}", id)
+			}
+			body := fmt.Sprintf(`{"title":"T","action":{"name":"a"},"funds":[%s]}`,
+				strings.Join(funds, ","))
+
+			rr := httptest.NewRecorder()
+			err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
+			if err != nil {
+				t.Fatalf("handleUpdateProject returned error: %v", err)
+			}
+
+			want := "alter project p1 alter property title set 'T';\n" +
+				"alter project p1 alter property action set a;\n" +
+				"alter project p1 alter property mou_link set '';\n"
+			for _, line := range tc.fundLines {
+				want += "alter project p1 alter property " + line + ";\n"
+			}
+			want += "alter project p1 alter property origins drop all;\n" +
+				"alter project p1 alter property destinations drop all;\n"
+
+			assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+			assertStatus(t, rr, http.StatusNoContent)
+		})
+	}
 }
 
 // -----------------------------------------------------------------------------
