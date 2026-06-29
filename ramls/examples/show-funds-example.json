@@ -1,7 +1,16 @@
 {
   "funds": [
-    "coalition_slavic_lit",
-    "palci_cultural",
-    "Internet Archive acquisition"
+    {
+      "name": "coalition_slavic_lit",
+      "title": "Coalition for Slavic literature"
+    },
+    {
+      "name": "palci_cultural",
+      "title": "PALCI cultural preservation"
+    },
+    {
+      "name": "internet_archive",
+      "title": "Internet Archive acquisition"
+    }
   ]
 }

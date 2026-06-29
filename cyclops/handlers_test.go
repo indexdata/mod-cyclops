@@ -302,7 +302,12 @@ func TestHandleShowSetsInProject(t *testing.T) {
 }
 
 func TestHandleShowFunds(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("general", "endowment")}
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"general", "General Fund"})
+	result.AddData([]any{"endowment", "Endowment Fund"})
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	fake := &fakeCCMS{resp: resp}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -318,14 +323,22 @@ func TestHandleShowFunds(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := FundList{Funds: []any{"general", "endowment"}}
+	want := FundList{Funds: []Fund{
+		{Name: "general", Title: "General Fund"},
+		{Name: "endowment", Title: "Endowment Fund"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
 }
 
 func TestHandleShowProjects(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("alpha", "beta")}
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"alpha", "Project Alpha"})
+	result.AddData([]any{"beta", "Project Beta"})
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	fake := &fakeCCMS{resp: resp}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -341,7 +354,10 @@ func TestHandleShowProjects(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := ProjectList{Projects: []BriefProject{{AltName: "alpha"}, {AltName: "beta"}}}
+	want := ProjectList{Projects: []BriefProject{
+		{AltName: "alpha", Title: "Project Alpha"},
+		{AltName: "beta", Title: "Project Beta"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}

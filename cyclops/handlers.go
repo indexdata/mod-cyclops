@@ -552,6 +552,7 @@ func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *
 
 type BriefProject struct {
 	AltName string `json:"altName"`
+	Title   string `json:"title"`
 	// More to come, surely
 }
 
@@ -569,9 +570,10 @@ func (server *ModCyclopsServer) handleShowProjects(w http.ResponseWriter, req *h
 	result := readResults(resp)[0]
 	projects := make([]BriefProject, 0)
 	for val := range result.Data() {
-		altName := mustString(val.Values()[0])
+		values := val.Values()
 		bf := BriefProject{
-			AltName: altName,
+			AltName: mustString(values[0]),
+			Title:   mustString(values[1]),
 		}
 		projects = append(projects, bf)
 	}
@@ -884,8 +886,14 @@ func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, r
 
 // -----------------------------------------------------------------------------
 
+type Fund struct {
+	Name  string `json:"name"`
+	Title string `json:"title"`
+	// More to come, surely
+}
+
 type FundList struct {
-	Funds []any `json:"funds"`
+	Funds []Fund `json:"funds"`
 	// No other elements yet, but use a structure for future expansion
 }
 
@@ -896,9 +904,13 @@ func (server *ModCyclopsServer) handleShowFunds(w http.ResponseWriter, req *http
 	}
 
 	result := readResults(resp)[0]
-	funds := make([]any, 0)
+	funds := make([]Fund, 0)
 	for val := range result.Data() {
-		funds = append(funds, val.Values()[0])
+		values := val.Values()
+		funds = append(funds, Fund{
+			Name:  mustString(values[0]),
+			Title: mustString(values[1]),
+		})
 	}
 	fundList := FundList{Funds: funds}
 	return server.respondWithJSON(w, fundList, caption)
