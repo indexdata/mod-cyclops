@@ -60,8 +60,7 @@ The main change above is the `update` command which allows updating spectre attr
 
 ## Updates needed in CCMS
 
-* `drop fund`
-* Ability to set human-readable name of fund
-* `show tracks`, `create track`, `delete track`
-* `show people`, `create person`, `delete person` -- defined globally or per project?
+* `alter fund` and `drop fund`.
+* `show tracks`, `create track`, `alter tracks` and delete track`
+* `show people`, `create person`, `alter person` and `delete person` -- defined globally or per project?
 
