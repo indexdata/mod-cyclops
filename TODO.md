@@ -2,7 +2,7 @@
 
 ## Updates to CCMS needing corresponding work in mod-cyclops
 
-### Chunk 1
+### Chunk 1 (DONE)
 
 * **DONE** added create fund and show funds commands
 * **DONE** added drop project command
@@ -20,21 +20,21 @@ The special `reserve` set is being superseded by project-specific sets named _pr
 In Mod-Cyclops, for the moment it would be sufficient to replace `reserve` in the from clause with `palci_slavic.object`.
 
 
-### Unit tests
+### Unit tests (DONE)
 
 * **DONE** Unit tests for handlers
 * **DONE** Unit tests for server/router
 
 
-### Chunk 2
+### Chunk 2 (DONE)
 
 * **DONE** The `reserve` set has been superseded by the `object` set in each project.
 * **DONE** Added the `update` command for changing `object` attributes.
 * **DONE** Added the `show sets in project` command.
 * **DONE** The project property `locations` has been removed.
 * **DONE** Added the `archive project` command, to be used instead of `drop project`.
-* The `drop project` command now only drops archived projects.
-* Added the `show projects archived` command.
+* **N/A** The `drop project` command now only drops archived projects.
+* **N/A** Added the `show projects archived` command.
 
 There is a `create property fund` command implemented but it isn't completely enabled yet.
 
@@ -48,6 +48,7 @@ The main change above is the `update` command which allows updating spectre attr
 * mod-cyclops should handle "id:name" strings consistently
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
+* Update project should not delete all funds then re-add those included, but generate and execute diffs
 
 
 ### Chunk 3
