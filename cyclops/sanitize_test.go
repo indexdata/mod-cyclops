@@ -1,17 +1,20 @@
 package cyclops
 
+import "fmt"
+import "strings"
 import "testing"
 
 func TestIdent(t *testing.T) {
 	valid := []string{"users", "rec1", "foo.object", "coalition_slavic_lit", "palci-cultural", "a.b.c"}
 	for _, s := range valid {
-		if _, err := ident(s); err != nil {
+		if _, err := ident("set", s); err != nil {
 			t.Errorf("ident(%q) unexpectedly rejected: %v", s, err)
 		}
 	}
 
 	// Each of these would enable statement injection or otherwise break out
-	// of an identifier position, and must be rejected.
+	// of an identifier position, and must be rejected. The error message must
+	// name the kind of identifier (the caption) and quote the offending value.
 	invalid := []string{
 		"",
 		"users; drop set secret",
@@ -23,8 +26,14 @@ func TestIdent(t *testing.T) {
 		"foo.",
 	}
 	for _, s := range invalid {
-		if _, err := ident(s); err == nil {
+		_, err := ident("project", s)
+		if err == nil {
 			t.Errorf("ident(%q) should have been rejected", s)
+			continue
+		}
+		want := fmt.Sprintf("invalid project identifier: %q", s)
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("ident(%q) error = %q, want it to contain %q", s, err.Error(), want)
 		}
 	}
 }
@@ -37,8 +46,14 @@ func TestIntval(t *testing.T) {
 		t.Errorf("intval(\"007\") = %q, %v; want canonical \"7\"", v, err)
 	}
 	for _, s := range []string{"", "10; drop set x", "1.5", "abc"} {
-		if _, err := intval(s); err == nil {
+		_, err := intval(s)
+		if err == nil {
 			t.Errorf("intval(%q) should have been rejected", s)
+			continue
+		}
+		want := fmt.Sprintf("invalid integer: %q", s)
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("intval(%q) error = %q, want it to contain %q", s, err.Error(), want)
 		}
 	}
 }
@@ -82,8 +97,11 @@ func TestFieldList(t *testing.T) {
 			t.Errorf("fieldList(%q) = %q, %v; want %q", in, got, err, want)
 		}
 	}
-	if _, err := fieldList("id; drop set x"); err == nil {
+	_, err := fieldList("id; drop set x")
+	if err == nil {
 		t.Errorf("fieldList with injection should have been rejected")
+	} else if want := `invalid field: "id; drop set x"`; !strings.Contains(err.Error(), want) {
+		t.Errorf("fieldList injection error = %q, want it to contain %q", err.Error(), want)
 	}
 }
 
@@ -100,9 +118,19 @@ func TestSortList(t *testing.T) {
 			t.Errorf("sortList(%q) = %q, %v; want %q", in, got, err, want)
 		}
 	}
-	for _, s := range []string{"name; drop set x", "name sideways", "name asc desc"} {
-		if _, err := sortList(s); err == nil {
+	rejected := map[string]string{
+		"name; drop set x": `invalid sort term: "name; drop set x"`,
+		"name sideways":    `invalid sort direction: "sideways"`,
+		"name asc desc":    `invalid sort term: "name asc desc"`,
+	}
+	for s, want := range rejected {
+		_, err := sortList(s)
+		if err == nil {
 			t.Errorf("sortList(%q) should have been rejected", s)
+			continue
+		}
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("sortList(%q) error = %q, want it to contain %q", s, err.Error(), want)
 		}
 	}
 }

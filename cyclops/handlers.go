@@ -44,7 +44,7 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	name, err := ident(tag.Name)
+	name, err := ident("tag", tag.Name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -98,7 +98,7 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	name, err := ident(filter.Name)
+	name, err := ident("filter", filter.Name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -160,7 +160,7 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	name, err := ident(set.Name)
+	name, err := ident("set", set.Name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -191,7 +191,7 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 	}
 
 	if filter != "" {
-		v, err := ident(filter)
+		v, err := ident("filter", filter)
 		if err != nil {
 			return "", err
 		}
@@ -204,14 +204,14 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 	}
 
 	if tag != "" {
-		v, err := ident(tag)
+		v, err := ident("tag", tag)
 		if err != nil {
 			return "", err
 		}
 		b.WriteString(" tag ")
 		b.WriteString(v)
 	} else if omitTag != "" {
-		v, err := ident(omitTag)
+		v, err := ident("omitTag", omitTag)
 		if err != nil {
 			return "", err
 		}
@@ -262,7 +262,7 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 		return "", err
 	}
 
-	validSet, err := ident(setName)
+	validSet, err := ident("set", setName)
 	if err != nil {
 		return "", err
 	}
@@ -378,7 +378,7 @@ func (server *ModCyclopsServer) handleRetrieve(w http.ResponseWriter, req *http.
 // -----------------------------------------------------------------------------
 
 func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.Request, caption string) error {
-	setName, err := ident(chi.URLParam(req, "setName"))
+	setName, err := ident("set", chi.URLParam(req, "setName"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -407,7 +407,7 @@ type AddRecords struct {
 }
 
 func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *http.Request, caption string) error {
-	setName, err := ident(chi.URLParam(req, "setName"))
+	setName, err := ident("set", chi.URLParam(req, "setName"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -455,7 +455,7 @@ type RemoveRecords struct {
 }
 
 func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
-	setName, err := ident(chi.URLParam(req, "setName"))
+	setName, err := ident("set", chi.URLParam(req, "setName"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -514,15 +514,15 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 		setName = prefix + ".object"
 	}
 
-	validSet, err := ident(setName)
+	validSet, err := ident("set", setName)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	validId, err := ident(recordId)
+	validId, err := ident("record", recordId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	validFund, err := ident(record.Fund)
+	validFund, err := ident("fund", record.Fund)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -687,7 +687,7 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 }
 
 func (server *ModCyclopsServer) handleFetchProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId, err := ident(chi.URLParam(req, "projectId"))
+	projectId, err := ident("project", chi.URLParam(req, "projectId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -716,7 +716,7 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 	if project.AltName == "" {
 		return fmt.Errorf("%s: no altName specified", caption)
 	}
-	altName, err := ident(project.AltName)
+	altName, err := ident("project", project.AltName)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -739,7 +739,7 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 }
 
 func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId, err := ident(chi.URLParam(req, "projectId"))
+	projectId, err := ident("project", chi.URLParam(req, "projectId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -759,7 +759,7 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 // -----------------------------------------------------------------------------
 
 func project2command(projectId string, project Project, existingFunds []ProjectFund) (string, error) {
-	id, err := ident(projectId)
+	id, err := ident("project", projectId)
 	if err != nil {
 		return "", err
 	}
@@ -767,7 +767,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	if err != nil {
 		return "", err
 	}
-	action, err := ident(project.Action.Id)
+	action, err := ident("action", project.Action.Id)
 	if err != nil {
 		return "", err
 	}
@@ -785,7 +785,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	// all and re-adding.
 	oldFunds := make(map[string]bool)
 	for _, fund := range existingFunds {
-		fundId, err := ident(fund.Id)
+		fundId, err := ident("fund", fund.Id)
 		if err != nil {
 			return "", err
 		}
@@ -793,20 +793,20 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	}
 	newFunds := make(map[string]bool)
 	for _, fund := range project.Funds {
-		fundId, err := ident(fund.Id)
+		fundId, err := ident("fund", fund.Id)
 		if err != nil {
 			return "", err
 		}
 		newFunds[fundId] = true
 	}
 	for _, fund := range project.Funds {
-		fundId, _ := ident(fund.Id)
+		fundId, _ := ident("fund", fund.Id)
 		if !oldFunds[fundId] {
 			b.WriteString("alter project " + id + " alter property funds add " + fundId + ";\n")
 		}
 	}
 	for _, fund := range existingFunds {
-		fundId, _ := ident(fund.Id)
+		fundId, _ := ident("fund", fund.Id)
 		if !newFunds[fundId] {
 			b.WriteString("alter project " + id + " alter property funds drop " + fundId + ";\n")
 		}
@@ -814,7 +814,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	// b.WriteString("alter project " + id + " alter property people set '" + project.People + "';\n")
 	b.WriteString("alter project " + id + " alter property origins drop all;\n")
 	for _, location := range project.Origins {
-		locId, err := ident(location.Id)
+		locId, err := ident("origin", location.Id)
 		if err != nil {
 			return "", err
 		}
@@ -822,7 +822,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	}
 	b.WriteString("alter project " + id + " alter property destinations drop all;\n")
 	for _, location := range project.Destinations {
-		locId, err := ident(location.Id)
+		locId, err := ident("destination", location.Id)
 		if err != nil {
 			return "", err
 		}
@@ -833,7 +833,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 }
 
 func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId, err := ident(chi.URLParam(req, "projectId"))
+	projectId, err := ident("project", chi.URLParam(req, "projectId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -866,7 +866,7 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 }
 
 func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, req *http.Request, caption string) error {
-	projectId, err := ident(chi.URLParam(req, "projectId"))
+	projectId, err := ident("project", chi.URLParam(req, "projectId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -931,7 +931,7 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	name, err := ident(fund.Name)
+	name, err := ident("fund", fund.Name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -1017,9 +1017,9 @@ func readResults(resp *ccms.Response) []ccms.Result {
 var identRe = regexp.MustCompile(`^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$`)
 
 // ident validates that s is a safe identifier and returns it unchanged.
-func ident(s string) (string, error) {
+func ident(caption string, s string) (string, error) {
 	if !identRe.MatchString(s) {
-		return "", fmt.Errorf("invalid identifier: %q", s)
+		return "", fmt.Errorf("invalid %s identifier: %q", caption, s)
 	}
 	return s, nil
 }
@@ -1054,7 +1054,7 @@ func fieldList(s string) (string, error) {
 			out[i] = p
 			continue
 		}
-		v, err := ident(p)
+		v, err := ident("field", p)
 		if err != nil {
 			return "", fmt.Errorf("invalid field: %q", p)
 		}
@@ -1073,9 +1073,9 @@ func sortList(s string) (string, error) {
 		if len(fields) == 0 || len(fields) > 2 {
 			return "", fmt.Errorf("invalid sort term: %q", p)
 		}
-		col, err := ident(fields[0])
+		col, err := ident("sortField", fields[0])
 		if err != nil {
-			return "", fmt.Errorf("invalid sort field: %q", fields[0])
+			return "", fmt.Errorf("invalid sortField: %q", fields[0])
 		}
 		term := col
 		if len(fields) == 2 {
