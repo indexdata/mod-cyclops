@@ -742,7 +742,7 @@ func TestHandleUpdateProjectFundDiff(t *testing.T) {
 func TestHandleFetchProject(t *testing.T) {
 	result := ccms.NewResult("ok")
 	result.AddData([]any{"title", "My Title"})
-	result.AddData([]any{"action", "approve"})
+	result.AddData([]any{"action", "approve:Approve"})
 	result.AddData([]any{"funds", "f1:Fund One|f2:Fund Two"})
 	result.AddData([]any{"origins", "seoul:Seoul"})
 	result.AddData([]any{"destinations", ""})
@@ -769,7 +769,7 @@ func TestHandleFetchProject(t *testing.T) {
 	want := Project{
 		AltName:      "p1",
 		Title:        "My Title",
-		Action:       ProjectAction{Name: "approve"},
+		Action:       ProjectAction{Id: "approve", Name: "Approve"},
 		Funds:        []ProjectFund{{Id: "f1", Name: "Fund One"}, {Id: "f2", Name: "Fund Two"}},
 		Origins:      []ProjectLocation{{Id: "seoul", Name: "Seoul"}},
 		Destinations: []ProjectLocation{},

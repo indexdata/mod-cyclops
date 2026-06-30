@@ -665,8 +665,10 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 		case "title":
 			project.Title = mustString(value)
 		case "action":
+			pair := strings.SplitN(mustString(value), ":", 2)
 			project.Action = ProjectAction{
-				Name: mustString(value),
+				Id:   pair[0],
+				Name: pair[1],
 			}
 		case "mou_link":
 			project.MouLink = mustString(value)
