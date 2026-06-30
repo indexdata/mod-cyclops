@@ -85,14 +85,14 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 
 // -----------------------------------------------------------------------------
 
-type DefineFilter struct {
+type CreateFilter struct {
 	Name     string `json:"name"`
 	Cond     string `json:"cond"`
 	Template string `json:"template"`
 }
 
-func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *http.Request, caption string) error {
-	var filter DefineFilter
+func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *http.Request, caption string) error {
+	var filter CreateFilter
 	err := unmarshalBody(req, &filter)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
@@ -103,7 +103,7 @@ func (server *ModCyclopsServer) handleDefineFilter(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "define filter " + name
+	command := "create filter " + name
 	if filter.Cond != "" {
 		// XXX injection risk: 'cond' is a free-form condition expression and is
 		// not sanitised; needs AST-based construction.

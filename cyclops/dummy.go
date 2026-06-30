@@ -23,7 +23,7 @@ func (server *ModCyclopsServer) respondWithDummy(w http.ResponseWriter, caption 
 	}
 
 	if caption == "define tag" ||
-		caption == "define filter" ||
+		caption == "create filter" ||
 		caption == "create set" ||
 		caption == "add/remove objects" ||
 		caption == "add/remove tags" {

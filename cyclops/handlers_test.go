@@ -470,32 +470,32 @@ func TestHandleUpdateRecord(t *testing.T) {
 	})
 }
 
-func TestHandleDefineFilter(t *testing.T) {
+func TestHandleCreateFilter(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
 	body := `{"name":"active","cond":"age>18","template":"tmpl"}`
 	rr := httptest.NewRecorder()
-	err := server.handleDefineFilter(rr, jsonRequest(body, nil), "define filter")
+	err := server.handleCreateFilter(rr, jsonRequest(body, nil), "create filter")
 	if err != nil {
-		t.Fatalf("handleDefineFilter returned error: %v", err)
+		t.Fatalf("handleCreateFilter returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define filter active where age>18 template tmpl")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18 template tmpl")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
-func TestHandleDefineFilterNameOnly(t *testing.T) {
+func TestHandleCreateFilterNameOnly(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	err := server.handleDefineFilter(rr, jsonRequest(`{"name":"active"}`, nil), "define filter")
+	err := server.handleCreateFilter(rr, jsonRequest(`{"name":"active"}`, nil), "create filter")
 	if err != nil {
-		t.Fatalf("handleDefineFilter returned error: %v", err)
+		t.Fatalf("handleCreateFilter returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "define filter active")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 

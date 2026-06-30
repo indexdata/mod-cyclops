@@ -5,7 +5,7 @@ Based on [section 2.3 (Commands)](https://d1f3dtrg62pav.cloudfront.net/ccms/#_co
 
 * 2.3.1. `add tag` -- operates on sets (using tags and filters)
 * 2.3.2. `create set` -- operates on sets
-* 2.3.3. `define filter` -- operates on filters (using other filters)
+* 2.3.3. `create filter` -- operates on filters (using other filters)
 * 2.3.4. `define tag` -- operates on tags
 * 2.3.5. `delete` -- operates on sets (using filters and tags)
 * 2.3.6. `help` -- (can be ignored)
