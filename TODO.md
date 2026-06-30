@@ -48,7 +48,10 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Update project should not delete all funds then re-add those included, but generate and execute diffs
 * **DONE** Return project names as well as IDs when listing projects
 * **DONE** Return a structure of { name, title } when listing funds
-* mod-cyclops should handle "id:name" strings consistently
+* **DONE** mod-cyclops should handle "id:name" strings consistently
+* Consider making Retrieve responses into regular JSON records
+* Consider breaking the `fund` field in retrieve responses into `{ id, name }`
+* Check all `{id, name}` structures use those fieldnames.
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
