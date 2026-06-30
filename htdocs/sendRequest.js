@@ -1,5 +1,6 @@
 function sendRequest(method, path, data) {
   const params = { method };
+  console.log(`sendRequest: ${method} $path with data`, data);
   if (method === 'POST' || method === 'PUT') {
     params.headers = {
       'Content-Type': 'application/json'
