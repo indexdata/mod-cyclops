@@ -114,6 +114,7 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 		// sanitised; needs AST-based construction.
 		command += " template " + filter.Template
 	}
+	command += ";"
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+filter.Name, command)
