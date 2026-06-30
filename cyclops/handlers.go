@@ -767,7 +767,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	if err != nil {
 		return "", err
 	}
-	action, err := ident(project.Action.Name)
+	action, err := ident(project.Action.Id)
 	if err != nil {
 		return "", err
 	}

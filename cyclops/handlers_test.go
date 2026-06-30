@@ -590,7 +590,7 @@ func TestHandleCreateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
-	body := `{"altName":"p1","title":"T","action":{"name":"approve"},"mou_link":"m",` +
+	body := `{"altName":"p1","title":"T","action":{"id":"approve"},"mou_link":"m",` +
 		`"funds":[{"id":"f1"},{"id":"f2"}],"origins":[{"id":"o1"},{"id":"o2"}],` +
 		`"destinations":[{"id":"d1"}]}`
 	rr := httptest.NewRecorder()
@@ -633,7 +633,7 @@ func TestHandleUpdateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
-	body := `{"title":"T","action":{"name":"a"}}`
+	body := `{"title":"T","action":{"id":"a"}}`
 	rr := httptest.NewRecorder()
 	err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
 	if err != nil {
@@ -712,7 +712,7 @@ func TestHandleUpdateProjectFundDiff(t *testing.T) {
 			for i, id := range tc.newFunds {
 				funds[i] = fmt.Sprintf("{\"id\":%q}", id)
 			}
-			body := fmt.Sprintf(`{"title":"T","action":{"name":"a"},"funds":[%s]}`,
+			body := fmt.Sprintf(`{"title":"T","action":{"id":"a"},"funds":[%s]}`,
 				strings.Join(funds, ","))
 
 			rr := httptest.NewRecorder()
