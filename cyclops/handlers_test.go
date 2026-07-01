@@ -481,7 +481,7 @@ func TestHandleCreateFilter(t *testing.T) {
 		t.Fatalf("handleCreateFilter returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18 template tmpl")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18 template tmpl;")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
@@ -495,7 +495,7 @@ func TestHandleCreateFilterNameOnly(t *testing.T) {
 		t.Fatalf("handleCreateFilter returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active;")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
