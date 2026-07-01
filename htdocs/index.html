@@ -43,11 +43,13 @@
    <li><a href="/cyclops/tags">list of tags</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/tags', { name: 'dino' })">define tag "dino"</button></li>
   </ul>
+  -->
   <ul>
    <li><a href="/cyclops/filters">list of filters</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000', template: 'mesozoic' })">create filter "jurassic"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000', __UNUSED_template: 'mesozoic' })">create filter "jurassic"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'decided', cond: 'decision = true' })">create filter "decided"</button></li>
+   create filter decided where decision = true
   </ul>
-  -->
   <ul>
    <li><a href="/cyclops/funds">list of funds</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/funds', { name: 'palci_development' })">define fund "palci_development"</button></li>
