@@ -41,6 +41,11 @@ There is a `create property fund` command implemented but it isn't completely en
 The main change above is the `update` command which allows updating spectre attributes (`fund` for the moment).
 
 
+### Chunk 3 (DONE)
+
+* **DONE** The “create filter” and “show filters” commands and the “filter()” operator are available in test/demo.  See documentation for more details.
+
+
 ### For me
 
 * **DONE** Protect most generated SQL-like commands from injection
@@ -55,10 +60,6 @@ The main change above is the `update` command which allows updating spectre attr
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
-
-### Chunk 3
-
-* The “create filter” and “show filters” commands and the “filter()” operator are available in test/demo.  See documentation for more details.
 
 
 ## Updates needed in CCMS
