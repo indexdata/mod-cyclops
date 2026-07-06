@@ -5,7 +5,11 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "The short human-readable name of the fund"
+      "description": "The short machine-readable name of the fund, used as its identifier"
+    },
+    "title": {
+      "type": "string",
+      "description": "The human-readable title of the fund"
     }
   },
   "additionalProperties": false,

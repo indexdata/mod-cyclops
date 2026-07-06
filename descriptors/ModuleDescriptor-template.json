@@ -196,6 +196,33 @@
           "permissionsRequired": [
             "cyclops.funds.create"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/funds/{id}",
+          "permissionsRequired": [
+            "cyclops.funds.get"
+          ]
+        },
+        {
+          "methods": [
+            "PUT"
+          ],
+          "pathPattern": "/cyclops/funds/{id}",
+          "permissionsRequired": [
+            "cyclops.funds.put"
+          ]
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/cyclops/funds/{id}",
+          "permissionsRequired": [
+            "cyclops.funds.delete"
+          ]
         }
       ]
     }
@@ -287,6 +314,18 @@
     {
       "permissionName": "cyclops.funds.create",
       "displayName": "CYCLOPS: Create fund"
+    },
+    {
+      "permissionName": "cyclops.funds.get",
+      "displayName": "CYCLOPS: Read full fund"
+    },
+    {
+      "permissionName": "cyclops.funds.put",
+      "displayName": "CYCLOPS: Modify fund"
+    },
+    {
+      "permissionName": "cyclops.funds.delete",
+      "displayName": "CYCLOPS: Delete fund"
     }
   ],
   "launchDescriptor": {

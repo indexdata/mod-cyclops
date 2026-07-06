@@ -52,7 +52,10 @@
   </ul>
   <ul>
    <li><a href="/cyclops/funds">list of funds</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/funds', { name: 'palci_development' })">define fund "palci_development"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/funds', { name: 'palci_development', title: 'PALCI development fund' })">define fund "palci_development"</button></li>
+   <li><a href="/cyclops/funds/palci_development">full fund "palci_development"</a></li>
+   <li><button class="link-button" onclick="putData('/cyclops/funds/palci_development', { name: 'palci_development', title: 'PALCI development and growth fund' })">alter fund "palci_development"</button></li>
+   <li><button class="link-button" onclick="deleteObject('/cyclops/funds/palci_development')">drop fund "palci_development"</button></li>
   </ul>
   <ul>
    <li><a href="/cyclops/projects">list of projects</a></li>

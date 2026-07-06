@@ -951,6 +951,102 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 
 // -----------------------------------------------------------------------------
 
+func (server *ModCyclopsServer) fetchFund(caption string, name string) (Fund, error) {
+	command := "show fund " + name + ";"
+	server.Log("command", command)
+	resp, err := server.sendToCCMS(caption, command)
+	if err != nil {
+		return Fund{}, err
+	}
+
+	result := readResults(resp)[0]
+	fund := Fund{
+		Name: name,
+	}
+
+	for val := range result.Data() {
+		pair := val.Values()
+		key := mustString(pair[0])
+		value := pair[1]
+
+		switch key {
+		case "title":
+			fund.Title = mustString(value)
+		default:
+			server.Log("data", "unrecognised Fund field", key, "=", fmt.Sprintf("%+v", value))
+		}
+	}
+
+	return fund, nil
+}
+
+func (server *ModCyclopsServer) handleFetchFund(w http.ResponseWriter, req *http.Request, caption string) error {
+	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	fund, err := server.fetchFund(caption, name)
+	if err != nil {
+		return err
+	}
+
+	return server.respondWithJSON(w, fund, caption)
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleUpdateFund(w http.ResponseWriter, req *http.Request, caption string) error {
+	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	var fund Fund
+	err = unmarshalBody(req, &fund)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	title, err := sqlString(fund.Title)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "alter fund " + name + " alter property title set " + title + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+name, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleDeleteFund(w http.ResponseWriter, req *http.Request, caption string) error {
+	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "drop fund " + name + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+name, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func unmarshalBody[T any](req *http.Request, data *T) error {
 	b, err := io.ReadAll(req.Body)
 	if err != nil {

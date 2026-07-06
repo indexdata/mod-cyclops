@@ -541,6 +541,71 @@ func TestHandleCreateFund(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+func TestHandleUpdateFund(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"name":"endowment","title":"Endowment Fund"}`
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundName": "endowment"}), "update fund")
+		if err != nil {
+			t.Fatalf("handleUpdateFund returned error: %v", err)
+		}
+
+		// The URL's fund name drives the command; the body's "name" is ignored.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter fund endowment alter property title set 'Endowment Fund';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// A title containing a single quote must be escaped by doubling it.
+	t.Run("title with apostrophe is escaped", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"title":"Founder's Fund"}`
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundName": "founders"}), "update fund")
+		if err != nil {
+			t.Fatalf("handleUpdateFund returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter fund founders alter property title set 'Founder''s Fund';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("malformed JSON body", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateFund(rr, jsonRequest(`{"title":`, map[string]string{"fundName": "endowment"}), "update fund")
+		if err == nil {
+			t.Fatal("expected an error for malformed JSON, got nil")
+		}
+		assertErrContains(t, err, "deserialize JSON")
+
+		// The handler must bail before sending anything to CCMS.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+}
+
+func TestHandleDeleteFund(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDeleteFund(rr, jsonRequest("", map[string]string{"fundName": "endowment"}), "delete fund")
+	if err != nil {
+		t.Fatalf("handleDeleteFund returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop fund endowment;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
 func TestHandleAddObjects(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
@@ -774,6 +839,36 @@ func TestHandleFetchProject(t *testing.T) {
 		Origins:      []ProjectLocation{{Id: "seoul", Name: "Seoul"}},
 		Destinations: []ProjectLocation{},
 	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleFetchFund(t *testing.T) {
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"title", "Endowment Fund"})
+	result.AddData([]any{"bogus", "ignored"}) // exercises the default branch
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+
+	fake := &fakeCCMS{resp: resp}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleFetchFund(rr, jsonRequest("", map[string]string{"fundName": "endowment"}), "fetch fund")
+	if err != nil {
+		t.Fatalf("handleFetchFund returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show fund endowment;")
+
+	var got Fund
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	// The name comes from the URL param, the title from the CCMS response.
+	want := Fund{Name: "endowment", Title: "Endowment Fund"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}

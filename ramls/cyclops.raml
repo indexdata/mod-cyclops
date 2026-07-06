@@ -251,3 +251,31 @@ documentation:
       responses:
         204:
           description: No content is returned.
+    /{name}:
+      uriParameters:
+        name:
+          description: The machine-readable name of the fund, used as its identifier
+          type: string
+          required: true
+      get:
+        description: "Show a single fund in full"
+        responses:
+          200:
+            body:
+              application/json:
+                type: !include fund-schema.json
+                example: !include examples/fund-example.json
+      put:
+        description: "Alter an existing fund"
+        body:
+          application/json:
+            type: !include fund-schema.json
+            example: !include examples/fund-example.json
+        responses:
+          204:
+            description: No content is returned.
+      delete:
+        description: "Drop an existing fund"
+        responses:
+          204:
+            description: No content is returned.
