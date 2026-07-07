@@ -324,8 +324,8 @@ func TestHandleShowFunds(t *testing.T) {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
 	want := FundList{Funds: []Fund{
-		{Name: "general", Title: "General Fund"},
-		{Name: "endowment", Title: "Endowment Fund"},
+		{Id: "general", Title: "General Fund"},
+		{Id: "endowment", Title: "Endowment Fund"},
 	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
@@ -532,7 +532,7 @@ func TestHandleCreateFund(t *testing.T) {
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	err := server.handleCreateFund(rr, jsonRequest(`{"name":"endowment"}`, nil), "create fund")
+	err := server.handleCreateFund(rr, jsonRequest(`{"id":"endowment"}`, nil), "create fund")
 	if err != nil {
 		t.Fatalf("handleCreateFund returned error: %v", err)
 	}
@@ -546,14 +546,14 @@ func TestHandleUpdateFund(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		body := `{"name":"endowment","title":"Endowment Fund"}`
+		body := `{"id":"endowment","title":"Endowment Fund"}`
 		rr := httptest.NewRecorder()
-		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundName": "endowment"}), "update fund")
+		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundId": "endowment"}), "update fund")
 		if err != nil {
 			t.Fatalf("handleUpdateFund returned error: %v", err)
 		}
 
-		// The URL's fund name drives the command; the body's "name" is ignored.
+		// The URL's fund id drives the command; the body's "id" is ignored.
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
 			"alter fund endowment alter property title set 'Endowment Fund';")
 		assertStatus(t, rr, http.StatusNoContent)
@@ -566,7 +566,7 @@ func TestHandleUpdateFund(t *testing.T) {
 
 		body := `{"title":"Founder's Fund"}`
 		rr := httptest.NewRecorder()
-		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundName": "founders"}), "update fund")
+		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundId": "founders"}), "update fund")
 		if err != nil {
 			t.Fatalf("handleUpdateFund returned error: %v", err)
 		}
@@ -581,7 +581,7 @@ func TestHandleUpdateFund(t *testing.T) {
 		server := newTestServer(fake)
 
 		rr := httptest.NewRecorder()
-		err := server.handleUpdateFund(rr, jsonRequest(`{"title":`, map[string]string{"fundName": "endowment"}), "update fund")
+		err := server.handleUpdateFund(rr, jsonRequest(`{"title":`, map[string]string{"fundId": "endowment"}), "update fund")
 		if err == nil {
 			t.Fatal("expected an error for malformed JSON, got nil")
 		}
@@ -597,7 +597,7 @@ func TestHandleDeleteFund(t *testing.T) {
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	err := server.handleDeleteFund(rr, jsonRequest("", map[string]string{"fundName": "endowment"}), "delete fund")
+	err := server.handleDeleteFund(rr, jsonRequest("", map[string]string{"fundId": "endowment"}), "delete fund")
 	if err != nil {
 		t.Fatalf("handleDeleteFund returned error: %v", err)
 	}
@@ -855,7 +855,7 @@ func TestHandleFetchFund(t *testing.T) {
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	err := server.handleFetchFund(rr, jsonRequest("", map[string]string{"fundName": "endowment"}), "fetch fund")
+	err := server.handleFetchFund(rr, jsonRequest("", map[string]string{"fundId": "endowment"}), "fetch fund")
 	if err != nil {
 		t.Fatalf("handleFetchFund returned error: %v", err)
 	}
@@ -867,8 +867,8 @@ func TestHandleFetchFund(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	// The name comes from the URL param, the title from the CCMS response.
-	want := Fund{Name: "endowment", Title: "Endowment Fund"}
+	// The id comes from the URL param, the title from the CCMS response.
+	want := Fund{Id: "endowment", Title: "Endowment Fund"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}

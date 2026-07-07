@@ -10,9 +10,9 @@
         "type": "object",
         "description": "A fund",
         "properties": {
-          "name": {
+          "id": {
             "type": "string",
-            "description": "The short machine-readable name of the fund"
+            "description": "The short machine-readable identifier of the fund"
           },
           "title": {
             "type": "string",
@@ -21,7 +21,7 @@
         },
         "additionalProperties": false,
         "required": [
-          "name",
+          "id",
           "title"
         ]
       }

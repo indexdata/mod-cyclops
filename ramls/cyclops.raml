@@ -251,10 +251,10 @@ documentation:
       responses:
         204:
           description: No content is returned.
-    /{name}:
+    /{id}:
       uriParameters:
-        name:
-          description: The machine-readable name of the fund, used as its identifier
+        id:
+          description: The machine-readable identifier of the fund
           type: string
           required: true
       get:

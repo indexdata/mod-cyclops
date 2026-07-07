@@ -890,7 +890,7 @@ func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, r
 // -----------------------------------------------------------------------------
 
 type Fund struct {
-	Name  string `json:"name"`
+	Id    string `json:"id"`
 	Title string `json:"title"`
 	// More to come, surely
 }
@@ -911,7 +911,7 @@ func (server *ModCyclopsServer) handleShowFunds(w http.ResponseWriter, req *http
 	for val := range result.Data() {
 		values := val.Values()
 		funds = append(funds, Fund{
-			Name:  mustString(values[0]),
+			Id:    mustString(values[0]),
 			Title: mustString(values[1]),
 		})
 	}
@@ -922,7 +922,7 @@ func (server *ModCyclopsServer) handleShowFunds(w http.ResponseWriter, req *http
 // -----------------------------------------------------------------------------
 
 type CreateFund struct {
-	Name string `json:"name"`
+	Id string `json:"id"`
 }
 
 func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -932,15 +932,15 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	name, err := ident("fund", fund.Name)
+	id, err := ident("fund", fund.Id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "create fund " + name + ";"
+	command := "create fund " + id + ";"
 	server.Log("command", command)
 
-	_, err = server.sendToCCMS(caption+" "+fund.Name, command)
+	_, err = server.sendToCCMS(caption+" "+fund.Id, command)
 	if err != nil {
 		return err
 	}
@@ -951,8 +951,8 @@ func (server *ModCyclopsServer) handleCreateFund(w http.ResponseWriter, req *htt
 
 // -----------------------------------------------------------------------------
 
-func (server *ModCyclopsServer) fetchFund(caption string, name string) (Fund, error) {
-	command := "show fund " + name + ";"
+func (server *ModCyclopsServer) fetchFund(caption string, id string) (Fund, error) {
+	command := "show fund " + id + ";"
 	server.Log("command", command)
 	resp, err := server.sendToCCMS(caption, command)
 	if err != nil {
@@ -961,7 +961,7 @@ func (server *ModCyclopsServer) fetchFund(caption string, name string) (Fund, er
 
 	result := readResults(resp)[0]
 	fund := Fund{
-		Name: name,
+		Id: id,
 	}
 
 	for val := range result.Data() {
@@ -981,12 +981,12 @@ func (server *ModCyclopsServer) fetchFund(caption string, name string) (Fund, er
 }
 
 func (server *ModCyclopsServer) handleFetchFund(w http.ResponseWriter, req *http.Request, caption string) error {
-	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	id, err := ident("fund", chi.URLParam(req, "fundId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	fund, err := server.fetchFund(caption, name)
+	fund, err := server.fetchFund(caption, id)
 	if err != nil {
 		return err
 	}
@@ -997,7 +997,7 @@ func (server *ModCyclopsServer) handleFetchFund(w http.ResponseWriter, req *http
 // -----------------------------------------------------------------------------
 
 func (server *ModCyclopsServer) handleUpdateFund(w http.ResponseWriter, req *http.Request, caption string) error {
-	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	id, err := ident("fund", chi.URLParam(req, "fundId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -1013,10 +1013,10 @@ func (server *ModCyclopsServer) handleUpdateFund(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "alter fund " + name + " alter property title set " + title + ";"
+	command := "alter fund " + id + " alter property title set " + title + ";"
 	server.Log("command", command)
 
-	_, err = server.sendToCCMS(caption+" "+name, command)
+	_, err = server.sendToCCMS(caption+" "+id, command)
 	if err != nil {
 		return err
 	}
@@ -1028,15 +1028,15 @@ func (server *ModCyclopsServer) handleUpdateFund(w http.ResponseWriter, req *htt
 // -----------------------------------------------------------------------------
 
 func (server *ModCyclopsServer) handleDeleteFund(w http.ResponseWriter, req *http.Request, caption string) error {
-	name, err := ident("fund", chi.URLParam(req, "fundName"))
+	id, err := ident("fund", chi.URLParam(req, "fundId"))
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "drop fund " + name + ";"
+	command := "drop fund " + id + ";"
 	server.Log("command", command)
 
-	_, err = server.sendToCCMS(caption+" "+name, command)
+	_, err = server.sendToCCMS(caption+" "+id, command)
 	if err != nil {
 		return err
 	}
