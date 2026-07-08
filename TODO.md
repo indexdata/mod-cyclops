@@ -54,6 +54,8 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Return project names as well as IDs when listing projects
 * **DONE** Return a structure of { name, title } when listing funds
 * **DONE** mod-cyclops should handle "id:name" strings consistently
+* **DONE** Add CRUD support for funds
+* Review permission names for consistency and Eureka-friendliness
 * Consider making Retrieve responses into regular JSON records
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
 * Check all `{id, name}` structures use those fieldnames.
@@ -61,10 +63,8 @@ The main change above is the `update` command which allows updating spectre attr
 * Protect conditions in generated SQL-like commands from injection
 
 
-
 ## Updates needed in CCMS
 
-* `alter fund` and `drop fund`.
 * `show tracks`, `create track`, `alter tracks` and delete track`
 * `show people`, `create person`, `alter person` and `delete person` -- defined globally or per project?
 
