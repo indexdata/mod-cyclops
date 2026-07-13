@@ -55,6 +55,7 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Return a structure of { name, title } when listing funds
 * **DONE** mod-cyclops should handle "id:name" strings consistently
 * **DONE** Add CRUD support for funds
+* BUG: when inserting into a set, limit should be omitted
 * Review permission names for consistency and Eureka-friendliness
 * Consider making Retrieve responses into regular JSON records
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
