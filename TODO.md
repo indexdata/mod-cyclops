@@ -63,7 +63,7 @@ The main change above is the `update` command which allows updating spectre attr
 * Check all `{id, name}` structures use those fieldnames.
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
-
+* Support new `holdings_count` attribute.
 
 ## Updates needed in CCMS
 
