@@ -55,13 +55,13 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Return a structure of { name, title } when listing funds
 * **DONE** mod-cyclops should handle "id:name" strings consistently
 * **DONE** Add CRUD support for funds
+* **DONE** Change project and fund structures so all `{id, name}` pairs use those fieldnames.
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute.
 * Use new `Validator` in place of hand-rolled validation
 * Review permission names for consistency and Eureka-friendliness
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
-* Check all `{id, name}` structures use those fieldnames.
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 

@@ -14,15 +14,15 @@
             "type": "string",
             "description": "The short machine-readable identifier of the fund"
           },
-          "title": {
+          "name": {
             "type": "string",
-            "description": "The human-readable title of the fund"
+            "description": "The human-readable name of the fund"
           }
         },
         "additionalProperties": false,
         "required": [
           "id",
-          "title"
+          "name"
         ]
       }
     }

@@ -324,8 +324,8 @@ func TestHandleShowFunds(t *testing.T) {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
 	want := FundList{Funds: []Fund{
-		{Id: "general", Title: "General Fund"},
-		{Id: "endowment", Title: "Endowment Fund"},
+		{Id: "general", Name: "General Fund"},
+		{Id: "endowment", Name: "Endowment Fund"},
 	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
@@ -355,8 +355,8 @@ func TestHandleShowProjects(t *testing.T) {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
 	want := ProjectList{Projects: []BriefProject{
-		{AltName: "alpha", Title: "Project Alpha"},
-		{AltName: "beta", Title: "Project Beta"},
+		{AltName: "alpha", Name: "Project Alpha"},
+		{AltName: "beta", Name: "Project Beta"},
 	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
@@ -546,7 +546,7 @@ func TestHandleUpdateFund(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		body := `{"id":"endowment","title":"Endowment Fund"}`
+		body := `{"id":"endowment","name":"Endowment Fund"}`
 		rr := httptest.NewRecorder()
 		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundId": "endowment"}), "update fund")
 		if err != nil {
@@ -559,12 +559,12 @@ func TestHandleUpdateFund(t *testing.T) {
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 
-	// A title containing a single quote must be escaped by doubling it.
-	t.Run("title with apostrophe is escaped", func(t *testing.T) {
+	// A name containing a single quote must be escaped by doubling it.
+	t.Run("name with apostrophe is escaped", func(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		body := `{"title":"Founder's Fund"}`
+		body := `{"name":"Founder's Fund"}`
 		rr := httptest.NewRecorder()
 		err := server.handleUpdateFund(rr, jsonRequest(body, map[string]string{"fundId": "founders"}), "update fund")
 		if err != nil {
@@ -581,7 +581,7 @@ func TestHandleUpdateFund(t *testing.T) {
 		server := newTestServer(fake)
 
 		rr := httptest.NewRecorder()
-		err := server.handleUpdateFund(rr, jsonRequest(`{"title":`, map[string]string{"fundId": "endowment"}), "update fund")
+		err := server.handleUpdateFund(rr, jsonRequest(`{"name":`, map[string]string{"fundId": "endowment"}), "update fund")
 		if err == nil {
 			t.Fatal("expected an error for malformed JSON, got nil")
 		}
@@ -671,7 +671,7 @@ func TestHandleCreateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
-	body := `{"altName":"p1","title":"T","action":{"id":"approve"},"mou_link":"m",` +
+	body := `{"altName":"p1","name":"T","action":{"id":"approve"},"mou_link":"m",` +
 		`"funds":[{"id":"f1"},{"id":"f2"}],"origins":[{"id":"o1"},{"id":"o2"}],` +
 		`"destinations":[{"id":"d1"}]}`
 	rr := httptest.NewRecorder()
@@ -700,7 +700,7 @@ func TestHandleCreateProjectNoAltName(t *testing.T) {
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	err := server.handleCreateProject(rr, jsonRequest(`{"title":"T"}`, nil), "create project")
+	err := server.handleCreateProject(rr, jsonRequest(`{"name":"T"}`, nil), "create project")
 	if err == nil {
 		t.Fatal("expected an error when altName is missing, got nil")
 	}
@@ -714,7 +714,7 @@ func TestHandleUpdateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
-	body := `{"title":"T","action":{"id":"a"}}`
+	body := `{"name":"T","action":{"id":"a"}}`
 	rr := httptest.NewRecorder()
 	err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
 	if err != nil {
@@ -793,7 +793,7 @@ func TestHandleUpdateProjectFundDiff(t *testing.T) {
 			for i, id := range tc.newFunds {
 				funds[i] = fmt.Sprintf("{\"id\":%q}", id)
 			}
-			body := fmt.Sprintf(`{"title":"T","action":{"id":"a"},"funds":[%s]}`,
+			body := fmt.Sprintf(`{"name":"T","action":{"id":"a"},"funds":[%s]}`,
 				strings.Join(funds, ","))
 
 			rr := httptest.NewRecorder()
@@ -849,7 +849,7 @@ func TestHandleFetchProject(t *testing.T) {
 	}
 	want := Project{
 		AltName:      "p1",
-		Title:        "My Title",
+		Name:         "My Title",
 		Action:       ProjectAction{Id: "approve", Name: "Approve"},
 		Funds:        []ProjectFund{{Id: "f1", Name: "Fund One"}, {Id: "f2", Name: "Fund Two"}},
 		Origins:      []ProjectLocation{{Id: "seoul", Name: "Seoul"}},
@@ -883,8 +883,8 @@ func TestHandleFetchFund(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	// The id comes from the URL param, the title from the CCMS response.
-	want := Fund{Id: "endowment", Title: "Endowment Fund"}
+	// The id comes from the URL param, the name from the CCMS response.
+	want := Fund{Id: "endowment", Name: "Endowment Fund"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}

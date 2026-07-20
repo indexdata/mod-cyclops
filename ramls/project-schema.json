@@ -7,9 +7,9 @@
       "type": "string",
       "description": "Unique identifier (but not used as the identifier: see 'altName' below)"
     },
-    "title": {
+    "name": {
       "type": "string",
-      "description": "Human-reeadable name"
+      "description": "Human-readable name"
     },
     "altName": {
       "type": "string",

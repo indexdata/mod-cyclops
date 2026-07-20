@@ -557,7 +557,7 @@ func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *
 
 type BriefProject struct {
 	AltName string `json:"altName"`
-	Title   string `json:"title"`
+	Name    string `json:"name"`
 	// More to come, surely
 }
 
@@ -578,7 +578,7 @@ func (server *ModCyclopsServer) handleShowProjects(w http.ResponseWriter, req *h
 		values := val.Values()
 		bf := BriefProject{
 			AltName: mustString(values[0]),
-			Title:   mustString(values[1]),
+			Name:    mustString(values[1]),
 		}
 		projects = append(projects, bf)
 	}
@@ -613,7 +613,7 @@ type ProjectTrack = ProjectItem
 type Project struct {
 	Id           string            `json:"id"`
 	AltName      string            `json:"altName"`
-	Title        string            `json:"title"`
+	Name         string            `json:"name"`
 	Action       ProjectAction     `json:"action"`
 	MouLink      string            `json:"mou_link"`
 	Funds        []ProjectFund     `json:"funds"`
@@ -668,7 +668,7 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 
 		switch key {
 		case "title":
-			project.Title = mustString(value)
+			project.Name = mustString(value)
 		case "action":
 			pair := strings.SplitN(mustString(value), ":", 2)
 			project.Action = ProjectAction{
@@ -768,7 +768,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	if err != nil {
 		return "", err
 	}
-	title, err := sqlString(project.Title)
+	name, err := sqlString(project.Name)
 	if err != nil {
 		return "", err
 	}
@@ -782,7 +782,7 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	}
 
 	var b strings.Builder
-	b.WriteString("alter project " + id + " alter property title set " + title + ";\n")
+	b.WriteString("alter project " + id + " alter property title set " + name + ";\n")
 	b.WriteString("alter project " + id + " alter property action set " + action + ";\n")
 	b.WriteString("alter project " + id + " alter property mou_link set " + mouLink + ";\n")
 	// Compute the minimal set of fund changes by comparing the
@@ -894,8 +894,8 @@ func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, r
 // -----------------------------------------------------------------------------
 
 type Fund struct {
-	Id    string `json:"id"`
-	Title string `json:"title"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 	// More to come, surely
 }
 
@@ -915,8 +915,8 @@ func (server *ModCyclopsServer) handleShowFunds(w http.ResponseWriter, req *http
 	for val := range result.Data() {
 		values := val.Values()
 		funds = append(funds, Fund{
-			Id:    mustString(values[0]),
-			Title: mustString(values[1]),
+			Id:   mustString(values[0]),
+			Name: mustString(values[1]),
 		})
 	}
 	fundList := FundList{Funds: funds}
@@ -975,7 +975,7 @@ func (server *ModCyclopsServer) fetchFund(caption string, id string) (Fund, erro
 
 		switch key {
 		case "title":
-			fund.Title = mustString(value)
+			fund.Name = mustString(value)
 		default:
 			server.Log("data", "unrecognised Fund field", key, "=", fmt.Sprintf("%+v", value))
 		}
@@ -1012,12 +1012,12 @@ func (server *ModCyclopsServer) handleUpdateFund(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	title, err := sqlString(fund.Title)
+	name, err := sqlString(fund.Name)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := "alter fund " + id + " alter property title set " + title + ";"
+	command := "alter fund " + id + " alter property title set " + name + ";"
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+id, command)
