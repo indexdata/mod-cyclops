@@ -65,6 +65,7 @@ The main change above is the `update` command which allows updating spectre attr
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
+
 ## Updates needed in CCMS
 
 * `show tracks`, `create track`, `alter tracks` and delete track
