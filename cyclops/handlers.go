@@ -556,8 +556,8 @@ func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *
 // -----------------------------------------------------------------------------
 
 type BriefProject struct {
-	AltName string `json:"altName"`
-	Name    string `json:"name"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
 	// More to come, surely
 }
 
@@ -577,8 +577,8 @@ func (server *ModCyclopsServer) handleShowProjects(w http.ResponseWriter, req *h
 	for val := range result.Data() {
 		values := val.Values()
 		bf := BriefProject{
-			AltName: mustString(values[0]),
-			Name:    mustString(values[1]),
+			Id:   mustString(values[0]),
+			Name: mustString(values[1]),
 		}
 		projects = append(projects, bf)
 	}
@@ -612,7 +612,6 @@ type ProjectTrack = ProjectItem
 
 type Project struct {
 	Id           string            `json:"id"`
-	AltName      string            `json:"altName"`
 	Name         string            `json:"name"`
 	Action       ProjectAction     `json:"action"`
 	MouLink      string            `json:"mou_link"`
@@ -658,7 +657,7 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 
 	result := readResults(resp)[0]
 	project := Project{
-		AltName: projectId,
+		Id: projectId,
 	}
 
 	for val := range result.Data() {
@@ -718,23 +717,23 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	if project.AltName == "" {
-		return fmt.Errorf("%s: no altName specified", caption)
+	if project.Id == "" {
+		return fmt.Errorf("%s: no id specified", caption)
 	}
-	altName, err := ident("project", project.AltName)
+	id, err := ident("project", project.Id)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
 	// A freshly created project has no funds yet.
-	body, err := project2command(altName, project, nil)
+	body, err := project2command(id, project, nil)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	command := "create project " + altName + ";\n" + body
+	command := "create project " + id + ";\n" + body
 	server.Log("command", command)
 
-	_, err = server.sendToCCMS(caption+" "+project.AltName, command)
+	_, err = server.sendToCCMS(caption+" "+project.Id, command)
 	if err != nil {
 		return err
 	}

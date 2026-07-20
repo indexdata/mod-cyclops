@@ -1,27 +1,24 @@
 {
   "projects": [
     {
-      "id": "321",
+      "id": "palci_slavic",
       "name": "Slavic studies",
-      "altName": "palci_slavic",
       "action": {
 	"id": "123",
 	"name": "Purchase"
       }
     },
     {
-      "id": "456",
+      "id": "lit_nk",
       "name": "Literature of North Korea",
-      "altName": "lit_nk",
       "action": {
 	"id": "654",
 	"name": "Weed"
       }
     },
     {
-      "id": "789",
+      "id": "ukr1",
       "name": "Ukrainian Culture",
-      "altName": "ukr1",
       "action": {
 	"id": "987",
 	"name": "Digitize"

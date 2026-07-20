@@ -1,7 +1,6 @@
 {
-  "id": "321",
+  "id": "palci_slavic",
   "name": "Slavic studies",
-  "altName": "palci_slavic",
   "action": {
     "id": "123",
     "name": "Purchase"

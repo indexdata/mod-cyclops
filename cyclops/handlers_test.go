@@ -355,8 +355,8 @@ func TestHandleShowProjects(t *testing.T) {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
 	want := ProjectList{Projects: []BriefProject{
-		{AltName: "alpha", Name: "Project Alpha"},
-		{AltName: "beta", Name: "Project Beta"},
+		{Id: "alpha", Name: "Project Alpha"},
+		{Id: "beta", Name: "Project Beta"},
 	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
@@ -671,7 +671,7 @@ func TestHandleCreateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
-	body := `{"altName":"p1","name":"T","action":{"id":"approve"},"mou_link":"m",` +
+	body := `{"id":"p1","name":"T","action":{"id":"approve"},"mou_link":"m",` +
 		`"funds":[{"id":"f1"},{"id":"f2"}],"origins":[{"id":"o1"},{"id":"o2"}],` +
 		`"destinations":[{"id":"d1"}]}`
 	rr := httptest.NewRecorder()
@@ -695,16 +695,16 @@ func TestHandleCreateProject(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
-func TestHandleCreateProjectNoAltName(t *testing.T) {
+func TestHandleCreateProjectNoId(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
 	err := server.handleCreateProject(rr, jsonRequest(`{"name":"T"}`, nil), "create project")
 	if err == nil {
-		t.Fatal("expected an error when altName is missing, got nil")
+		t.Fatal("expected an error when id is missing, got nil")
 	}
-	assertErrContains(t, err, "no altName specified")
+	assertErrContains(t, err, "no id specified")
 
 	// The handler must bail before sending anything to CCMS.
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
@@ -848,7 +848,7 @@ func TestHandleFetchProject(t *testing.T) {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
 	want := Project{
-		AltName:      "p1",
+		Id:           "p1",
 		Name:         "My Title",
 		Action:       ProjectAction{Id: "approve", Name: "Approve"},
 		Funds:        []ProjectFund{{Id: "f1", Name: "Fund One"}, {Id: "f2", Name: "Fund Two"}},
