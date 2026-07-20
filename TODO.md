@@ -67,6 +67,6 @@ The main change above is the `update` command which allows updating spectre attr
 
 ## Updates needed in CCMS
 
-* `show tracks`, `create track`, `alter tracks` and delete track`
+* `show tracks`, `create track`, `alter tracks` and delete track
 * `show people`, `create person`, `alter person` and `delete person` -- defined globally or per project?
 
