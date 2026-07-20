@@ -51,7 +51,7 @@ jobs:
           cd folio-tools/api-doc \
             && yarn install \
             && pip3 install -r requirements.txt
-      - name: Obtain version of release tag
+      - name: Obtain version if release tag
         if: ${{ startsWith(github.ref, 'refs/tags/v') }}
         run: |
           version=$(echo ${GITHUB_REF#refs/tags/[vV]} | awk -F'.' '{ printf("%d.%d", $1, $2) }')
@@ -66,7 +66,7 @@ jobs:
         run: |
           if test -n "${{ env.VERSION_MAJ_MIN }}"; then
             echo "Docs for release version ${{ env.VERSION_MAJ_MIN }}"
-            option_release=$(echo "--version ${{ env.VERSION_MAJ_MIN }}")
+            option_release="--version ${{ env.VERSION_MAJ_MIN }}"
           else
             option_release=""
           fi
