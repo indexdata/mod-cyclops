@@ -116,7 +116,7 @@ func TestMakeModCyclopsServerUpdateRecordRoute(t *testing.T) {
 
 		assertStatus(t, rr, http.StatusNoContent)
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"insert into mike select * from src limit 100;")
+			"insert into mike select * from src;")
 	})
 }
 

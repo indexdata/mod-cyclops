@@ -621,6 +621,22 @@ func TestHandleAddObjects(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+func TestHandleAddObjectsNoLimit(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	// When the request omits "limit", the command must not specify one either.
+	body := `{"from":"src","cond":"age>18"}`
+	rr := httptest.NewRecorder()
+	err := server.handleAddObjects(rr, jsonRequest(body, map[string]string{"setName": "dest"}), "add objects")
+	if err != nil {
+		t.Fatalf("handleAddObjects returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "insert into dest select * from src where age>18;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
 func TestHandleRemoveObjects(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)

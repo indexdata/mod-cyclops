@@ -419,6 +419,10 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
+	limit := params.Limit
+	if limit == "" {
+		limit = "*" // Omit "limit" from the command when the request did not specify one
+	}
 	clause, err := makeSelectClause(
 		"*",
 		params.From,
@@ -426,9 +430,9 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 		params.Filter,
 		params.Tag,
 		params.OmitTag,
-		"", // Sort
-		params.Limit,
-		"", // Offset
+		"",    // Sort
+		limit, // "*" omits "limit" completely when none was requested
+		"",    // Offset
 	)
 	if err != nil {
 		return fmt.Errorf("could not make select clause: %w", err)
