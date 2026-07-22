@@ -120,6 +120,15 @@
           "methods": [
             "POST"
           ],
+          "pathPattern": "/cyclops/sets/{setName}/batch",
+          "permissionsRequired": [
+            "cyclops.sets.spectre.batch-update"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
           "pathPattern": "/cyclops/sets/{setName}/{recordId}",
           "permissionsRequired": [
             "cyclops.sets.spectre.update"
@@ -286,6 +295,10 @@
     {
       "permissionName": "cyclops.sets.spectre.update",
       "displayName": "CYCLOPS: Update a record (spectre) within a set"
+    },
+    {
+      "permissionName": "cyclops.sets.spectre.batch-update",
+      "displayName": "CYCLOPS: Batch-update multiple records (spectres) within a set"
     },
     {
       "permissionName": "cyclops.projects.collection.get",

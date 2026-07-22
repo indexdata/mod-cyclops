@@ -470,6 +470,71 @@ func TestHandleUpdateRecord(t *testing.T) {
 	})
 }
 
+func TestHandleBatchUpdate(t *testing.T) {
+	t.Run("decision only", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike"}
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7","8","9"],"changes":{"decision":true}}`, params), "batch update")
+		if err != nil {
+			t.Fatalf("handleBatchUpdate returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true where id = 7; update mike set decision = true where id = 8; update mike set decision = true where id = 9;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// Each id produces its own update statement per changed field, since CCMS's
+	// WHERE clause accepts only a single "id = VALUE" expression.
+	t.Run("decision and fund", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike"}
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7","8"],"changes":{"decision":false,"fund":"palci"}}`, params), "batch update")
+		if err != nil {
+			t.Fatalf("handleBatchUpdate returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = false where id = 7; update mike set fund = palci where id = 7; update mike set decision = false where id = 8; update mike set fund = palci where id = 8;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("empty ids list is rejected", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":[],"changes":{"decision":true}}`, map[string]string{"setName": "mike"}), "batch update")
+		if err == nil {
+			t.Fatal("expected an error for an empty ids list, got nil")
+		}
+		assertErrContains(t, err, "no ids specified")
+
+		// The handler must bail before sending anything to CCMS.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+
+	t.Run("no changes is rejected", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7"],"changes":{}}`, map[string]string{"setName": "mike"}), "batch update")
+		if err == nil {
+			t.Fatal("expected an error when no changes are specified, got nil")
+		}
+		assertErrContains(t, err, "no changes specified")
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+}
+
 func TestHandleCreateFilter(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)

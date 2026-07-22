@@ -57,6 +57,7 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Add CRUD support for funds
 * **DONE** Change project and fund structures so all `{id, name}` pairs use those fieldnames
 * **DONE** Change project `altName` field to `id` (discarding old Id)
+* **DONE** Support new batch-update WSAPI
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute.

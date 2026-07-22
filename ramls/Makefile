@@ -23,6 +23,7 @@ schemalint:
 	z-schema removeobjects-schema.json
 	z-schema addremovetag-schema.json
 	z-schema spectre-schema.json
+	z-schema batch-schema.json
 	z-schema location-schema.json
 	z-schema project-schema.json
 	z-schema projects-schema.json
@@ -42,6 +43,7 @@ examplelint:
 	z-schema addremovetag-schema.json examples/addtag-example.json
 	z-schema addremovetag-schema.json examples/removetag-example.json
 	z-schema spectre-schema.json examples/spectre-example.json
+	z-schema batch-schema.json examples/batch-example.json
 	z-schema location-schema.json examples/location-example.json
 	z-schema project-schema.json examples/project-example.json
 	z-schema projects-schema.json examples/show-projects-example.json

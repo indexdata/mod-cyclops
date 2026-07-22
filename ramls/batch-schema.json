@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A request to apply the same field-changes to multiple records within a set at once",
+  "type": "object",
+  "properties": {
+    "ids": {
+      "type": "array",
+      "description": "The identifiers of the records within the set to update",
+      "items": {
+        "type": "string"
+      }
+    },
+    "changes": {
+      "type": "object",
+      "description": "The field-values to set on all of the specified records",
+      "properties": {
+        "decision": {
+          "type": "boolean",
+          "description": "Whether the records have been approved"
+        },
+        "fund": {
+          "type": "string",
+          "description": "The name of the fund associated with the records"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "ids",
+    "changes"
+  ],
+  "additionalProperties": false
+}

@@ -547,6 +547,99 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+type BatchChanges struct {
+	Decision *bool   `json:"decision"`
+	Fund     *string `json:"fund"`
+}
+
+type BatchUpdate struct {
+	Ids     []string     `json:"ids"`
+	Changes BatchChanges `json:"changes"`
+}
+
+// handleBatchUpdate applies the same field-changes to many records at once. It
+// works like handleUpdateRecord, but rather than addressing a single record by
+// its URL-supplied id it runs a separate "update" command, each with its own
+// "where id = <id>" clause, for every id listed in the request body.
+func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *http.Request, caption string) error {
+	setName := chi.URLParam(req, "setName")
+
+	var batch BatchUpdate
+	err := unmarshalBody(req, &batch)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	// A qualified set name such as "foo.bar" refers to the objects within the
+	// set, which CCMS addresses as "foo.object".
+	prefix, _, found := strings.Cut(setName, ".")
+	if found {
+		setName = prefix + ".object"
+	}
+
+	if len(batch.Ids) == 0 {
+		return fmt.Errorf("%s: no ids specified", caption)
+	}
+
+	validSet, err := ident("set", setName)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	// Each id must be validated to avoid statement injection, exactly as the
+	// single-record update validates its URL-supplied id.
+	validIds := make([]string, len(batch.Ids))
+	for i, id := range batch.Ids {
+		validId, idErr := ident("record", id)
+		if idErr != nil {
+			return fmt.Errorf("%s: %w", caption, idErr)
+		}
+		validIds[i] = validId
+	}
+
+	// CCMS's update command only accepts a single "id = VALUE" expression in its
+	// WHERE clause, so we cannot combine the ids with "OR". Instead we build the
+	// set of "set" clauses once and emit a separate update statement, with its
+	// own "id = <id>" WHERE clause, for each id.
+	var setClauses []string
+	if batch.Changes.Decision != nil {
+		setClauses = append(setClauses,
+			fmt.Sprintf("set decision = %v", *batch.Changes.Decision))
+	}
+	if batch.Changes.Fund != nil {
+		validFund, fundErr := ident("fund", *batch.Changes.Fund)
+		if fundErr != nil {
+			return fmt.Errorf("%s: %w", caption, fundErr)
+		}
+		setClauses = append(setClauses,
+			fmt.Sprintf("set fund = %s", validFund))
+	}
+	if len(setClauses) == 0 {
+		return fmt.Errorf("%s: no changes specified", caption)
+	}
+
+	statements := make([]string, 0, len(validIds)*len(setClauses))
+	for _, validId := range validIds {
+		for _, setClause := range setClauses {
+			statements = append(statements,
+				fmt.Sprintf("update %s %s where id = %s", validSet, setClause, validId))
+		}
+	}
+
+	command := strings.Join(statements, "; ") + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+setName, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func (server *ModCyclopsServer) handleAddRemoveTags(w http.ResponseWriter, req *http.Request, caption string) error {
 	// It seems weird to just shrug and say "fine" for anything posted, but for now it will suffice.
 	w.WriteHeader(http.StatusNoContent)

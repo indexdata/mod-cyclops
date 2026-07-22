@@ -165,6 +165,16 @@ documentation:
             responses:
               204:
                 description: No content is returned.
+      /batch:
+        post:
+          description: "Apply the same field-changes to multiple records within a set at once"
+          body:
+            application/json:
+              type: !include batch-schema.json
+              example: !include examples/batch-example.json
+          responses:
+            204:
+              description: No content is returned.
       /{recordId}:
         uriParameters:
           recordId:
