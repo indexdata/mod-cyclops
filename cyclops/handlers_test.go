@@ -439,7 +439,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		params := map[string]string{"setName": "mike", "recordId": "rec1"}
+		params := map[string]string{"setName": "mike", "recordId": "17"}
 		rr := httptest.NewRecorder()
 		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
 		if err != nil {
@@ -447,7 +447,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = true where id = rec1; update mike set fund = palci where id = rec1;")
+			"update mike set decision = true where id = 17; update mike set fund = palci where id = 17;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 
@@ -457,7 +457,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		params := map[string]string{"setName": "foo.bar", "recordId": "rec1"}
+		params := map[string]string{"setName": "foo.bar", "recordId": "42"}
 		rr := httptest.NewRecorder()
 		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci"}`, params), "update record")
 		if err != nil {
@@ -465,7 +465,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update foo.object set decision = true where id = rec1; update foo.object set fund = palci where id = rec1;")
+			"update foo.object set decision = true where id = 42; update foo.object set fund = palci where id = 42;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 }

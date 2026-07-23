@@ -523,7 +523,7 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	validId, err := ident("record", recordId)
+	validId, err := intval(recordId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -590,7 +590,7 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 	// single-record update validates its URL-supplied id.
 	validIds := make([]string, len(batch.Ids))
 	for i, id := range batch.Ids {
-		validId, idErr := ident("record", id)
+		validId, idErr := intval(id)
 		if idErr != nil {
 			return fmt.Errorf("%s: %w", caption, idErr)
 		}
@@ -1205,9 +1205,10 @@ func readResults(resp *ccms.Response) []ccms.Result {
 // statement injection. Every value placed into a command must pass through one
 // of these helpers according to its syntactic role.
 
-// identRe matches a safe identifier (object/field/property name): a
-// dotted sequence of segments, each made of letters, digits, '_' and '-'.
-var identRe = regexp.MustCompile(`^[A-Za-z0-9_-]+(\.[A-Za-z0-9_-]+)*$`)
+// identRe matches a safe identifier (object/field/property name), following the
+// same grammar as CCMS's Validator.Ident: a letter, then any number of letters,
+// digits, '_' or '.'.
+var identRe = regexp.MustCompile(`^[A-Za-z][0-9A-Za-z_.]*$`)
 
 // ident validates that s is a safe identifier and returns it unchanged.
 func ident(caption string, s string) (string, error) {
@@ -1217,13 +1218,16 @@ func ident(caption string, s string) (string, error) {
 	return s, nil
 }
 
-// intval validates that s is a decimal integer and returns its canonical form.
+// intRe matches a decimal integer, following the same grammar as CCMS's
+// Validator.Int: an optional leading '-' then one or more digits.
+var intRe = regexp.MustCompile(`^-?[0-9]+$`)
+
+// intval validates that s is a decimal integer and returns it unchanged.
 func intval(s string) (string, error) {
-	n, err := strconv.ParseInt(s, 10, 64)
-	if err != nil {
+	if !intRe.MatchString(s) {
 		return "", fmt.Errorf("invalid integer: %q", s)
 	}
-	return strconv.FormatInt(n, 10), nil
+	return s, nil
 }
 
 // sqlString renders s as a CCMS string literal: wrapped in single quotes with

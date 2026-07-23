@@ -5,7 +5,7 @@ import "strings"
 import "testing"
 
 func TestIdent(t *testing.T) {
-	valid := []string{"users", "rec1", "foo.object", "coalition_slavic_lit", "palci-cultural", "a.b.c"}
+	valid := []string{"users", "rec1", "foo.object", "coalition_slavic_lit", "a.b.c", "foo."}
 	for _, s := range valid {
 		if _, err := ident("set", s); err != nil {
 			t.Errorf("ident(%q) unexpectedly rejected: %v", s, err)
@@ -23,7 +23,8 @@ func TestIdent(t *testing.T) {
 		"foo'",
 		"foo)",
 		".foo",
-		"foo.",
+		"palci-cultural",
+		"1rec",
 	}
 	for _, s := range invalid {
 		_, err := ident("project", s)
@@ -42,10 +43,13 @@ func TestIntval(t *testing.T) {
 	if v, err := intval("100"); err != nil || v != "100" {
 		t.Errorf("intval(\"100\") = %q, %v", v, err)
 	}
-	if v, err := intval("007"); err != nil || v != "7" {
-		t.Errorf("intval(\"007\") = %q, %v; want canonical \"7\"", v, err)
+	if v, err := intval("007"); err != nil || v != "007" {
+		t.Errorf("intval(\"007\") = %q, %v; want unchanged \"007\"", v, err)
 	}
-	for _, s := range []string{"", "10; drop set x", "1.5", "abc"} {
+	if v, err := intval("999999999999999999999"); err != nil || v != "999999999999999999999" {
+		t.Errorf("intval(large) = %q, %v; want unchanged (no int64 bound)", v, err)
+	}
+	for _, s := range []string{"", "10; drop set x", "1.5", "abc", "+7"} {
 		_, err := intval(s)
 		if err == nil {
 			t.Errorf("intval(%q) should have been rejected", s)
