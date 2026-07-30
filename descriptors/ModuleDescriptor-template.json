@@ -19,7 +19,7 @@
           ],
           "pathPattern": "/cyclops/tags",
           "permissionsRequired": [
-            "cyclops.tags.read"
+            "cyclops.tags.collection.get"
           ]
         },
         {
@@ -28,7 +28,7 @@
           ],
           "pathPattern": "/cyclops/tags",
           "permissionsRequired": [
-            "cyclops.tags.create"
+            "cyclops.tags.item.post"
           ]
         },
         {
@@ -37,7 +37,7 @@
           ],
           "pathPattern": "/cyclops/filters",
           "permissionsRequired": [
-            "cyclops.filters.read"
+            "cyclops.filters.collection.get"
           ]
         },
         {
@@ -46,7 +46,7 @@
           ],
           "pathPattern": "/cyclops/filters",
           "permissionsRequired": [
-            "cyclops.filters.create"
+            "cyclops.filters.item.post"
           ]
         },
         {
@@ -55,7 +55,7 @@
           ],
           "pathPattern": "/cyclops/sets",
           "permissionsRequired": [
-            "cyclops.sets.read"
+            "cyclops.sets.collection.get"
           ]
         },
         {
@@ -64,7 +64,7 @@
           ],
           "pathPattern": "/cyclops/sets",
           "permissionsRequired": [
-            "cyclops.sets.create"
+            "cyclops.sets.item.post"
           ]
         },
         {
@@ -73,7 +73,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}",
           "permissionsRequired": [
-            "cyclops.sets.retrieve"
+            "cyclops.sets.item.get"
           ]
         },
         {
@@ -82,7 +82,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}",
           "permissionsRequired": [
-            "cyclops.sets.delete"
+            "cyclops.sets.item.delete"
           ]
         },
         {
@@ -91,7 +91,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}/add",
           "permissionsRequired": [
-            "cyclops.sets.add-objects"
+            "cyclops.sets.item.add-objects.post"
           ]
         },
         {
@@ -100,7 +100,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}/remove",
           "permissionsRequired": [
-            "cyclops.sets.remove-objects"
+            "cyclops.sets.item.remove-objects.post"
           ]
         },
         {
@@ -109,11 +109,11 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}/tags/{tagName}",
           "permissionsRequired": [
-            "cyclops.sets.modify-tags"
+            "cyclops.sets.item.modify-tags.post"
           ],
           "permissionsDesired": [
-            "cyclops.sets.add-tags",
-            "cyclops.sets.remove-tags"
+            "cyclops.sets.item.add-tags.post",
+            "cyclops.sets.item.remove-tags.post"
           ]
         },
         {
@@ -122,7 +122,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}/batch",
           "permissionsRequired": [
-            "cyclops.sets.spectre.batch-update"
+            "cyclops.sets.item.spectres.collection.post"
           ]
         },
         {
@@ -131,7 +131,7 @@
           ],
           "pathPattern": "/cyclops/sets/{setName}/{recordId}",
           "permissionsRequired": [
-            "cyclops.sets.spectre.update"
+            "cyclops.sets.item.spectres.item.post"
           ]
         },
         {
@@ -149,7 +149,7 @@
           ],
           "pathPattern": "/cyclops/projects",
           "permissionsRequired": [
-            "cyclops.projects.post"
+            "cyclops.projects.item.post"
           ]
         },
         {
@@ -158,7 +158,7 @@
           ],
           "pathPattern": "/cyclops/projects/{id}",
           "permissionsRequired": [
-            "cyclops.projects.get"
+            "cyclops.projects.item.get"
           ]
         },
         {
@@ -167,7 +167,7 @@
           ],
           "pathPattern": "/cyclops/projects/{id}",
           "permissionsRequired": [
-            "cyclops.projects.delete"
+            "cyclops.projects.item.delete"
           ]
         },
         {
@@ -176,7 +176,7 @@
           ],
           "pathPattern": "/cyclops/projects/{id}",
           "permissionsRequired": [
-            "cyclops.projects.put"
+            "cyclops.projects.item.put"
           ]
         },
         {
@@ -185,7 +185,7 @@
           ],
           "pathPattern": "/cyclops/projects/{id}/sets",
           "permissionsRequired": [
-            "cyclops.sets.read"
+            "cyclops.projects.item.sets.collection.get"
           ]
         },
         {
@@ -194,7 +194,7 @@
           ],
           "pathPattern": "/cyclops/funds",
           "permissionsRequired": [
-            "cyclops.funds.read"
+            "cyclops.funds.collection.get"
           ]
         },
         {
@@ -203,7 +203,7 @@
           ],
           "pathPattern": "/cyclops/funds",
           "permissionsRequired": [
-            "cyclops.funds.create"
+            "cyclops.funds.item.post"
           ]
         },
         {
@@ -212,7 +212,7 @@
           ],
           "pathPattern": "/cyclops/funds/{id}",
           "permissionsRequired": [
-            "cyclops.funds.get"
+            "cyclops.funds.item.get"
           ]
         },
         {
@@ -221,7 +221,7 @@
           ],
           "pathPattern": "/cyclops/funds/{id}",
           "permissionsRequired": [
-            "cyclops.funds.put"
+            "cyclops.funds.item.put"
           ]
         },
         {
@@ -230,7 +230,7 @@
           ],
           "pathPattern": "/cyclops/funds/{id}",
           "permissionsRequired": [
-            "cyclops.funds.delete"
+            "cyclops.funds.item.delete"
           ]
         }
       ]
@@ -239,65 +239,65 @@
   "requires": [],
   "permissionSets": [
     {
-      "permissionName": "cyclops.tags.read",
+      "permissionName": "cyclops.tags.collection.get",
       "displayName": "CYCLOPS: Read list of tags"
     },
     {
-      "permissionName": "cyclops.tags.create",
+      "permissionName": "cyclops.tags.item.post",
       "displayName": "CYCLOPS: Create tag"
     },
     {
-      "permissionName": "cyclops.filters.read",
+      "permissionName": "cyclops.filters.collection.get",
       "displayName": "CYCLOPS: Read list of filters"
     },
     {
-      "permissionName": "cyclops.filters.create",
+      "permissionName": "cyclops.filters.item.post",
       "displayName": "CYCLOPS: Create filter"
     },
     {
-      "permissionName": "cyclops.sets.read",
+      "permissionName": "cyclops.sets.collection.get",
       "displayName": "CYCLOPS: Read list of sets"
     },
     {
-      "permissionName": "cyclops.sets.create",
+      "permissionName": "cyclops.sets.item.post",
       "displayName": "CYCLOPS: Create set"
     },
     {
-      "permissionName": "cyclops.sets.retrieve",
+      "permissionName": "cyclops.sets.item.get",
       "displayName": "CYCLOPS: Retrieve objects from set"
     },
     {
-      "permissionName": "cyclops.sets.delete",
+      "permissionName": "cyclops.sets.item.delete",
       "displayName": "CYCLOPS: Delete set"
     },
     {
-      "permissionName": "cyclops.sets.add-objects",
+      "permissionName": "cyclops.sets.item.add-objects.post",
       "displayName": "CYCLOPS: Add objects to set (UNIMPLEMENTED)"
     },
     {
-      "permissionName": "cyclops.sets.remove-objects",
+      "permissionName": "cyclops.sets.item.remove-objects.post",
       "displayName": "CYCLOPS: Remove objects from set (UNIMPLEMENTED)"
     },
     {
-      "permissionName": "cyclops.sets.modify-tags",
+      "permissionName": "cyclops.sets.item.modify-tags.post",
       "displayName": "CYCLOPS: Add/remove tags from objects in a set"
     },
     {
-      "permissionName": "cyclops.sets.add-tags",
+      "permissionName": "cyclops.sets.item.add-tags.post",
       "displayName": "CYCLOPS: Add tags to objects in a set (UNIMPLEMENTED)",
-      "subPermissions": ["cyclops.sets.modify-tags"]
+      "subPermissions": ["cyclops.sets.item.modify-tags.post"]
     },
     {
-      "permissionName": "cyclops.sets.remove-tags",
+      "permissionName": "cyclops.sets.item.remove-tags.post",
       "displayName": "CYCLOPS: Remove tags from objects in a set (UNIMPLEMENTED)",
-      "subPermissions": ["cyclops.sets.modify-tags"]
+      "subPermissions": ["cyclops.sets.item.modify-tags.post"]
     },
     {
-      "permissionName": "cyclops.sets.spectre.update",
+      "permissionName": "cyclops.sets.item.spectres.item.post",
       "displayName": "CYCLOPS: Update a record (spectre) within a set"
     },
     {
-      "permissionName": "cyclops.sets.spectre.batch-update",
+      "permissionName": "cyclops.sets.item.spectres.collection.post",
       "displayName": "CYCLOPS: Batch-update multiple records (spectres) within a set"
     },
     {
@@ -305,39 +305,43 @@
       "displayName": "CYCLOPS: Read list of projects"
     },
     {
-      "permissionName": "cyclops.projects.post",
+      "permissionName": "cyclops.projects.item.sets.collection.get",
+      "displayName": "CYCLOPS: Read list of sets in a project"
+    },
+    {
+      "permissionName": "cyclops.projects.item.post",
       "displayName": "CYCLOPS: Create projects"
     },
     {
-      "permissionName": "cyclops.projects.get",
+      "permissionName": "cyclops.projects.item.get",
       "displayName": "CYCLOPS: Read full projects"
     },
     {
-      "permissionName": "cyclops.projects.delete",
+      "permissionName": "cyclops.projects.item.delete",
       "displayName": "CYCLOPS: Delete projects"
     },
     {
-      "permissionName": "cyclops.projects.put",
+      "permissionName": "cyclops.projects.item.put",
       "displayName": "CYCLOPS: Modify projects"
     },
     {
-      "permissionName": "cyclops.funds.read",
+      "permissionName": "cyclops.funds.collection.get",
       "displayName": "CYCLOPS: Read list of funds"
     },
     {
-      "permissionName": "cyclops.funds.create",
+      "permissionName": "cyclops.funds.item.post",
       "displayName": "CYCLOPS: Create fund"
     },
     {
-      "permissionName": "cyclops.funds.get",
+      "permissionName": "cyclops.funds.item.get",
       "displayName": "CYCLOPS: Read full fund"
     },
     {
-      "permissionName": "cyclops.funds.put",
+      "permissionName": "cyclops.funds.item.put",
       "displayName": "CYCLOPS: Modify fund"
     },
     {
-      "permissionName": "cyclops.funds.delete",
+      "permissionName": "cyclops.funds.item.delete",
       "displayName": "CYCLOPS: Delete fund"
     }
   ],
