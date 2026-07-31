@@ -59,10 +59,10 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Change project `altName` field to `id` (discarding old Id)
 * **DONE** Support new batch-update WSAPI
 * **DONE** Validation function use same rules as CCMS `Validator` object
+* **DONE** Review permission names for consistency and Eureka-friendliness
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
-* Review permission names for consistency and Eureka-friendliness
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
