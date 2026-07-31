@@ -46,6 +46,17 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** The “create filter” and “show filters” commands and the “filter()” operator are available in test/demo.  See documentation for more details.
 
 
+### Chunk 4
+
+CCMS v0.0.29 updated in test instance:
+* Commands `show filters` and `show sets` now return project name in a separate column.
+* Filters now have a project name space.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_create_filter
+* Added command `show filters in project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_show
+* Added command `drop filter`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_filter
+* Added `cascade` option to the command `drop project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_project
+* **DONE** Added the attribute `holdings_count`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_attributes
+
+
 ### For me
 
 * **DONE** Protect most generated SQL-like commands from injection
