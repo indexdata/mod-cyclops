@@ -156,7 +156,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/cyclops/projects/{id}",
+          "pathPattern": "/cyclops/projects/{projectId}",
           "permissionsRequired": [
             "cyclops.projects.item.get"
           ]
@@ -165,7 +165,7 @@
           "methods": [
             "DELETE"
           ],
-          "pathPattern": "/cyclops/projects/{id}",
+          "pathPattern": "/cyclops/projects/{projectId}",
           "permissionsRequired": [
             "cyclops.projects.item.delete"
           ]
@@ -174,7 +174,7 @@
           "methods": [
             "PUT"
           ],
-          "pathPattern": "/cyclops/projects/{id}",
+          "pathPattern": "/cyclops/projects/{projectId}",
           "permissionsRequired": [
             "cyclops.projects.item.put"
           ]
@@ -183,7 +183,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/cyclops/projects/{id}/sets",
+          "pathPattern": "/cyclops/projects/{projectId}/sets",
           "permissionsRequired": [
             "cyclops.projects.item.sets.collection.get"
           ]
@@ -210,7 +210,7 @@
           "methods": [
             "GET"
           ],
-          "pathPattern": "/cyclops/funds/{id}",
+          "pathPattern": "/cyclops/funds/{fundId}",
           "permissionsRequired": [
             "cyclops.funds.item.get"
           ]
@@ -219,7 +219,7 @@
           "methods": [
             "PUT"
           ],
-          "pathPattern": "/cyclops/funds/{id}",
+          "pathPattern": "/cyclops/funds/{fundId}",
           "permissionsRequired": [
             "cyclops.funds.item.put"
           ]
@@ -228,7 +228,7 @@
           "methods": [
             "DELETE"
           ],
-          "pathPattern": "/cyclops/funds/{id}",
+          "pathPattern": "/cyclops/funds/{fundId}",
           "permissionsRequired": [
             "cyclops.funds.item.delete"
           ]
