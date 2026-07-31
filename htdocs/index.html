@@ -45,12 +45,6 @@
   </ul>
   -->
   <ul>
-   <li><a href="/cyclops/filters">list of filters</a></li>
-   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'jurassic', cond: '143100000 <= age AND age <= 201400000', __UNUSED_template: 'mesozoic' })">create filter "jurassic"</button></li>
-   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'decided', cond: 'decision = true' })">create filter "decided"</button></li>
-   create filter decided where decision = true
-  </ul>
-  <ul>
    <li><a href="/cyclops/funds">list of funds</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/funds', { id: 'palci_development', name: 'PALCI development fund' })">define fund "palci_development"</button></li>
    <li><a href="/cyclops/funds/palci_development">full fund "palci_development"</a></li>
@@ -72,6 +66,12 @@
 					    destinations: [{ id: 'clockss', name: 'CLOCKSS' }],
 					    })">modify project "literature of North Korea"</button></li>
    <li><a href="/cyclops/projects/korea_lit/sets">list of sets in project "literature of North Korea"</a></li>
+  </ul>
+  <ul>
+   <li><a href="/cyclops/filters">list of filters</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'korea_lit.jurassic', cond: '143100000 <= age AND age <= 201400000', __UNUSED_template: 'mesozoic' })">create filter "jurassic" in project "literature of North Korea"</button></li>
+   <li><button class="link-button" onclick="postData('/cyclops/filters', { name: 'korea_lit.decided', cond: 'decision = true' })">create filter "decided" in project "literature of North Korea"</button></li>
+   create filter decided where decision = true
   </ul>
   <ul>
    <li><a href="/cyclops/sets">list of sets</a></li>
