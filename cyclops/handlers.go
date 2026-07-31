@@ -403,7 +403,7 @@ type AddRecords struct {
 	Cond    string `json:"cond"`
 	Filter  string `json:"filter"`
 	Tag     string `json:"tag"`
-	OmitTag string `json:"omittag"`
+	OmitTag string `json:"omitTag"`
 	Limit   string `json:"limit"`
 }
 
@@ -455,7 +455,7 @@ type RemoveRecords struct {
 	Cond    string `json:"cond"`
 	Filter  string `json:"filter"`
 	Tag     string `json:"tag"`
-	OmitTag string `json:"omittag"`
+	OmitTag string `json:"omitTag"`
 	Limit   string `json:"limit"`
 }
 
