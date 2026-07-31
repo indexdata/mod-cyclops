@@ -11,6 +11,16 @@ documentation:
     content: !include overview.md
 
 /cyclops:
+  /version:
+    description: "The version of the running server"
+    get:
+      description: "Return the VCS revision that the running server was built from"
+      responses:
+        200:
+          body:
+            text/plain:
+              type: string
+              example: 7b3d6be1f0c4a29d5e8b3a71c6f4d2e9b8a05c31
   /tags:
     description: "Tags that can be applied to records in a set"
     get:
