@@ -63,8 +63,14 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 
 // -----------------------------------------------------------------------------
 
+type FilterSummary struct {
+	Project    string `json:"project"`
+	Filter     string `json:"filter"`
+	Definition string `json:"definition"`
+}
+
 type FilterList struct {
-	Filters []any `json:"filters"`
+	Filters []FilterSummary `json:"filters"`
 	// No other elements yet, but use a structure for future expansion
 }
 
@@ -75,9 +81,24 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 	}
 
 	result := readResults(resp)[0]
-	filters := make([]any, 0)
+	index := make(map[string]int, len(result.Fields()))
+	for i, field := range result.Fields() {
+		index[field.Name()] = i
+	}
+	for _, name := range []string{"project", "filter", "definition"} {
+		if _, ok := index[name]; !ok {
+			return fmt.Errorf("%s: no '%s' field in response", caption, name)
+		}
+	}
+
+	filters := make([]FilterSummary, 0)
 	for val := range result.Data() {
-		filters = append(filters, val.Values()[0])
+		values := val.Values()
+		filters = append(filters, FilterSummary{
+			Project:    mustString(values[index["project"]]),
+			Filter:     mustString(values[index["filter"]]),
+			Definition: mustString(values[index["definition"]]),
+		})
 	}
 	filterList := FilterList{Filters: filters}
 	return server.respondWithJSON(w, filterList, caption)

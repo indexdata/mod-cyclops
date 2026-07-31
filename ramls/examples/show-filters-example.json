@@ -1,6 +1,14 @@
 {
   "filters": [
-    "jurassic",
-    "cretaceous"
+    {
+      "project": "korea_lit",
+      "filter": "jurassic",
+      "definition": "143100000 <= age AND age <= 201400000"
+    },
+    {
+      "project": "korea_lit",
+      "filter": "cretaceous",
+      "definition": "66000000 <= age AND age <= 143100000"
+    }
   ]
 }

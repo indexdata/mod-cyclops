@@ -232,8 +232,27 @@ func TestHandleShowTags(t *testing.T) {
 	}
 }
 
+// filterResponse builds the three-column "ok" response that CCMS now returns
+// for "show filters". The fields are deliberately not in the order of the
+// FilterSummary structure, since the handler keys them by name.
+func filterResponse(rows ...[]any) *ccms.Response {
+	result := ccms.NewResult("ok")
+	result.AddField("filter", "text")
+	result.AddField("definition", "text")
+	result.AddField("project", "text")
+	for _, row := range rows {
+		result.AddData(row)
+	}
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	return resp
+}
+
 func TestHandleShowFilters(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("active", "archived")}
+	fake := &fakeCCMS{resp: filterResponse(
+		[]any{"active", "age > 18", "PROJ"},
+		[]any{"archived", "status = 'old'", "OTHER"},
+	)}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -249,10 +268,31 @@ func TestHandleShowFilters(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := FilterList{Filters: []any{"active", "archived"}}
+	want := FilterList{Filters: []FilterSummary{
+		{Project: "PROJ", Filter: "active", Definition: "age > 18"},
+		{Project: "OTHER", Filter: "archived", Definition: "status = 'old'"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
+}
+
+func TestHandleShowFiltersMissingField(t *testing.T) {
+	result := ccms.NewResult("ok")
+	result.AddField("project", "text")
+	result.AddField("filter", "text")
+	result.AddData([]any{"PROJ", "active"})
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+
+	server := newTestServer(&fakeCCMS{resp: resp})
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowFilters(rr, jsonRequest("", nil), "show filters")
+	if err == nil {
+		t.Fatal("expected an error for a response with no 'definition' field, got nil")
+	}
+	assertErrContains(t, err, "no 'definition' field")
 }
 
 func TestHandleShowSets(t *testing.T) {
