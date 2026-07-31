@@ -49,7 +49,8 @@ The main change above is the `update` command which allows updating spectre attr
 ### Chunk 4
 
 CCMS v0.0.29 updated in test instance:
-* Commands `show filters` and `show sets` now return project name in a separate column.
+* `show filters` now returns project name in a separate column.
+* `show sets` now returns project name in a separate column.
 * Filters now have a project name space.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_create_filter
 * Added command `show filters in project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_show
 * Added command `drop filter`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_filter
