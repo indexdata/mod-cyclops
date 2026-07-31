@@ -60,6 +60,7 @@ The main change above is the `update` command which allows updating spectre attr
 * **DONE** Support new batch-update WSAPI
 * **DONE** Validation function use same rules as CCMS `Validator` object
 * **DONE** Review permission names for consistency and Eureka-friendliness
+* **DONE** Fix `/cyclops/sets/{setName}/tag/{tagName}` path to use plural `tags`
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute

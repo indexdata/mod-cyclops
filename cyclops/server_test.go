@@ -92,7 +92,7 @@ func TestMakeModCyclopsServerRoutesToHandler(t *testing.T) {
 }
 
 // The POST /cyclops/sets/{setName}/{recordId} route is a wildcard sibling of
-// the static /add, /remove and /tag sub-routes. Confirm the constructor wires
+// the static /add, /remove and /tags sub-routes. Confirm the constructor wires
 // it to handleUpdateRecord, and that the static routes still take precedence.
 func TestMakeModCyclopsServerUpdateRecordRoute(t *testing.T) {
 	t.Run("dispatches to the update-record handler", func(t *testing.T) {

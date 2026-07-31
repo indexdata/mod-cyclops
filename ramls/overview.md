@@ -21,9 +21,9 @@ This gives us three kinds of object that we need to represent RESTfully, and one
 * tags (2 operations) at `/cyclops/tags`
 * filters (2 operations) at `/cyclops/filters`
 * sets (7 operations) at `/cyclops/sets` and individual sets at `/cyclops/sets/{setName}`
-    * tags applied to a set at `/cyclops/sets/{setName}/tag/{tagName}`
+    * tags applied to a set at `/cyclops/sets/{setName}/tags/{tagName}`
 
-The last of these paths is the most conceptually complex. The path `/cyclops/sets/mike/tag/dino` represents the resource "the subset of records within the set `mike` that are tagged with `dino`". POSTing to that resource can add or remove records to the subset by associating the tag with records in the wider set. (The path for this resource includes the currently redundant component `/tag` in case we need to extend the set API later on to address other kinds of object associated with sets.)
+The last of these paths is the most conceptually complex. The path `/cyclops/sets/mike/tags/dino` represents the resource "the subset of records within the set `mike` that are tagged with `dino`". POSTing to that resource can add or remove records to the subset by associating the tag with records in the wider set. (The path for this resource includes the currently redundant component `/tags` in case we need to extend the set API later on to address other kinds of object associated with sets.)
 
 *Implementation note.*
 Operations on tags do not rely on any other kind of object. Operations on filters rely only on other filters. So the dependency graph is simple: we need to implement both tags and filters (in either order) before we can fully implement sets.
