@@ -219,7 +219,12 @@ documentation:
       responses:
         204:
           description: No content is returned.
-    /{id}:
+    /{projectId}:
+      uriParameters:
+        projectId:
+          description: The machine-readable identifier of the project
+          type: string
+          required: true
       get:
         description: "Fetch a full project"
         responses:
@@ -271,9 +276,9 @@ documentation:
       responses:
         204:
           description: No content is returned.
-    /{id}:
+    /{fundId}:
       uriParameters:
-        id:
+        fundId:
           description: The machine-readable identifier of the fund
           type: string
           required: true
