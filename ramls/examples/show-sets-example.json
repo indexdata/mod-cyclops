@@ -1,7 +1,19 @@
 {
   "sets": [
-    "mike",
-    "test",
-    "uob"
+    {
+      "project": "korea_lit",
+      "set": "mike",
+      "title": "Mike's working set"
+    },
+    {
+      "project": "korea_lit",
+      "set": "test",
+      "title": "Test data"
+    },
+    {
+      "project": "dinosaurs",
+      "set": "uob",
+      "title": "Holdings of the University of Bath"
+    }
   ]
 }

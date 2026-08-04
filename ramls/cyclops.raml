@@ -43,7 +43,7 @@ documentation:
   /filters:
     description: "Filters that can narrow down records within a set"
     get:
-      description: "Return a list of all known filters"
+      description: "Return a list of all known filters, with their projects and definitions"
       responses:
         200:
           body:
@@ -62,7 +62,7 @@ documentation:
   /sets:
     description: "Sets of objects (books, films, etc.)"
     get:
-      description: "Return a list of the names of all known sets"
+      description: "Return a list of all known sets, with their projects and titles"
       responses:
         200:
           body:
@@ -250,7 +250,7 @@ documentation:
       /sets:
         description: "Sets of objects (books, films, etc.) in this project"
         get:
-          description: "Return a list of the names of all known sets in this project"
+          description: "Return a list of all known sets in this project, with their titles"
           responses:
             200:
               body:

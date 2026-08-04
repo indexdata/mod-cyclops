@@ -63,8 +63,32 @@ func (server *ModCyclopsServer) handleDefineTag(w http.ResponseWriter, req *http
 
 // -----------------------------------------------------------------------------
 
+// fieldIndex maps each of the named fields to the column it occupies in the
+// result, so that handlers need not rely on CCMS returning them in any
+// particular order. It fails unless all the named fields are present.
+func fieldIndex(result ccms.Result, names ...string) (map[string]int, error) {
+	index := make(map[string]int, len(result.Fields()))
+	for i, field := range result.Fields() {
+		index[field.Name()] = i
+	}
+	for _, name := range names {
+		if _, ok := index[name]; !ok {
+			return nil, fmt.Errorf("no '%s' field in response", name)
+		}
+	}
+	return index, nil
+}
+
+// -----------------------------------------------------------------------------
+
+type FilterSummary struct {
+	Project    string `json:"project"`
+	Filter     string `json:"filter"`
+	Definition string `json:"definition"`
+}
+
 type FilterList struct {
-	Filters []any `json:"filters"`
+	Filters []FilterSummary `json:"filters"`
 	// No other elements yet, but use a structure for future expansion
 }
 
@@ -75,9 +99,19 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 	}
 
 	result := readResults(resp)[0]
-	filters := make([]any, 0)
+	index, err := fieldIndex(result, "project", "filter", "definition")
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	filters := make([]FilterSummary, 0)
 	for val := range result.Data() {
-		filters = append(filters, val.Values()[0])
+		values := val.Values()
+		filters = append(filters, FilterSummary{
+			Project:    mustString(values[index["project"]]),
+			Filter:     mustString(values[index["filter"]]),
+			Definition: mustString(values[index["definition"]]),
+		})
 	}
 	filterList := FilterList{Filters: filters}
 	return server.respondWithJSON(w, filterList, caption)
@@ -128,9 +162,35 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+type SetSummary struct {
+	Project string `json:"project"`
+	Set     string `json:"set"`
+	Title   string `json:"title"`
+}
+
 type SetList struct {
-	Sets []any `json:"sets"`
+	Sets []SetSummary `json:"sets"`
 	// No other elements yet, but use a structure for future expansion
+}
+
+// readSetList translates the three-column response that CCMS returns for the
+// "show sets" commands, keying the columns by name rather than by position.
+func readSetList(result ccms.Result) (SetList, error) {
+	index, err := fieldIndex(result, "project", "set", "title")
+	if err != nil {
+		return SetList{}, err
+	}
+
+	sets := make([]SetSummary, 0)
+	for val := range result.Data() {
+		values := val.Values()
+		sets = append(sets, SetSummary{
+			Project: mustString(values[index["project"]]),
+			Set:     mustString(values[index["set"]]),
+			Title:   mustString(values[index["title"]]),
+		})
+	}
+	return SetList{Sets: sets}, nil
 }
 
 func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -139,12 +199,10 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 		return fmt.Errorf("could not fetch show-sets response: %w", err)
 	}
 
-	result := readResults(resp)[0]
-	sets := make([]any, 0)
-	for val := range result.Data() {
-		sets = append(sets, val.Values()[0])
+	setList, err := readSetList(readResults(resp)[0])
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
 	}
-	setList := SetList{Sets: sets}
 	return server.respondWithJSON(w, setList, caption)
 }
 
@@ -974,12 +1032,10 @@ func (server *ModCyclopsServer) handleShowSetsInProject(w http.ResponseWriter, r
 		return fmt.Errorf("could not fetch show-sets response: %w", err)
 	}
 
-	result := readResults(resp)[0]
-	sets := make([]any, 0)
-	for val := range result.Data() {
-		sets = append(sets, val.Values()[0])
+	setList, err := readSetList(readResults(resp)[0])
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
 	}
-	setList := SetList{Sets: sets}
 	return server.respondWithJSON(w, setList, caption)
 }
 

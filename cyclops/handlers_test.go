@@ -195,7 +195,7 @@ func okResponse() *ccms.Response {
 }
 
 // listResponse builds an "ok" response whose single result has one data row per
-// value, each a single-column string. This matches what the show* handlers read.
+// value, each a single-column string. This matches what handleShowTags reads.
 func listResponse(values ...string) *ccms.Response {
 	result := ccms.NewResult("ok")
 	for _, v := range values {
@@ -232,8 +232,29 @@ func TestHandleShowTags(t *testing.T) {
 	}
 }
 
+// namedResponse builds an "ok" response whose single result carries the named
+// text fields and one data row per set of values. Tests that use it name the
+// fields in an order other than that of the structure being built, since the
+// handlers key the columns by name rather than by position.
+func namedResponse(fields []string, rows ...[]any) *ccms.Response {
+	result := ccms.NewResult("ok")
+	for _, field := range fields {
+		result.AddField(field, "text")
+	}
+	for _, row := range rows {
+		result.AddData(row)
+	}
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	return resp
+}
+
 func TestHandleShowFilters(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("active", "archived")}
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"filter", "definition", "project"},
+		[]any{"active", "age > 18", "PROJ"},
+		[]any{"archived", "status = 'old'", "OTHER"},
+	)}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -249,14 +270,36 @@ func TestHandleShowFilters(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := FilterList{Filters: []any{"active", "archived"}}
+	want := FilterList{Filters: []FilterSummary{
+		{Project: "PROJ", Filter: "active", Definition: "age > 18"},
+		{Project: "OTHER", Filter: "archived", Definition: "status = 'old'"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
 }
 
+func TestHandleShowFiltersMissingField(t *testing.T) {
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"project", "filter"},
+		[]any{"PROJ", "active"},
+	)}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowFilters(rr, jsonRequest("", nil), "show filters")
+	if err == nil {
+		t.Fatal("expected an error for a response with no 'definition' field, got nil")
+	}
+	assertErrContains(t, err, "no 'definition' field")
+}
+
 func TestHandleShowSets(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("users", "books")}
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"set", "title", "project"},
+		[]any{"users", "All our users", "PROJ"},
+		[]any{"books", "Books in the collection", "OTHER"},
+	)}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -272,14 +315,36 @@ func TestHandleShowSets(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := SetList{Sets: []any{"users", "books"}}
+	want := SetList{Sets: []SetSummary{
+		{Project: "PROJ", Set: "users", Title: "All our users"},
+		{Project: "OTHER", Set: "books", Title: "Books in the collection"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
 }
 
+func TestHandleShowSetsMissingField(t *testing.T) {
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"project", "set"},
+		[]any{"PROJ", "users"},
+	)}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowSets(rr, jsonRequest("", nil), "show sets")
+	if err == nil {
+		t.Fatal("expected an error for a response with no 'title' field, got nil")
+	}
+	assertErrContains(t, err, "no 'title' field")
+}
+
 func TestHandleShowSetsInProject(t *testing.T) {
-	fake := &fakeCCMS{resp: listResponse("mike.object", "mike.endangered")}
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"set", "title", "project"},
+		[]any{"object", "Objects of interest", "mike"},
+		[]any{"endangered", "Endangered species", "mike"},
+	)}
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
@@ -295,7 +360,10 @@ func TestHandleShowSetsInProject(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
 	}
-	want := SetList{Sets: []any{"mike.object", "mike.endangered"}}
+	want := SetList{Sets: []SetSummary{
+		{Project: "mike", Set: "object", Title: "Objects of interest"},
+		{Project: "mike", Set: "endangered", Title: "Endangered species"},
+	}}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
