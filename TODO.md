@@ -79,6 +79,7 @@ CCMS v0.0.29 updated in test instance:
 * **N/A** Support new `holdings_count` attribute
 * Actually add title when creating a set, using as-yet non-existent `alter set`
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
+* Consider accepting incoming searches as CQL (modifying the UI accordingly) and translating to CCMS query
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
