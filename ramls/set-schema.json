@@ -5,7 +5,11 @@
   "properties": {
     "name": {
       "type": "string",
-      "description": "The short human-readable name of the set"
+      "description": "The short machine-readable name of the set"
+    },
+    "title": {
+      "type": "string",
+      "description": "The longer human-readable title of the set"
     }
   },
   "additionalProperties": false,

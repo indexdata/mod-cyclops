@@ -73,9 +73,11 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Validation function use same rules as CCMS `Validator` object
 * **DONE** Review permission names for consistency and Eureka-friendliness
 * **DONE** Fix `/cyclops/sets/{setName}/tag/{tagName}` path to use plural `tags`
+* **DONE** Support for adding title when creating a set _except_ actually getting CCMS to use it
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
+* Actually add title when creating a set, using as-yet non-existent `alter set`
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
@@ -83,6 +85,7 @@ CCMS v0.0.29 updated in test instance:
 
 ## Updates needed in CCMS
 
+* `alter set`, so that the title accepted by `create set` can be applied (see the commented-out code in `handleCreateSet`)
 * `show tracks`, `create track`, `alter tracks` and delete track
 * `show people`, `create person`, `alter person` and `delete person` -- defined globally or per project?
 

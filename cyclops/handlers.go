@@ -209,9 +209,16 @@ func (server *ModCyclopsServer) handleShowSets(w http.ResponseWriter, req *http.
 // -----------------------------------------------------------------------------
 
 type CreateSet struct {
-	Name string `json:"name"`
+	Name  string `json:"name"`
+	Title string `json:"title"`
 }
 
+// As with projects, CCMS's "create set" facility only brings the set
+// into existence, so the title would need to be set by a second
+// command. But CCMS has no "alter set" command yet, so for now the
+// client-supplied title is accepted and discarded: see the commented-out
+// code below, which should be enabled once CCMS supports it.
+// -
 func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http.Request, caption string) error {
 	var set CreateSet
 	err := unmarshalBody(req, &set)
@@ -225,6 +232,14 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 	}
 
 	command := "create set " + name + ";"
+	// XXX not yet implemented in CCMS: there is no "alter set" command.
+	// if set.Title != "" {
+	// 	title, err := sqlString(set.Title)
+	// 	if err != nil {
+	// 		return fmt.Errorf("%s: %w", caption, err)
+	// 	}
+	// 	command += "\nalter set " + name + " alter property title set " + title + ";"
+	// }
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+set.Name, command)

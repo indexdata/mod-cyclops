@@ -70,7 +70,7 @@ documentation:
               type: !include sets-schema.json
               example: !include examples/show-sets-example.json
     post:
-      description: "Create a new set"
+      description: "Create a new set, with an optional title"
       body:
         application/json:
           type: !include set-schema.json

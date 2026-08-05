@@ -646,6 +646,23 @@ func TestHandleCreateSet(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+// A title may be supplied, but is discarded for now: CCMS has no
+// "alter set" command with which to apply it.
+func TestHandleCreateSetWithTitle(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"name":"users","title":"Registered users"}`
+	rr := httptest.NewRecorder()
+	err := server.handleCreateSet(rr, jsonRequest(body, nil), "create set")
+	if err != nil {
+		t.Fatalf("handleCreateSet returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create set users;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
 func TestHandleDropSet(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
