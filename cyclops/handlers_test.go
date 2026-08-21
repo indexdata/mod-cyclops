@@ -515,7 +515,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = true where id = 17; update mike set fund = palci where id = 17;")
+			"update mike set decision = true, fund = palci where id = 17;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 
@@ -533,7 +533,7 @@ func TestHandleUpdateRecord(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update foo.object set decision = true where id = 42; update foo.object set fund = palci where id = 42;")
+			"update foo.object set decision = true, fund = palci where id = 42;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 }
@@ -555,8 +555,8 @@ func TestHandleBatchUpdate(t *testing.T) {
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 
-	// Each id produces its own update statement per changed field, since CCMS's
-	// WHERE clause accepts only a single "id = VALUE" expression.
+	// All the changed fields go into a single update statement per id, since
+	// CCMS's WHERE clause accepts only a single "id = VALUE" expression.
 	t.Run("decision and fund", func(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
@@ -569,7 +569,7 @@ func TestHandleBatchUpdate(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = false where id = 7; update mike set fund = palci where id = 7; update mike set decision = false where id = 8; update mike set fund = palci where id = 8;")
+			"update mike set decision = false, fund = palci where id = 7; update mike set decision = false, fund = palci where id = 8;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 

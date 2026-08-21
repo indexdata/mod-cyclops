@@ -60,7 +60,7 @@ CCMS v0.0.29 updated in test instance:
 
 ### Chunk 5
 * [The command `update`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_update) now supports:
-  * setting multiple attributes at once
+  * **DONE** setting multiple attributes at once
   * a general search condition in the `where` clause
   * updating all objects by omitting the `where` clause
 * Search conditions now support [the `in` operator](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_operators) to test equality with multiple values.

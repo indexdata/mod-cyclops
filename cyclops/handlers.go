@@ -605,8 +605,8 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := fmt.Sprintf("update %s set decision = %v where id = %s; update %s set fund = %s where id = %s;",
-		validSet, record.Decision, validId, validSet, validFund, validId)
+	command := fmt.Sprintf("update %s set decision = %v, fund = %s where id = %s;",
+		validSet, record.Decision, validFund, validId)
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+setName+"/"+recordId, command)
@@ -672,31 +672,30 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 
 	// CCMS's update command only accepts a single "id = VALUE" expression in its
 	// WHERE clause, so we cannot combine the ids with "OR". Instead we build the
-	// set of "set" clauses once and emit a separate update statement, with its
-	// own "id = <id>" WHERE clause, for each id.
-	var setClauses []string
+	// comma-separated list of assignments once and emit a separate update
+	// statement, with its own "id = <id>" WHERE clause, for each id.
+	var assignments []string
 	if batch.Changes.Decision != nil {
-		setClauses = append(setClauses,
-			fmt.Sprintf("set decision = %v", *batch.Changes.Decision))
+		assignments = append(assignments,
+			fmt.Sprintf("decision = %v", *batch.Changes.Decision))
 	}
 	if batch.Changes.Fund != nil {
 		validFund, fundErr := ident("fund", *batch.Changes.Fund)
 		if fundErr != nil {
 			return fmt.Errorf("%s: %w", caption, fundErr)
 		}
-		setClauses = append(setClauses,
-			fmt.Sprintf("set fund = %s", validFund))
+		assignments = append(assignments,
+			fmt.Sprintf("fund = %s", validFund))
 	}
-	if len(setClauses) == 0 {
+	if len(assignments) == 0 {
 		return fmt.Errorf("%s: no changes specified", caption)
 	}
+	setClause := "set " + strings.Join(assignments, ", ")
 
-	statements := make([]string, 0, len(validIds)*len(setClauses))
+	statements := make([]string, 0, len(validIds))
 	for _, validId := range validIds {
-		for _, setClause := range setClauses {
-			statements = append(statements,
-				fmt.Sprintf("update %s %s where id = %s", validSet, setClause, validId))
-		}
+		statements = append(statements,
+			fmt.Sprintf("update %s %s where id = %s", validSet, setClause, validId))
 	}
 
 	command := strings.Join(statements, "; ") + ";"
