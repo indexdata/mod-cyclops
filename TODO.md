@@ -77,7 +77,6 @@ CCMS v0.0.29 updated in test instance:
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
-* Support "show filters in project"
 * Actually add title when creating a set, using as-yet non-existent `alter set`
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
 * Consider accepting incoming searches as CQL (modifying the UI accordingly) and translating to CCMS query
