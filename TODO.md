@@ -85,9 +85,3 @@ CCMS v0.0.29 updated in test instance:
 * Protect conditions in generated SQL-like commands from injection
 
 
-## Updates needed in CCMS
-
-* `alter set`, so that the title accepted by `create set` can be applied (see the commented-out code in `handleCreateSet`)
-* `show tracks`, `create track`, `alter tracks` and delete track
-* `show people`, `create person`, `alter person` and `delete person` -- defined globally or per project?
-
