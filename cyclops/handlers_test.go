@@ -658,7 +658,7 @@ func TestHandleCreateSetWithTitle(t *testing.T) {
 		t.Fatalf("handleCreateSet returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create set users;")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create set users;\nalter set users alter property title set 'Registered users';")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 

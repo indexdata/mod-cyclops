@@ -58,15 +58,15 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Added the attribute `holdings_count`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_attributes
 
 
-### Chunk 5
+### Chunk 5 (DONE)
 * [The command `update`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_update) now supports:
   * **DONE** setting multiple attributes at once
   * **DONE** a general search condition in the `where` clause
   * **N/A** updating all objects by omitting the `where` clause
 * **DONE** Search conditions now support [the `in` operator](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_operators) to test equality with multiple values.
-* Added [property `title`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set) to sets.
-* Added command [`alter set`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set).
-* Server configuration now supports [logging connections, statements, and duration](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_server_configuration).
+* **DONE** Added [property `title`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set) to sets.
+* **DONE** Added command [`alter set`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set) [currently only used at set creation time time set the title]
+* **N/A** Server configuration now supports [logging connections, statements, and duration](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_server_configuration).
 
 
 ### For me
@@ -85,10 +85,10 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Review permission names for consistency and Eureka-friendliness
 * **DONE** Fix `/cyclops/sets/{setName}/tag/{tagName}` path to use plural `tags`
 * **DONE** Support for adding title when creating a set _except_ actually getting CCMS to use it
+* **DONE** Actually add title when creating a set, now-existent `alter set`
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
-* Actually add title when creating a set, using as-yet non-existent `alter set`
 * Consider breaking the `fund` field in retrieve responses into `{ id, name }`
 * Consider accepting incoming searches as CQL (modifying the UI accordingly) and translating to CCMS query
 * Protect templates in generated SQL-like commands from injection

@@ -232,14 +232,13 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 	}
 
 	command := "create set " + name + ";"
-	// XXX not yet implemented in CCMS: there is no "alter set" command.
-	// if set.Title != "" {
-	// 	title, err := sqlString(set.Title)
-	// 	if err != nil {
-	// 		return fmt.Errorf("%s: %w", caption, err)
-	// 	}
-	// 	command += "\nalter set " + name + " alter property title set " + title + ";"
-	// }
+	if set.Title != "" {
+		title, err2 := sqlString(set.Title)
+		if err2 != nil {
+			return fmt.Errorf("%s: %w", caption, err2)
+		}
+		command += "\nalter set " + name + " alter property title set " + title + ";"
+	}
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+set.Name, command)
