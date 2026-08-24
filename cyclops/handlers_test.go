@@ -551,12 +551,11 @@ func TestHandleBatchUpdate(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = true where id = 7; update mike set decision = true where id = 8; update mike set decision = true where id = 9;")
+			"update mike set decision = true where id IN (7, 8, 9);")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 
-	// All the changed fields go into a single update statement per id, since
-	// CCMS's WHERE clause accepts only a single "id = VALUE" expression.
+	// All the changed fields and all the ids go into a single update statement.
 	t.Run("decision and fund", func(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
@@ -569,7 +568,7 @@ func TestHandleBatchUpdate(t *testing.T) {
 		}
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"update mike set decision = false, fund = palci where id = 7; update mike set decision = false, fund = palci where id = 8;")
+			"update mike set decision = false, fund = palci where id IN (7, 8);")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 

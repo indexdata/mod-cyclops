@@ -632,8 +632,8 @@ type BatchUpdate struct {
 
 // handleBatchUpdate applies the same field-changes to many records at once. It
 // works like handleUpdateRecord, but rather than addressing a single record by
-// its URL-supplied id it runs a separate "update" command, each with its own
-// "where id = <id>" clause, for every id listed in the request body.
+// its URL-supplied id it runs a single "update" command whose "where id IN
+// (...)" clause names every id listed in the request body.
 func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *http.Request, caption string) error {
 	setName := chi.URLParam(req, "setName")
 
@@ -670,10 +670,6 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 		validIds[i] = validId
 	}
 
-	// CCMS's update command only accepts a single "id = VALUE" expression in its
-	// WHERE clause, so we cannot combine the ids with "OR". Instead we build the
-	// comma-separated list of assignments once and emit a separate update
-	// statement, with its own "id = <id>" WHERE clause, for each id.
 	var assignments []string
 	if batch.Changes.Decision != nil {
 		assignments = append(assignments,
@@ -690,15 +686,8 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 	if len(assignments) == 0 {
 		return fmt.Errorf("%s: no changes specified", caption)
 	}
-	setClause := "set " + strings.Join(assignments, ", ")
-
-	statements := make([]string, 0, len(validIds))
-	for _, validId := range validIds {
-		statements = append(statements,
-			fmt.Sprintf("update %s %s where id = %s", validSet, setClause, validId))
-	}
-
-	command := strings.Join(statements, "; ") + ";"
+	command := fmt.Sprintf("update %s set %s where id IN (%s);",
+		validSet, strings.Join(assignments, ", "), strings.Join(validIds, ", "))
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+setName, command)
@@ -806,10 +795,17 @@ func string2array(s string) []ProjectItem {
 
 	items := make([]ProjectItem, len(parts))
 	for i, segment := range parts {
-		pair := strings.SplitN(segment, ":", 2)
-		items[i] = ProjectItem{Id: pair[0], Name: pair[1]}
+		items[i] = string2item(segment)
 	}
 	return items
+}
+
+// string2item parses a single <slug>:<description> pair. A newly created
+// project has empty values for fields that have not yet been set, and such a
+// value has no colon in it at all, so the description is simply omitted.
+func string2item(s string) ProjectItem {
+	id, name, _ := strings.Cut(s, ":")
+	return ProjectItem{Id: id, Name: name}
 }
 
 func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (Project, error) {
@@ -834,11 +830,7 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 		case "title":
 			project.Name = mustString(value)
 		case "action":
-			pair := strings.SplitN(mustString(value), ":", 2)
-			project.Action = ProjectAction{
-				Id:   pair[0],
-				Name: pair[1],
-			}
+			project.Action = ProjectAction(string2item(mustString(value)))
 		case "mou_link":
 			project.MouLink = mustString(value)
 		case "funds":
