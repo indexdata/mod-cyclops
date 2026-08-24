@@ -812,7 +812,7 @@ func TestHandleDeleteProject(t *testing.T) {
 		t.Fatalf("handleDeleteProject returned error: %v", err)
 	}
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "archive project p1;")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop project p1;")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 

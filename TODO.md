@@ -51,11 +51,12 @@ The main change above is the `update` command which allows updating spectre attr
 CCMS v0.0.29 updated in test instance:
 * **DONE** `show filters` now returns project name in a separate column.
 * **DONE** `show sets` now returns project name in a separate column.
+* **DONE** Added the attribute `holdings_count`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_attributes
+* **DONE** `drop project` is back in place of `archive project`.
+* **N/A** Added `cascade` option to the command `drop project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_project
 * Filters now have a project name space.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_create_filter
 * Added command `show filters in project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_show
 * Added command `drop filter`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_filter
-* Added `cascade` option to the command `drop project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_project
-* **DONE** Added the attribute `holdings_count`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_attributes
 
 
 ### Chunk 5 (DONE)
