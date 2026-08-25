@@ -631,6 +631,35 @@ func TestHandleCreateFilterNameOnly(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+func TestHandleDeleteFilter(t *testing.T) {
+	// The identifier is the project-qualified name the filter was created
+	// under, so the '.' must survive validation and reach the command intact.
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDeleteFilter(rr, jsonRequest("", map[string]string{"filterId": "korea_lit.jurassic"}), "delete filter")
+	if err != nil {
+		t.Fatalf("handleDeleteFilter returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop filter korea_lit.jurassic;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDeleteFilterBadIdentifier(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDeleteFilter(rr, jsonRequest("", map[string]string{"filterId": "korea_lit.jurassic; drop set users"}), "delete filter")
+	if err == nil {
+		t.Fatal("expected an error for an identifier carrying a second statement, got nil")
+	}
+	assertErrContains(t, err, "invalid filter identifier")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+}
+
 func TestHandleCreateSet(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)

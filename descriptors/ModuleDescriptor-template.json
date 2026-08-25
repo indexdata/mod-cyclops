@@ -51,6 +51,15 @@
         },
         {
           "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/cyclops/filters/{filterId}",
+          "permissionsRequired": [
+            "cyclops.filters.item.delete"
+          ]
+        },
+        {
+          "methods": [
             "GET"
           ],
           "pathPattern": "/cyclops/sets",
@@ -253,6 +262,10 @@
     {
       "permissionName": "cyclops.filters.item.post",
       "displayName": "CYCLOPS: Create filter"
+    },
+    {
+      "permissionName": "cyclops.filters.item.delete",
+      "displayName": "CYCLOPS: Delete filter"
     },
     {
       "permissionName": "cyclops.sets.collection.get",

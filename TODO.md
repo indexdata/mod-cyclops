@@ -56,7 +56,7 @@ CCMS v0.0.29 updated in test instance:
 * **N/A** Added `cascade` option to the command `drop project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_project
 * Filters now have a project name space.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_create_filter
 * Added command `show filters in project`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_show
-* Added command `drop filter`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_filter
+* **DONE** Added command `drop filter`.  https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_drop_filter
 
 
 ### Chunk 5 (DONE)

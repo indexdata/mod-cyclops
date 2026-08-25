@@ -59,6 +59,18 @@ documentation:
       responses:
         204:
           description: No content is returned.
+    /{filterId}:
+      uriParameters:
+        filterId:
+          description: The machine-readable identifier of the filter, qualified by its project as "project.filter"
+          type: string
+          required: true
+          example: korea_lit.jurassic
+      delete:
+        description: "Drop an existing filter"
+        responses:
+          204:
+            description: No content is returned.
   /sets:
     description: "Sets of objects (books, films, etc.)"
     get:

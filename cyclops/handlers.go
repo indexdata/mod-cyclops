@@ -162,6 +162,29 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 
 // -----------------------------------------------------------------------------
 
+func (server *ModCyclopsServer) handleDeleteFilter(w http.ResponseWriter, req *http.Request, caption string) error {
+	// Filters are namespaced to their project, so the identifier here is the
+	// qualified "project.filter" that the filter was created under: `ident`
+	// admits the '.' that joins the two parts.
+	filterId, err := ident("filter", chi.URLParam(req, "filterId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "drop filter " + filterId + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+filterId, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 type SetSummary struct {
 	Project string `json:"project"`
 	Set     string `json:"set"`

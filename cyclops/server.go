@@ -78,6 +78,9 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root 
 	r.Post("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleCreateFilter, "create filter")
 	})
+	r.Delete("/cyclops/filters/{filterId}", func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, server.handleDeleteFilter, "delete filter")
+	})
 	r.Get("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
 		server.runWithErrorHandling(w, req, server.handleShowSets, "show sets")
 	})
