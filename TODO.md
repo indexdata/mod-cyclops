@@ -66,7 +66,7 @@ CCMS v0.0.29 updated in test instance:
   * **N/A** updating all objects by omitting the `where` clause
 * **DONE** Search conditions now support [the `in` operator](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_operators) to test equality with multiple values.
 * **DONE** Added [property `title`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set) to sets.
-* **DONE** Added command [`alter set`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set) [currently only used at set creation time time set the title]
+* **DONE** Added command [`alter set`](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_alter_set)
 * **N/A** Server configuration now supports [logging connections, statements, and duration](https://d1f3dtrg62pav.cloudfront.net/ccms/doc/current/#_server_configuration).
 
 
@@ -87,6 +87,7 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Fix `/cyclops/sets/{setName}/tag/{tagName}` path to use plural `tags`
 * **DONE** Support for adding title when creating a set _except_ actually getting CCMS to use it
 * **DONE** Actually add title when creating a set, now-existent `alter set`
+* **DONE** Add WSAPI endpoint for changing a set's title using `alter set`
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
@@ -95,4 +96,9 @@ CCMS v0.0.29 updated in test instance:
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
 
+
+### As-yet unused CCMS commands
+
+* `create user`/`show users` -- I'm not yet sure what users do in CCMS
+* `show version`
 

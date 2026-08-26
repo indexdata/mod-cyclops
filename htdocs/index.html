@@ -77,6 +77,7 @@
   <ul>
    <li><a href="/cyclops/sets">list of sets</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets', { name: 'korea_lit.mike', title: `Mike's favourite North Korean literature` })">create set "korea_lit.mike"</button></li>
+   <li><button class="link-button" onclick="putData('/cyclops/sets/korea_lit.mike', { title: 'North Korean literature chosen by Mike' })">alter title of set "korea_lit.mike"</button></li>
    <li><button class="link-button" onclick="deleteObject('/cyclops/sets/korea_lit.mike')">delete set "korea_lit.mike"</button></li>
    <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A&cond=143100000%20%3C%3D%20age%20AND%20age%20%3C%3D%20201400000&filter=jurassic&tag=dino,ptero&sort=author,title&offset=20&limit=10">retrieve from set "korea_lit.mike"</a></li>
    <li><a href="/cyclops/sets/korea_lit.mike?fields=%2A&cond=title='rings' or author='lewis'&sort=author&offset=20&limit=10">retrieve from set "korea_lit.mike" using only supported params</a></li>

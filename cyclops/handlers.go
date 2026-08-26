@@ -251,11 +251,8 @@ type CreateSet struct {
 }
 
 // As with projects, CCMS's "create set" facility only brings the set
-// into existence, so the title would need to be set by a second
-// command. But CCMS has no "alter set" command yet, so for now the
-// client-supplied title is accepted and discarded: see the commented-out
-// code below, which should be enabled once CCMS supports it.
-// -
+// into existence, so a client-supplied title has to be applied by a
+// second command, "alter set".
 func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http.Request, caption string) error {
 	var set CreateSet
 	err := unmarshalBody(req, &set)
@@ -279,6 +276,42 @@ func (server *ModCyclopsServer) handleCreateSet(w http.ResponseWriter, req *http
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+set.Name, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
+// AlterSet carries the new title for an existing set. The set's name comes
+// from the URL, so a "name" in the body -- which set-schema.json allows, since
+// the same schema describes set creation -- is ignored.
+type AlterSet = CreateSet
+
+func (server *ModCyclopsServer) handleAlterSet(w http.ResponseWriter, req *http.Request, caption string) error {
+	name, err := ident("set", chi.URLParam(req, "setName"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	var set AlterSet
+	err = unmarshalBody(req, &set)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	title, err := sqlString(set.Title)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "alter set " + name + " alter property title set " + title + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+name, command)
 	if err != nil {
 		return err
 	}

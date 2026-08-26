@@ -96,6 +96,15 @@
         },
         {
           "methods": [
+            "PUT"
+          ],
+          "pathPattern": "/cyclops/sets/{setName}",
+          "permissionsRequired": [
+            "cyclops.sets.item.put"
+          ]
+        },
+        {
+          "methods": [
             "POST"
           ],
           "pathPattern": "/cyclops/sets/{setName}/add",
@@ -282,6 +291,10 @@
     {
       "permissionName": "cyclops.sets.item.delete",
       "displayName": "CYCLOPS: Delete set"
+    },
+    {
+      "permissionName": "cyclops.sets.item.put",
+      "displayName": "CYCLOPS: Alter set"
     },
     {
       "permissionName": "cyclops.sets.item.add-objects.post",

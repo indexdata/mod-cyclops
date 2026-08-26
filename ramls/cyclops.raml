@@ -148,6 +148,15 @@ documentation:
               application/json:
                 type: !include retrieve-schema.json
                 example: !include examples/retrieve-example.json
+      put:
+        description: "Alter an existing set, changing its title"
+        body:
+          application/json:
+            type: !include set-schema.json
+            example: !include examples/set-example.json
+        responses:
+          204:
+            description: No content is returned.
       delete:
         description: "Delete a set"
         responses:

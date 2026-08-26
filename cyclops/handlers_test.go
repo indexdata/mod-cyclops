@@ -716,8 +716,8 @@ func TestHandleCreateSet(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
-// A title may be supplied, but is discarded for now: CCMS has no
-// "alter set" command with which to apply it.
+// A supplied title is applied by a second command, since "create set"
+// itself takes no title.
 func TestHandleCreateSetWithTitle(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
@@ -731,6 +731,68 @@ func TestHandleCreateSetWithTitle(t *testing.T) {
 
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create set users;\nalter set users alter property title set 'Registered users';")
 	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleAlterSet(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"name":"users","title":"New title"}`
+		rr := httptest.NewRecorder()
+		err := server.handleAlterSet(rr, jsonRequest(body, map[string]string{"setName": "users"}), "alter set")
+		if err != nil {
+			t.Fatalf("handleAlterSet returned error: %v", err)
+		}
+
+		// The URL's set name drives the command; the body's "name" is ignored.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter set users alter property title set 'New title';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// A title containing a single quote must be escaped by doubling it.
+	t.Run("title with apostrophe is escaped", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"title":"Mike's set"}`
+		rr := httptest.NewRecorder()
+		err := server.handleAlterSet(rr, jsonRequest(body, map[string]string{"setName": "mike"}), "alter set")
+		if err != nil {
+			t.Fatalf("handleAlterSet returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter set mike alter property title set 'Mike''s set';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("invalid set name", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"title":"New title"}`
+		rr := httptest.NewRecorder()
+		err := server.handleAlterSet(rr, jsonRequest(body, map[string]string{"setName": "users; drop set mike"}), "alter set")
+		if err == nil {
+			t.Fatal("expected an error for an invalid set name, got nil")
+		}
+		assertErrContains(t, err, "invalid set identifier")
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+
+	t.Run("malformed JSON body", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleAlterSet(rr, jsonRequest(`{"title":`, map[string]string{"setName": "users"}), "alter set")
+		if err == nil {
+			t.Fatal("expected an error for malformed JSON, got nil")
+		}
+		assertErrContains(t, err, "deserialize JSON")
+	})
 }
 
 func TestHandleDropSet(t *testing.T) {
