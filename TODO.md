@@ -91,7 +91,7 @@ CCMS v0.0.29 updated in test instance:
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute
-* Consider breaking the `fund` field in retrieve responses into `{ id, name }`
+* Consider breaking the `fund` field in retrieve responses into `{ id, name }` pairs
 * Consider accepting incoming searches as CQL (modifying the UI accordingly) and translating to CCMS query
 * Protect templates in generated SQL-like commands from injection
 * Protect conditions in generated SQL-like commands from injection
