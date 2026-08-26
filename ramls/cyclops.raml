@@ -43,7 +43,13 @@ documentation:
   /filters:
     description: "Filters that can narrow down records within a set"
     get:
-      description: "Return a list of all known filters, with their projects and definitions"
+      description: "Return a list of all known filters, with their projects and definitions; or, if a project is specified, only the filters in that project"
+      queryParameters:
+        project:
+          type: string
+          required: false
+          description: The machine-readable identifier of a project, to restrict the listed filters to those in that project
+          example: korea_lit
       responses:
         200:
           body:

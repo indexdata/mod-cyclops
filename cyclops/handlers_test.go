@@ -279,6 +279,48 @@ func TestHandleShowFilters(t *testing.T) {
 	}
 }
 
+func TestHandleShowFiltersInProject(t *testing.T) {
+	fake := &fakeCCMS{resp: namedResponse(
+		[]string{"filter", "definition", "project"},
+		[]any{"jurassic", "age > 18", "korea_lit"},
+	)}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/test?project=korea_lit", nil)
+	err := server.handleShowFilters(rr, req, "show filters")
+	if err != nil {
+		t.Fatalf("handleShowFilters returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show filters in project korea_lit;")
+
+	var got FilterList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := FilterList{Filters: []FilterSummary{
+		{Project: "korea_lit", Filter: "jurassic", Definition: "age > 18"},
+	}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleShowFiltersInProjectBadIdentifier(t *testing.T) {
+	fake := &fakeCCMS{resp: namedResponse([]string{"project", "filter", "definition"})}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodGet, "/test?project=korea_lit%3B+drop+set+users", nil)
+	err := server.handleShowFilters(rr, req, "show filters")
+	if err == nil {
+		t.Fatal("expected an error for an invalid project identifier, got nil")
+	}
+	assertErrContains(t, err, "invalid project identifier")
+}
+
 func TestHandleShowFiltersMissingField(t *testing.T) {
 	fake := &fakeCCMS{resp: namedResponse(
 		[]string{"project", "filter"},

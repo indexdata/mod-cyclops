@@ -92,8 +92,22 @@ type FilterList struct {
 	// No other elements yet, but use a structure for future expansion
 }
 
+// handleShowFilters lists all known filters, or -- when the optional "project"
+// query parameter is supplied -- only those in the named project.
 func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *http.Request, caption string) error {
-	resp, err := server.sendToCCMS(caption, "show filters;")
+	command := "show filters;"
+	project := req.URL.Query().Get("project")
+	if project != "" {
+		projectId, err := ident("project", project)
+		if err != nil {
+			return fmt.Errorf("%s: %w", caption, err)
+		}
+		command = "show filters in project " + projectId + ";"
+		caption += " in project " + projectId
+	}
+	server.Log("command", command)
+
+	resp, err := server.sendToCCMS(caption, command)
 	if err != nil {
 		return err
 	}
