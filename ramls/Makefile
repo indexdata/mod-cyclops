@@ -9,7 +9,7 @@
 #VENV=/Users/mike/git/folio/other/folio-tools/api-lint/.venv
 VENV=/Users/mike/.local/share/virtualenvs/api-lint-dv5iwVpa
 
-lint: schemalint examplelint apilint docgen
+lint: schemalint examplelint condtest apilint docgen
 
 schemalint:
 	z-schema tag-schema.json
@@ -29,6 +29,7 @@ schemalint:
 	z-schema projects-schema.json
 	z-schema fund-schema.json
 	z-schema funds-schema.json
+	z-schema cond-schema.json
 
 examplelint:
 	z-schema tag-schema.json examples/tag-example.json
@@ -49,12 +50,18 @@ examplelint:
 	z-schema projects-schema.json examples/show-projects-example.json
 	z-schema fund-schema.json examples/fund-example.json
 	z-schema funds-schema.json examples/show-funds-example.json
+	z-schema cond-schema.json examples/cond.json
+
+condtest:
+	$(MAKE) -C condtest test
 
 apilint: cyclops.raml
 	env PATH=$(VENV)/bin:$$PATH api_lint.py -t RAML -d .
 
 docgen:
 	env PATH=$(VENV)/bin:$$PATH api_doc.py -o doc -t RAML -d .
+
+.PHONY: lint schemalint examplelint condtest apilint docgen clean
 
 clean:
 	rm -rf doc
