@@ -1,0 +1,218 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A structured search condition, sent by a client in place of a CCMS condition string. Every node carries a 'type' discriminator. mod-cyclops uses this structure to generate a CCMS condition: values are never interpolated as syntax by the client.",
+  "allOf": [
+    {
+      "$ref": "#/definitions/clause"
+    }
+  ],
+  "definitions": {
+    "clause": {
+      "description": "Any node of the condition tree",
+      "oneOf": [
+        {
+          "$ref": "#/definitions/junction"
+        },
+        {
+          "$ref": "#/definitions/negation"
+        },
+        {
+          "$ref": "#/definitions/term"
+        },
+        {
+          "$ref": "#/definitions/filter"
+        }
+      ]
+    },
+    "junction": {
+      "description": "A conjunction or disjunction of two or more subordinate clauses",
+      "type": "object",
+      "properties": {
+        "type": {
+          "description": "How the subordinate clauses are combined",
+          "enum": [
+            "and",
+            "or"
+          ]
+        },
+        "clauses": {
+          "description": "The subordinate clauses",
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/clause"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "clauses"
+      ]
+    },
+    "negation": {
+      "description": "The negation of a single subordinate clause",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "not"
+          ]
+        },
+        "clause": {
+          "$ref": "#/definitions/clause"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "clause"
+      ]
+    },
+    "term": {
+      "description": "A comparison between a single field and a value. The relation is an abstract name, not a CCMS operator: mod-cyclops chooses the CCMS spelling, and is responsible for quoting the value appropriately for CCMS.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "term"
+          ]
+        },
+        "field": {
+          "description": "Name of the field to compare. Must be one of the fields that the project declares as queryable; the pattern here is only a first line of defence.",
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]*$"
+        },
+        "rel": {
+          "description": "The relation to test between the field and the value",
+          "enum": [
+            "contains",
+            "startsWith",
+            "endsWith",
+            "eq",
+            "ne",
+            "lt",
+            "le",
+            "gt",
+            "ge",
+            "in",
+            "notIn",
+            "isNull",
+            "isNotNull"
+          ]
+        },
+        "value": {
+          "description": "The value to compare against. Its permitted form depends on the relation, and its type must be compatible with the declared type of the field.",
+          "type": [
+            "string",
+            "number",
+            "boolean",
+            "array"
+          ]
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "field",
+        "rel"
+      ],
+      "allOf": [
+        {
+          "oneOf": [
+            {
+              "description": "Relations taking a single scalar value",
+              "properties": {
+                "rel": {
+                  "enum": [
+                    "contains",
+                    "startsWith",
+                    "endsWith",
+                    "eq",
+                    "ne",
+                    "lt",
+                    "le",
+                    "gt",
+                    "ge"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "string",
+                    "number",
+                    "boolean"
+                  ]
+                }
+              },
+              "required": [
+                "value"
+              ]
+            },
+            {
+              "description": "Relations taking a list of scalar values",
+              "properties": {
+                "rel": {
+                  "enum": [
+                    "in",
+                    "notIn"
+                  ]
+                },
+                "value": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": [
+                      "string",
+                      "number",
+                      "boolean"
+                    ]
+                  }
+                }
+              },
+              "required": [
+                "value"
+              ]
+            },
+            {
+              "description": "Relations taking no value at all",
+              "properties": {
+                "rel": {
+                  "enum": [
+                    "isNull",
+                    "isNotNull"
+                  ]
+                }
+              },
+              "not": {
+                "required": [
+                  "value"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "filter": {
+      "description": "A reference to a named filter belonging to the project. mod-cyclops resolves the name against the project's own filters before emitting a CCMS filter() call.",
+      "type": "object",
+      "properties": {
+        "type": {
+          "enum": [
+            "filter"
+          ]
+        },
+        "name": {
+          "description": "The name of the filter, as in the 'name' field of a filter object",
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name"
+      ]
+    }
+  }
+}
