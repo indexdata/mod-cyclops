@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "decision",
+  "rel": "eq",
+  "value": false
+}

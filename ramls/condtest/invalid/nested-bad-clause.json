@@ -1,0 +1,11 @@
+{
+  "type": "and",
+  "clauses": [
+    {
+      "type": "term",
+      "field": "a",
+      "rel": "nope",
+      "value": 1
+    }
+  ]
+}

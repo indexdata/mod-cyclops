@@ -1,0 +1,59 @@
+{
+  "type": "and",
+  "clauses": [
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "contains",
+      "value": "x"
+    },
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "startsWith",
+      "value": "x"
+    },
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "endsWith",
+      "value": "x"
+    },
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "eq",
+      "value": "x"
+    },
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "ne",
+      "value": "x"
+    },
+    {
+      "type": "term",
+      "field": "holdings_count",
+      "rel": "lt",
+      "value": 1
+    },
+    {
+      "type": "term",
+      "field": "holdings_count",
+      "rel": "le",
+      "value": 1
+    },
+    {
+      "type": "term",
+      "field": "holdings_count",
+      "rel": "gt",
+      "value": 1
+    },
+    {
+      "type": "term",
+      "field": "holdings_count",
+      "rel": "ge",
+      "value": 1
+    }
+  ]
+}

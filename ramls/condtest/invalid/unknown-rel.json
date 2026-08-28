@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "a",
+  "rel": "ilike",
+  "value": "x"
+}

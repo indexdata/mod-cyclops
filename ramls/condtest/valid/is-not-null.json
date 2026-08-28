@@ -1,0 +1,5 @@
+{
+  "type": "term",
+  "field": "withdrawn_date",
+  "rel": "isNotNull"
+}

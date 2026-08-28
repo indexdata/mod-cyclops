@@ -1,0 +1,9 @@
+{
+  "type": "term",
+  "field": "location",
+  "rel": "in",
+  "value": [
+    "main",
+    "annexe"
+  ]
+}

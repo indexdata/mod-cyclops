@@ -1,0 +1,9 @@
+{
+  "type": "not",
+  "clauses": [
+    {
+      "type": "filter",
+      "name": "target"
+    }
+  ]
+}
