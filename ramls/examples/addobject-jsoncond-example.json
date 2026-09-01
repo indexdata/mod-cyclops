@@ -1,0 +1,13 @@
+{
+  "from": "mike",
+  "jsonCond": {
+    "type": "term",
+    "field": "date",
+    "rel": "ge",
+    "value": "2025-01-01"
+  },
+  "filter": "jurassic",
+  "tag": "dino,ptero",
+  "omitTag": "croc",
+  "limit": "200"
+}

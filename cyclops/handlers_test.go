@@ -1161,6 +1161,91 @@ func TestHandleRemoveObjects(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+// handlerUnderTest is one of the body-carrying handlers that accepts a
+// condition, named so failures say which one.
+type condHandler struct {
+	name    string
+	call    func(*ModCyclopsServer, *httptest.ResponseRecorder, *http.Request) error
+	params  map[string]string
+	prefix  string // the body members that precede the condition
+	wantFmt string // the whole command, with %s where the condition goes
+}
+
+var condHandlers = []condHandler{
+	{
+		name: "add objects",
+		call: func(s *ModCyclopsServer, rr *httptest.ResponseRecorder, req *http.Request) error {
+			return s.handleAddObjects(rr, req, "add objects")
+		},
+		params:  map[string]string{"setName": "dest"},
+		prefix:  `"from":"src",`,
+		wantFmt: "insert into dest select * from src where %s;",
+	},
+	{
+		name: "remove objects",
+		call: func(s *ModCyclopsServer, rr *httptest.ResponseRecorder, req *http.Request) error {
+			return s.handleRemoveObjects(rr, req, "remove objects")
+		},
+		params: map[string]string{"setName": "dest"},
+		// The double space is as in TestHandleRemoveObjects above.
+		wantFmt: "delete from dest  where %s;",
+	},
+}
+
+// Both handlers accept a structured condition in place of the CCMS one, and
+// render it through the same code the other entry points use.
+func TestHandleObjectsJSONCond(t *testing.T) {
+	cases := map[string]string{
+		`{"type":"term","field":"age","rel":"gt","value":18}`:                             `age > 18`,
+		`{"type":"term","field":"author","rel":"eq","value":"Adams, John"}`:               `author = 'Adams, John'`,
+		`{"type":"term","field":"title","rel":"contains","value":"'; drop set dest; --"}`: `title ilike '%''; drop set dest; --%'`,
+	}
+	for _, h := range condHandlers {
+		for jsonCond, wantCond := range cases {
+			t.Run(h.name+"/"+wantCond, func(t *testing.T) {
+				fake := &fakeCCMS{resp: okResponse()}
+				server := newTestServer(fake)
+
+				body := `{` + h.prefix + `"jsonCond":` + jsonCond + `}`
+				rr := httptest.NewRecorder()
+				if err := h.call(server, rr, jsonRequest(body, h.params)); err != nil {
+					t.Fatalf("%s returned error: %v", h.name, err)
+				}
+				assertEqual(t, "command sent to CCMS", fake.lastCmd, fmt.Sprintf(h.wantFmt, wantCond))
+				assertStatus(t, rr, http.StatusNoContent)
+			})
+		}
+	}
+}
+
+// And both reject the same client mistakes, without sending a command.
+func TestHandleObjectsJSONCondErrors(t *testing.T) {
+	cases := map[string]string{
+		`"cond":"age>18","jsonCond":{"type":"term","field":"age","rel":"gt","value":18}`: `only one of 'cond' and 'jsonCond' may be supplied`,
+		`"jsonCond":{"type":"xyzzy"}`: `unknown clause type "xyzzy"`,
+		`"jsonCond":{"type":"term","field":"age; drop set x","rel":"gt","value":18}`: `invalid field identifier`,
+	}
+	for _, h := range condHandlers {
+		for members, wantErr := range cases {
+			t.Run(h.name+"/"+wantErr, func(t *testing.T) {
+				fake := &fakeCCMS{resp: okResponse()}
+				server := newTestServer(fake)
+
+				body := `{` + h.prefix + members + `}`
+				err := h.call(server, httptest.NewRecorder(), jsonRequest(body, h.params))
+				if err == nil {
+					t.Fatalf("%s: expected an error for body %s", h.name, body)
+				}
+				assertHTTPStatus(t, err, http.StatusBadRequest)
+				assertErrContains(t, err, wantErr)
+				if fake.lastCmd != "" {
+					t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+				}
+			})
+		}
+	}
+}
+
 func TestHandleDeleteProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)

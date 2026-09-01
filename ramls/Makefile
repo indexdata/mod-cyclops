@@ -41,7 +41,9 @@ examplelint:
 	z-schema sets-schema.json examples/show-sets-example.json
 	z-schema retrieve-schema.json examples/retrieve-example.json
 	z-schema addobjects-schema.json examples/addobject-example.json
+	z-schema addobjects-schema.json examples/addobject-jsoncond-example.json
 	z-schema removeobjects-schema.json examples/removeobject-example.json
+	z-schema removeobjects-schema.json examples/removeobject-jsoncond-example.json
 	z-schema addremovetag-schema.json examples/addtag-example.json
 	z-schema addremovetag-schema.json examples/removetag-example.json
 	z-schema spectre-schema.json examples/spectre-example.json

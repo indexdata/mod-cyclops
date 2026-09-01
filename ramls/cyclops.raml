@@ -180,7 +180,9 @@ types:
           body:
             application/json:
               type: !include addobjects-schema.json
-              example: !include examples/addobject-example.json
+              examples:
+                ccmsCondition: !include examples/addobject-example.json
+                structuredCondition: !include examples/addobject-jsoncond-example.json
           responses:
             204:
               description: No content is returned.
@@ -190,7 +192,9 @@ types:
           body:
             application/json:
               type: !include removeobjects-schema.json
-              example: !include examples/removeobject-example.json
+              examples:
+                ccmsCondition: !include examples/removeobject-example.json
+                structuredCondition: !include examples/removeobject-jsoncond-example.json
           responses:
             204:
               description: No content is returned.

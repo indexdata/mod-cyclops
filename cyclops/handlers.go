@@ -339,10 +339,10 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 
 	if cond != "" {
 		b.WriteString(" where ")
-		// XXX injection risk, but only by way of the 'cond' query parameter,
-		// which is interpolated unchanged. A condition arriving as 'jsonCond'
-		// has been built by ParseCond from a validated structure and is safe.
-		// The risk goes away when 'cond' is withdrawn.
+		// XXX injection risk, but only by way of 'cond', which every caller
+		// interpolates unchanged. A condition that arrived as 'jsonCond' has
+		// been built by ParseCond from a validated structure and is safe. The
+		// risk goes away when 'cond' is withdrawn.
 		b.WriteString(cond)
 	}
 
@@ -610,12 +610,13 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 // -----------------------------------------------------------------------------
 
 type AddRecords struct {
-	From    string `json:"from"`
-	Cond    string `json:"cond"`
-	Filter  string `json:"filter"`
-	Tag     string `json:"tag"`
-	OmitTag string `json:"omitTag"`
-	Limit   string `json:"limit"`
+	From     string          `json:"from"`
+	Cond     string          `json:"cond"`
+	JSONCond json.RawMessage `json:"jsonCond"`
+	Filter   string          `json:"filter"`
+	Tag      string          `json:"tag"`
+	OmitTag  string          `json:"omitTag"`
+	Limit    string          `json:"limit"`
 }
 
 func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -630,6 +631,11 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
+	cond, err := resolveCond(params.Cond, params.JSONCond)
+	if err != nil {
+		return err
+	}
+
 	limit := params.Limit
 	if limit == "" {
 		limit = "*" // Omit "limit" from the command when the request did not specify one
@@ -637,7 +643,7 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 	clause, err := makeSelectClause(
 		"*",
 		params.From,
-		params.Cond,
+		cond,
 		params.Filter,
 		params.Tag,
 		params.OmitTag,
@@ -663,11 +669,12 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 // -----------------------------------------------------------------------------
 
 type RemoveRecords struct {
-	Cond    string `json:"cond"`
-	Filter  string `json:"filter"`
-	Tag     string `json:"tag"`
-	OmitTag string `json:"omitTag"`
-	Limit   string `json:"limit"`
+	Cond     string          `json:"cond"`
+	JSONCond json.RawMessage `json:"jsonCond"`
+	Filter   string          `json:"filter"`
+	Tag      string          `json:"tag"`
+	OmitTag  string          `json:"omitTag"`
+	Limit    string          `json:"limit"`
 }
 
 func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -682,8 +689,13 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
+	cond, err := resolveCond(params.Cond, params.JSONCond)
+	if err != nil {
+		return err
+	}
+
 	clause, err := makeConditionalClause(
-		params.Cond,
+		cond,
 		params.Filter,
 		params.Tag,
 		params.OmitTag,
