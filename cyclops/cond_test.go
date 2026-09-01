@@ -8,7 +8,7 @@ import "slices"
 import "strings"
 import "testing"
 
-// corpusSchema declares the fields and filters used by the test corpus in ramls/condtest.
+// corpusSchema declares the fields and filters used by the test corpus in ramls/examples/condtest.
 func corpusSchema() *CondSchema {
 	return &CondSchema{
 		Fields: map[string]FieldKind{
@@ -29,9 +29,9 @@ func corpusSchema() *CondSchema {
 	}
 }
 
-// Every file in ramls/condtest/valid must render, and the RAML example with it.
+// Every file in ramls/examples/condtest/valid must render, and the RAML example with it.
 func TestCondCorpusValid(t *testing.T) {
-	files, err := filepath.Glob("../ramls/condtest/valid/*.json")
+	files, err := filepath.Glob("../ramls/examples/condtest/valid/*.json")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestCondCorpusValid(t *testing.T) {
 	}
 }
 
-// Every file in ramls/condtest/invalid must be rejected, and rejected for the
+// Every file in ramls/examples/condtest/invalid must be rejected, and rejected for the
 // reason it was written to probe: a case that starts failing for some unrelated
 // reason has quietly stopped testing anything. The expected text need only be a
 // distinctive fragment of the error.
@@ -82,7 +82,7 @@ var invalidCases = map[string]string{
 }
 
 func TestCondCorpusInvalid(t *testing.T) {
-	files, err := filepath.Glob("../ramls/condtest/invalid/*.json")
+	files, err := filepath.Glob("../ramls/examples/condtest/invalid/*.json")
 	if err != nil {
 		t.Fatal(err)
 	}

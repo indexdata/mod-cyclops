@@ -6,8 +6,8 @@
 # Every file in valid/ must satisfy the schema, and every file in invalid/
 # must be rejected by it.
 
-SCHEMA=../cond-schema.json
-EXAMPLE=../examples/cond.json
+SCHEMA=../../cond-schema.json
+EXAMPLE=../cond.json
 VALID=$(wildcard valid/*.json)
 INVALID=$(wildcard invalid/*.json)
 

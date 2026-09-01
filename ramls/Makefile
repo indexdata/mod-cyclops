@@ -53,7 +53,7 @@ examplelint:
 	z-schema cond-schema.json examples/cond.json
 
 condtest:
-	$(MAKE) -C condtest test
+	$(MAKE) -C examples/condtest test
 
 apilint: cyclops.raml
 	env PATH=$(VENV)/bin:$$PATH api_lint.py -t RAML -d .
