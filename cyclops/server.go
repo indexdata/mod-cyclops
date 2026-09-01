@@ -1,5 +1,6 @@
 package cyclops
 
+import "errors"
 import "fmt"
 import "net/http"
 import "time"
@@ -181,12 +182,13 @@ func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req 
 	}
 
 	if err != nil {
-		var status int
-		switch e := err.(type) {
-		case *HTTPError:
-			status = e.status
-		default:
-			status = http.StatusInternalServerError
+		// Use errors.As rather than a type assertion: handlers wrap the
+		// errors they return for context, so the *HTTPError carrying the
+		// status is usually not the outermost error.
+		status := http.StatusInternalServerError
+		var httpErr *HTTPError
+		if errors.As(err, &httpErr) {
+			status = httpErr.status
 		}
 		w.WriteHeader(status)
 		_, _ = fmt.Fprintln(w, err.Error())

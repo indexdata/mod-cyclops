@@ -1,0 +1,21 @@
+{
+  "name": "jurassic",
+  "jsonCond": {
+    "type": "and",
+    "clauses": [
+      {
+        "type": "term",
+        "field": "age",
+        "rel": "ge",
+        "value": 143100000
+      },
+      {
+        "type": "term",
+        "field": "age",
+        "rel": "le",
+        "value": 201400000
+      }
+    ]
+  },
+  "template": "mesozoic"
+}

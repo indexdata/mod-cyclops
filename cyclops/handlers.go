@@ -134,9 +134,10 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 // -----------------------------------------------------------------------------
 
 type CreateFilter struct {
-	Name     string `json:"name"`
-	Cond     string `json:"cond"`
-	Template string `json:"template"`
+	Name     string          `json:"name"`
+	Cond     string          `json:"cond"`
+	JSONCond json.RawMessage `json:"jsonCond"`
+	Template string          `json:"template"`
 }
 
 func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -151,16 +152,27 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
+	cond, err := resolveCond(filter.Cond, filter.JSONCond)
+	if err != nil {
+		return err
+	}
+
 	command := "create filter " + name
-	if filter.Cond != "" {
-		// XXX injection risk: 'cond' is a free-form condition expression and is
-		// not sanitised; needs AST-based construction.
-		command += " where " + filter.Cond
+	if cond != "" {
+		// XXX injection risk, but only by way of the 'cond' member, which is
+		// interpolated unchanged. A condition arriving as 'jsonCond' has been
+		// built by ParseCond from a validated structure and is safe. The risk
+		// goes away when 'cond' is withdrawn.
+		command += " where " + cond
 	}
 	if filter.Template != "" {
-		// XXX injection risk: 'template' is a free-form expression and is not
-		// sanitised; needs AST-based construction.
-		command += " template " + filter.Template
+		// The template is the name of another filter, so the qualified
+		// "project.filter" form must survive: ident admits the joining '.'.
+		template, terr := ident("filter template", filter.Template)
+		if terr != nil {
+			return &HTTPError{status: http.StatusBadRequest, message: terr.Error()}
+		}
+		command += " template " + template
 	}
 	command += ";"
 	server.Log("command", command)
@@ -327,10 +339,10 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 
 	if cond != "" {
 		b.WriteString(" where ")
-		// XXX injection risk, but only by way of the 'cond' query parameter,
-		// which is interpolated unchanged. A condition arriving as 'jsonCond'
-		// has been built by ParseCond from a validated structure and is safe.
-		// The risk goes away when 'cond' is withdrawn.
+		// XXX injection risk, but only by way of 'cond', which every caller
+		// interpolates unchanged. A condition that arrived as 'jsonCond' has
+		// been built by ParseCond from a validated structure and is safe. The
+		// risk goes away when 'cond' is withdrawn.
 		b.WriteString(cond)
 	}
 
@@ -436,37 +448,47 @@ func getCondSchema() *CondSchema {
 	return &CondSchema{AllowAnyField: true, AllowAnyFilter: true}
 }
 
-// requestCond returns the WHERE condition for a retrieval, which the caller may
-// supply either as 'cond', a condition already in CCMS's own language, or as
+// resolveCond returns the WHERE condition to use, given the two forms a caller
+// may supply it in: 'cond', a condition already in CCMS's own language, and
 // 'jsonCond', the structured form described by ramls/cond-schema.json. The two
-// are alternatives: supplying both is an error, and supplying neither means the
-// retrieval is unconditional, as it always has been.
+// are alternatives, so supplying both is an error; supplying neither yields the
+// empty condition, which every caller treats as "unconditional".
 //
 // 'cond' is interpolated into the command unchanged and is therefore an
 // injection risk; 'jsonCond' is validated and rendered by mod-cyclops itself.
 // The intention is to withdraw 'cond' once clients have moved over.
-func requestCond(req *http.Request) (string, error) {
-	cond := req.URL.Query().Get("cond")
-	jsonCond := req.URL.Query().Get("jsonCond")
+func resolveCond(cond string, jsonCond json.RawMessage) (string, error) {
+	// An absent member and an explicit null are alike: neither is a condition.
+	hasJSON := len(jsonCond) > 0 && string(jsonCond) != "null"
 
-	if cond != "" && jsonCond != "" {
+	if cond != "" && hasJSON {
 		return "", &HTTPError{
 			status:  http.StatusBadRequest,
 			message: "only one of 'cond' and 'jsonCond' may be supplied",
 		}
 	}
-	if jsonCond == "" {
+	if !hasJSON {
 		return cond, nil
 	}
 
-	rendered, err := ParseCond([]byte(jsonCond), getCondSchema())
+	rendered, err := ParseCond(jsonCond, getCondSchema())
 	if err != nil {
 		return "", &HTTPError{
 			status:  http.StatusBadRequest,
-			message: fmt.Sprintf("invalid 'jsonCond' parameter: %s", err),
+			message: fmt.Sprintf("invalid 'jsonCond': %s", err),
 		}
 	}
 	return rendered, nil
+}
+
+// requestCond resolves the condition for a retrieval, whose caller supplies it
+// in query parameters. 'jsonCond' is then the JSON text of a condition, since a
+// query parameter cannot itself be structured.
+func requestCond(req *http.Request) (string, error) {
+	return resolveCond(
+		req.URL.Query().Get("cond"),
+		json.RawMessage(req.URL.Query().Get("jsonCond")),
+	)
 }
 
 func makeRetrieveCommand(req *http.Request, countOnly bool) (string, error) {
@@ -587,13 +609,42 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 
 // -----------------------------------------------------------------------------
 
+// RecordSelection is the set of records that an operation applies to: a
+// condition, in either of the two forms, narrowed by a filter and by tags.
+// Neither operation sorts or pages, so the sort and offset that the clause
+// builders accept are always empty here.
+type RecordSelection struct {
+	Cond     string          `json:"cond"`
+	JSONCond json.RawMessage `json:"jsonCond"`
+	Filter   string          `json:"filter"`
+	Tag      string          `json:"tag"`
+	OmitTag  string          `json:"omitTag"`
+}
+
+// conditional renders the selection as the conditional part of a command. A
+// limit of "*" omits the limit from the command altogether.
+func (s *RecordSelection) conditional(limit string) (string, error) {
+	cond, err := resolveCond(s.Cond, s.JSONCond)
+	if err != nil {
+		return "", err
+	}
+	return makeConditionalClause(cond, s.Filter, s.Tag, s.OmitTag, "", limit, "")
+}
+
+// selectFrom renders the selection as a "select * from <set>" over the named
+// set, which is how records to be added are identified.
+func (s *RecordSelection) selectFrom(from, limit string) (string, error) {
+	cond, err := resolveCond(s.Cond, s.JSONCond)
+	if err != nil {
+		return "", err
+	}
+	return makeSelectClause("*", from, cond, s.Filter, s.Tag, s.OmitTag, "", limit, "")
+}
+
 type AddRecords struct {
-	From    string `json:"from"`
-	Cond    string `json:"cond"`
-	Filter  string `json:"filter"`
-	Tag     string `json:"tag"`
-	OmitTag string `json:"omitTag"`
-	Limit   string `json:"limit"`
+	From string `json:"from"`
+	RecordSelection
+	Limit string `json:"limit"`
 }
 
 func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -612,17 +663,7 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 	if limit == "" {
 		limit = "*" // Omit "limit" from the command when the request did not specify one
 	}
-	clause, err := makeSelectClause(
-		"*",
-		params.From,
-		params.Cond,
-		params.Filter,
-		params.Tag,
-		params.OmitTag,
-		"",    // Sort
-		limit, // "*" omits "limit" completely when none was requested
-		"",    // Offset
-	)
+	clause, err := params.selectFrom(params.From, limit)
 	if err != nil {
 		return fmt.Errorf("could not make select clause: %w", err)
 	}
@@ -640,13 +681,7 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 
 // -----------------------------------------------------------------------------
 
-type RemoveRecords struct {
-	Cond    string `json:"cond"`
-	Filter  string `json:"filter"`
-	Tag     string `json:"tag"`
-	OmitTag string `json:"omitTag"`
-	Limit   string `json:"limit"`
-}
+type RemoveRecords = RecordSelection
 
 func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
 	setName, err := ident("set", chi.URLParam(req, "setName"))
@@ -660,15 +695,8 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	clause, err := makeConditionalClause(
-		params.Cond,
-		params.Filter,
-		params.Tag,
-		params.OmitTag,
-		"",  // Sort
-		"*", // Special-case value to omit "limit" completely
-		"",  // Offset
-	)
+	// "*" omits the limit from the command completely: removal has no limit.
+	clause, err := params.conditional("*")
 	if err != nil {
 		return fmt.Errorf("could not make conditional clause: %w", err)
 	}
