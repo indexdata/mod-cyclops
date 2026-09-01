@@ -327,9 +327,10 @@ func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset strin
 
 	if cond != "" {
 		b.WriteString(" where ")
-		// XXX injection risk: 'cond' is a free-form condition expression and is
-		// not sanitised. Safe handling needs AST-based construction (or a
-		// validating parser) rather than string interpolation.
+		// XXX injection risk, but only by way of the 'cond' query parameter,
+		// which is interpolated unchanged. A condition arriving as 'jsonCond'
+		// has been built by ParseCond from a validated structure and is safe.
+		// The risk goes away when 'cond' is withdrawn.
 		b.WriteString(cond)
 	}
 
@@ -427,16 +428,62 @@ func makeSelectClause(fields, setName, cond, filter, tag, omitTag, sort, limit, 
 	return b.String(), nil
 }
 
+// getCondSchema provides the schema against which a 'jsonCond' parameter is
+// validated. Until mod-cyclops knows which fields each project exposes, any
+// syntactically valid field and filter name is admitted, so what this buys is
+// injection-safety rather than authorisation: see the commentary in cond.go.
+func getCondSchema() *CondSchema {
+	return &CondSchema{AllowAnyField: true, AllowAnyFilter: true}
+}
+
+// requestCond returns the WHERE condition for a retrieval, which the caller may
+// supply either as 'cond', a condition already in CCMS's own language, or as
+// 'jsonCond', the structured form described by ramls/cond-schema.json. The two
+// are alternatives: supplying both is an error, and supplying neither means the
+// retrieval is unconditional, as it always has been.
+//
+// 'cond' is interpolated into the command unchanged and is therefore an
+// injection risk; 'jsonCond' is validated and rendered by mod-cyclops itself.
+// The intention is to withdraw 'cond' once clients have moved over.
+func requestCond(req *http.Request) (string, error) {
+	cond := req.URL.Query().Get("cond")
+	jsonCond := req.URL.Query().Get("jsonCond")
+
+	if cond != "" && jsonCond != "" {
+		return "", &HTTPError{
+			status:  http.StatusBadRequest,
+			message: "only one of 'cond' and 'jsonCond' may be supplied",
+		}
+	}
+	if jsonCond == "" {
+		return cond, nil
+	}
+
+	rendered, err := ParseCond([]byte(jsonCond), getCondSchema())
+	if err != nil {
+		return "", &HTTPError{
+			status:  http.StatusBadRequest,
+			message: fmt.Sprintf("invalid 'jsonCond' parameter: %s", err),
+		}
+	}
+	return rendered, nil
+}
+
 func makeRetrieveCommand(req *http.Request, countOnly bool) (string, error) {
 	selectFields := req.URL.Query().Get("fields")
 	if countOnly {
 		selectFields = "COUNT(*)"
 	}
 
+	cond, err := requestCond(req)
+	if err != nil {
+		return "", err
+	}
+
 	selectClause, err := makeSelectClause(
 		selectFields,
 		chi.URLParam(req, "setName"),
-		req.URL.Query().Get("cond"),
+		cond,
 		req.URL.Query().Get("filter"),
 		req.URL.Query().Get("tag"),
 		req.URL.Query().Get("omitTag"),

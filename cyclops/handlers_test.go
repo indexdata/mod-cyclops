@@ -6,6 +6,7 @@ import "errors"
 import "fmt"
 import "net/http"
 import "net/http/httptest"
+import "net/url"
 import "reflect"
 import "strings"
 import "testing"
@@ -170,6 +171,121 @@ func TestHandleRetrieveCCMSError(t *testing.T) {
 	// caller can render the error itself. Confirm nothing was written.
 	if rr.Body.Len() != 0 {
 		t.Errorf("expected no response body on error, got %q", rr.Body.String())
+	}
+}
+
+// assertHTTPStatus fails the test when err is not an *HTTPError carrying the
+// wanted status. A client mistake must not be reported as a server fault.
+func assertHTTPStatus(t *testing.T, err error, want int) {
+	t.Helper()
+	var httpErr *HTTPError
+	if !errors.As(err, &httpErr) {
+		t.Fatalf("error %v is a %T, want an *HTTPError with status %d", err, err, want)
+	}
+	if httpErr.status != want {
+		t.Errorf("status: got %d want %d", httpErr.status, want)
+	}
+}
+
+// retrieveCommandFor runs handleRetrieve over the given query string and returns
+// the command that reached CCMS.
+func retrieveCommandFor(t *testing.T, rawQuery string) string {
+	t.Helper()
+	result := ccms.NewResult("ok")
+	result.AddField("id", "string")
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+
+	fake := &fakeCCMS{resp: resp}
+	server := newTestServer(fake)
+	err := server.handleRetrieve(httptest.NewRecorder(), retrieveRequest("users", rawQuery), "retrieve")
+	if err != nil {
+		t.Fatalf("handleRetrieve(%q) returned error: %v", rawQuery, err)
+	}
+	return fake.lastCmd
+}
+
+// A condition supplied as 'jsonCond' is rendered into the command by ParseCond,
+// so the values it carries can only appear as quoted literals.
+func TestHandleRetrieveJSONCond(t *testing.T) {
+	cases := map[string]string{
+		`{"type":"term","field":"title","rel":"contains","value":"world"}`: `title ilike '%world%'`,
+		`{"type":"term","field":"holdings_count","rel":"ge","value":3}`:    `holdings_count >= 3`,
+		`{"type":"term","field":"decision","rel":"eq","value":false}`:      `decision = false`,
+		`{"type":"filter","name":"target"}`:                                `filter(target)`,
+		`{"type":"and","clauses":[{"type":"term","field":"title","rel":"contains","value":"world"},` +
+			`{"type":"term","field":"author","rel":"contains","value":"O'Brien"}]}`: `(title ilike '%world%' and author ilike '%O''Brien%')`,
+		// The payload that motivated the whole exercise: it must survive as
+		// data, matched literally, rather than becoming a second statement.
+		`{"type":"term","field":"note","rel":"contains","value":"'; drop set users; --"}`: `note ilike '%''; drop set users; --%'`,
+	}
+	for jsonCond, wantCond := range cases {
+		t.Run(wantCond, func(t *testing.T) {
+			got := retrieveCommandFor(t, "fields=id&jsonCond="+url.QueryEscape(jsonCond))
+			want := "select id from users where " + wantCond + " limit 100;"
+			assertEqual(t, "command sent to CCMS", got, want)
+		})
+	}
+}
+
+// The old parameter keeps working untouched while it remains.
+func TestHandleRetrieveCondStillInterpolated(t *testing.T) {
+	got := retrieveCommandFor(t, "fields=id&cond="+url.QueryEscape("title ilike '%world%'"))
+	assertEqual(t, "command sent to CCMS", got, "select id from users where title ilike '%world%' limit 100;")
+}
+
+// Neither parameter means an unconditional retrieval, exactly as before.
+func TestHandleRetrieveNoCond(t *testing.T) {
+	got := retrieveCommandFor(t, "fields=id")
+	assertEqual(t, "command sent to CCMS", got, "select id from users limit 100;")
+}
+
+// The two parameters are alternatives, so supplying both is a client error and
+// no command is sent.
+func TestHandleRetrieveBothConds(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rawQuery := "fields=id&cond=" + url.QueryEscape("title = 'x'") +
+		"&jsonCond=" + url.QueryEscape(`{"type":"filter","name":"target"}`)
+	err := server.handleRetrieve(httptest.NewRecorder(), retrieveRequest("users", rawQuery), "retrieve")
+	if err == nil {
+		t.Fatal("expected an error when both 'cond' and 'jsonCond' are supplied")
+	}
+	assertHTTPStatus(t, err, http.StatusBadRequest)
+	assertErrContains(t, err, "only one of 'cond' and 'jsonCond' may be supplied")
+	if fake.lastCmd != "" {
+		t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+	}
+}
+
+// A 'jsonCond' that does not describe a condition is the client's mistake, and
+// must be reported as such rather than as a server fault.
+func TestHandleRetrieveJSONCondInvalid(t *testing.T) {
+	cases := map[string]string{
+		`title ilike '%world%'`: `not a condition clause`,
+		`{}`:                    `clause has no "type"`,
+		`{"type":"xyzzy"}`:      `unknown clause type "xyzzy"`,
+		`{"type":"term","field":"title","rel":"ilike","value":"x"}`:              `unknown relation "ilike"`,
+		`{"type":"term","field":"title; drop set users","rel":"eq","value":"x"}`: `invalid field identifier: "title; drop set users"`,
+	}
+	for jsonCond, wantErr := range cases {
+		t.Run(wantErr, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
+
+			rawQuery := "fields=id&jsonCond=" + url.QueryEscape(jsonCond)
+			err := server.handleRetrieve(httptest.NewRecorder(), retrieveRequest("users", rawQuery), "retrieve")
+			if err == nil {
+				t.Fatalf("expected an error for jsonCond=%s", jsonCond)
+			}
+			assertHTTPStatus(t, err, http.StatusBadRequest)
+			assertErrContains(t, err, "invalid 'jsonCond' parameter")
+			assertErrContains(t, err, wantErr)
+			if fake.lastCmd != "" {
+				t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+			}
+		})
 	}
 }
 
