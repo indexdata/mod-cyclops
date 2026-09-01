@@ -1,0 +1,38 @@
+{
+  "type": "and",
+  "clauses": [
+    {
+      "type": "or",
+      "clauses": [
+        {
+          "type": "not",
+          "clause": {
+            "type": "and",
+            "clauses": [
+              {
+                "type": "term",
+                "field": "title",
+                "rel": "startsWith",
+                "value": "a"
+              },
+              {
+                "type": "filter",
+                "name": "target"
+              }
+            ]
+          }
+        },
+        {
+          "type": "term",
+          "field": "acquired",
+          "rel": "lt",
+          "value": "2024-01-01"
+        }
+      ]
+    },
+    {
+      "type": "filter",
+      "name": "reviewed"
+    }
+  ]
+}

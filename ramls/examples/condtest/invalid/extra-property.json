@@ -1,0 +1,5 @@
+{
+  "type": "filter",
+  "name": "target",
+  "cond": "1=1"
+}

@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "note",
+  "rel": "contains",
+  "value": "'; drop table root --"
+}

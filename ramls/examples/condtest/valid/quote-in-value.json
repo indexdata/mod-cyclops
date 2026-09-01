@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "author",
+  "rel": "contains",
+  "value": "O'Brien"
+}

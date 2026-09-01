@@ -1,0 +1,10 @@
+{
+  "type": "term",
+  "field": "a",
+  "rel": "in",
+  "value": [
+    [
+      "x"
+    ]
+  ]
+}

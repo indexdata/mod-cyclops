@@ -1,0 +1,76 @@
+{
+  "type": "and",
+  "clauses": [
+    {
+      "type": "term",
+      "field": "title",
+      "rel": "contains",
+      "value": "world"
+    },
+    {
+      "type": "term",
+      "field": "author",
+      "rel": "contains",
+      "value": "O'Brien"
+    },
+    {
+      "type": "or",
+      "clauses": [
+        {
+          "type": "term",
+          "field": "availability",
+          "rel": "eq",
+          "value": "In stock"
+        },
+        {
+          "type": "term",
+          "field": "availability",
+          "rel": "eq",
+          "value": "On order"
+        }
+      ]
+    },
+    {
+      "type": "term",
+      "field": "holdings_count",
+      "rel": "ge",
+      "value": 3
+    },
+    {
+      "type": "term",
+      "field": "acquired",
+      "rel": "lt",
+      "value": "2024-01-01"
+    },
+    {
+      "type": "not",
+      "clause": {
+        "type": "term",
+        "field": "decision",
+        "rel": "eq",
+        "value": false
+      }
+    },
+    {
+      "type": "term",
+      "field": "withdrawn_date",
+      "rel": "isNull"
+    },
+    {
+      "type": "term",
+      "field": "location",
+      "rel": "in",
+      "value": ["main", "annexe", "offsite"]
+    },
+    {
+      "type": "term",
+      "field": "note",
+      "rel": "contains",
+      "value": "'; drop table root --"
+    },
+    {
+      "type": "filter",
+      "name": "target"
+    }
+  ]
+}

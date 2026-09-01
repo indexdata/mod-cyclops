@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "title",
+  "rel": "contains",
+  "value": "world"
+}

@@ -1,0 +1,6 @@
+{
+  "type": "term",
+  "field": "holdings_count",
+  "rel": "ge",
+  "value": 3
+}

@@ -1,0 +1,8 @@
+{
+  "type": "term",
+  "field": "a",
+  "rel": "eq",
+  "value": [
+    "x"
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "type": "term",
+  "field": "location",
+  "rel": "notIn",
+  "value": [
+    "offsite"
+  ]
+}

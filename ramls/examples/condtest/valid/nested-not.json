@@ -1,0 +1,14 @@
+{
+  "type": "not",
+  "clause": {
+    "type": "or",
+    "clauses": [
+      {
+        "type": "term",
+        "field": "holdings_count",
+        "rel": "ge",
+        "value": 1
+      }
+    ]
+  }
+}

@@ -89,6 +89,87 @@
    <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tags/dino', { op: 'add', cond: 'title LIKE %saur', filter: 'jurassic' })">add tag "dino" to records in set "korea_lit.mike"</button></li>
    <li><button class="link-button" onclick="postData('/cyclops/sets/korea_lit.mike/tags/dino', { op: 'remove', cond: 'author LIKE %taylor%', filter: 'cretaceous' })">remove tag "dino" from records in set "korea_lit.mike"</button></li>
   </ul>
+  Retrieval with
+  <a href="https://github.com/indexdata/mod-cyclops/blob/main/ramls/cond-schema.json">a structured condition</a>,
+  supplied as the <code>jsonCond</code> parameter instead of <code>cond</code>.
+  <ul id="jsonCondExamples"></ul>
+  <script>
+   // Each example is [label, condition, the CCMS condition it renders to].
+   // The last two are deliberately bad requests, and have no rendering.
+   const jsonCondExamples = [
+     ['a simple substring match',
+      { type: 'term', field: 'title', rel: 'contains', value: 'rings' },
+      `title ilike '%rings%'`],
+
+     ['a value containing a quote, which a hand-built condition string gets wrong',
+      { type: 'term', field: 'author', rel: 'contains', value: `O'Brien` },
+      `author ilike '%O''Brien%'`],
+
+     ['a numeric comparison',
+      { type: 'term', field: 'age', rel: 'ge', value: 143100000 },
+      `age >= 143100000`],
+
+     ['alternatives and negation, which a flat list of ANDed clauses cannot express',
+      { type: 'and',
+        clauses: [
+          { type: 'or',
+            clauses: [
+              { type: 'term', field: 'title', rel: 'contains', value: 'rings' },
+              { type: 'term', field: 'author', rel: 'eq', value: 'lewis' },
+            ] },
+          { type: 'not',
+            clause: { type: 'term', field: 'decision', rel: 'eq', value: true } },
+        ] },
+      `((title ilike '%rings%' or author = 'lewis') and not (decision = true))`],
+
+     ['a list membership test together with a named filter',
+      { type: 'and',
+        clauses: [
+          { type: 'term', field: 'fund', rel: 'in',
+            value: ['palci_cultural', 'coalition_slavic_lit'] },
+          { type: 'filter', name: 'jurassic' },
+        ] },
+      `(fund in ('palci_cultural', 'coalition_slavic_lit') and filter(jurassic))`],
+
+     ['a test for a missing value',
+      { type: 'term', field: 'decision', rel: 'isNull' },
+      `decision is null`],
+
+     // Note that the '_' is escaped too: it is a single-character wildcard in a
+     // LIKE pattern, so a value containing one must be escaped to match literally.
+     ['an injection attempt, which is searched for as ordinary text',
+      { type: 'term', field: 'title', rel: 'contains', value: `'; drop set korea_lit.mike; --` },
+      String.raw`title ilike '%''; drop set korea\_lit.mike; --%'`],
+
+     ['BAD REQUEST: no such relation as "ilike" (use "contains")',
+      { type: 'term', field: 'title', rel: 'ilike', value: 'rings' }],
+
+     ['BAD REQUEST: cond and jsonCond are alternatives, so both together is an error',
+      { type: 'term', field: 'title', rel: 'contains', value: 'rings' },
+      undefined,
+      `&cond=` + encodeURIComponent(`title = 'rings'`)],
+   ];
+
+   for (const [label, cond, rendering, extra] of jsonCondExamples) {
+     const li = document.createElement('li');
+     const a = document.createElement('a');
+     a.href = '/cyclops/sets/korea_lit.mike?fields=%2A&jsonCond=' +
+              encodeURIComponent(JSON.stringify(cond)) + (extra || '');
+     a.textContent = label;
+     li.append(a, document.createElement('br'));
+
+     const sent = document.createElement('code');
+     sent.textContent = JSON.stringify(cond);
+     li.append(sent);
+
+     if (rendering) {
+       const becomes = document.createElement('code');
+       becomes.textContent = rendering;
+       li.append(document.createElement('br'), document.createTextNode('⇒ '), becomes);
+     }
+     document.getElementById('jsonCondExamples').append(li);
+   }
+  </script>
   See also:
   <a href="form.html">the interactive form</a>
   focussed on what the current version of CCMS can actually do.

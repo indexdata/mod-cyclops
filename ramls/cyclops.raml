@@ -10,6 +10,12 @@ documentation:
   - title: Overview
     content: !include overview.md
 
+types:
+  # The structure carried by the 'jsonCond' query parameter. It is declared here
+  # rather than at the point of use because a query parameter must be a scalar:
+  # the parameter is the JSON text of a value of this type.
+  Condition: !include cond-schema.json
+
 /cyclops:
   /version:
     description: "The version of the running server"
@@ -113,7 +119,11 @@ documentation:
           cond:
             type: string
             required: false
-            description: An SQL-like WHERE condition
+            description: An SQL-like WHERE condition. Deprecated in favour of jsonCond, which cannot be used to inject arbitrary commands. At most one of cond and jsonCond may be supplied; when neither is, the retrieval is unconditional.
+          jsonCond:
+            type: string
+            required: false
+            description: A WHERE condition expressed as the JSON structure described by cond-schema.json (see examples/cond.json), rather than in CCMS's command language. The service validates the structure and generates the condition itself, so values are never interpreted as syntax. At most one of cond and jsonCond may be supplied.
           filter:
             type: string
             required: false
