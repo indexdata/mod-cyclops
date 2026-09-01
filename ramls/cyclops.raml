@@ -67,7 +67,9 @@ types:
       body:
         application/json:
           type: !include filter-schema.json
-          example: !include examples/filter-example.json
+          examples:
+            ccmsCondition: !include examples/filter-example.json
+            structuredCondition: !include examples/filter-jsoncond-example.json
       responses:
         204:
           description: No content is returned.

@@ -134,9 +134,10 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 // -----------------------------------------------------------------------------
 
 type CreateFilter struct {
-	Name     string `json:"name"`
-	Cond     string `json:"cond"`
-	Template string `json:"template"`
+	Name     string          `json:"name"`
+	Cond     string          `json:"cond"`
+	JSONCond json.RawMessage `json:"jsonCond"`
+	Template string          `json:"template"`
 }
 
 func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -151,16 +152,27 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
+	cond, err := resolveCond(filter.Cond, filter.JSONCond)
+	if err != nil {
+		return err
+	}
+
 	command := "create filter " + name
-	if filter.Cond != "" {
-		// XXX injection risk: 'cond' is a free-form condition expression and is
-		// not sanitised; needs AST-based construction.
-		command += " where " + filter.Cond
+	if cond != "" {
+		// XXX injection risk, but only by way of the 'cond' member, which is
+		// interpolated unchanged. A condition arriving as 'jsonCond' has been
+		// built by ParseCond from a validated structure and is safe. The risk
+		// goes away when 'cond' is withdrawn.
+		command += " where " + cond
 	}
 	if filter.Template != "" {
-		// XXX injection risk: 'template' is a free-form expression and is not
-		// sanitised; needs AST-based construction.
-		command += " template " + filter.Template
+		// The template is the name of another filter, so the qualified
+		// "project.filter" form must survive: ident admits the joining '.'.
+		template, terr := ident("filter template", filter.Template)
+		if terr != nil {
+			return &HTTPError{status: http.StatusBadRequest, message: terr.Error()}
+		}
+		command += " template " + template
 	}
 	command += ";"
 	server.Log("command", command)
@@ -436,37 +448,47 @@ func getCondSchema() *CondSchema {
 	return &CondSchema{AllowAnyField: true, AllowAnyFilter: true}
 }
 
-// requestCond returns the WHERE condition for a retrieval, which the caller may
-// supply either as 'cond', a condition already in CCMS's own language, or as
+// resolveCond returns the WHERE condition to use, given the two forms a caller
+// may supply it in: 'cond', a condition already in CCMS's own language, and
 // 'jsonCond', the structured form described by ramls/cond-schema.json. The two
-// are alternatives: supplying both is an error, and supplying neither means the
-// retrieval is unconditional, as it always has been.
+// are alternatives, so supplying both is an error; supplying neither yields the
+// empty condition, which every caller treats as "unconditional".
 //
 // 'cond' is interpolated into the command unchanged and is therefore an
 // injection risk; 'jsonCond' is validated and rendered by mod-cyclops itself.
 // The intention is to withdraw 'cond' once clients have moved over.
-func requestCond(req *http.Request) (string, error) {
-	cond := req.URL.Query().Get("cond")
-	jsonCond := req.URL.Query().Get("jsonCond")
+func resolveCond(cond string, jsonCond json.RawMessage) (string, error) {
+	// An absent member and an explicit null are alike: neither is a condition.
+	hasJSON := len(jsonCond) > 0 && string(jsonCond) != "null"
 
-	if cond != "" && jsonCond != "" {
+	if cond != "" && hasJSON {
 		return "", &HTTPError{
 			status:  http.StatusBadRequest,
 			message: "only one of 'cond' and 'jsonCond' may be supplied",
 		}
 	}
-	if jsonCond == "" {
+	if !hasJSON {
 		return cond, nil
 	}
 
-	rendered, err := ParseCond([]byte(jsonCond), getCondSchema())
+	rendered, err := ParseCond(jsonCond, getCondSchema())
 	if err != nil {
 		return "", &HTTPError{
 			status:  http.StatusBadRequest,
-			message: fmt.Sprintf("invalid 'jsonCond' parameter: %s", err),
+			message: fmt.Sprintf("invalid 'jsonCond': %s", err),
 		}
 	}
 	return rendered, nil
+}
+
+// requestCond resolves the condition for a retrieval, whose caller supplies it
+// in query parameters. 'jsonCond' is then the JSON text of a condition, since a
+// query parameter cannot itself be structured.
+func requestCond(req *http.Request) (string, error) {
+	return resolveCond(
+		req.URL.Query().Get("cond"),
+		json.RawMessage(req.URL.Query().Get("jsonCond")),
+	)
 }
 
 func makeRetrieveCommand(req *http.Request, countOnly bool) (string, error) {

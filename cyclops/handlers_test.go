@@ -280,7 +280,7 @@ func TestHandleRetrieveJSONCondInvalid(t *testing.T) {
 				t.Fatalf("expected an error for jsonCond=%s", jsonCond)
 			}
 			assertHTTPStatus(t, err, http.StatusBadRequest)
-			assertErrContains(t, err, "invalid 'jsonCond' parameter")
+			assertErrContains(t, err, "invalid 'jsonCond'")
 			assertErrContains(t, err, wantErr)
 			if fake.lastCmd != "" {
 				t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
@@ -787,6 +787,116 @@ func TestHandleCreateFilterNameOnly(t *testing.T) {
 
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active;")
 	assertStatus(t, rr, http.StatusNoContent)
+}
+
+// A filter's condition may be supplied structurally instead. Because the body
+// is already JSON, 'jsonCond' is a nested object rather than a string of JSON.
+func TestHandleCreateFilterJSONCond(t *testing.T) {
+	cases := map[string]string{
+		`{"type":"term","field":"age","rel":"gt","value":18}`: `create filter active where age > 18;`,
+		`{"type":"and","clauses":[{"type":"term","field":"age","rel":"ge","value":143100000},` +
+			`{"type":"term","field":"age","rel":"le","value":201400000}]}`: `create filter active where (age >= 143100000 and age <= 201400000);`,
+		`{"type":"term","field":"title","rel":"contains","value":"'; drop filter x; --"}`: `create filter active where title ilike '%''; drop filter x; --%';`,
+	}
+	for jsonCond, want := range cases {
+		t.Run(want, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
+
+			body := `{"name":"active","jsonCond":` + jsonCond + `}`
+			rr := httptest.NewRecorder()
+			err := server.handleCreateFilter(rr, jsonRequest(body, nil), "create filter")
+			if err != nil {
+				t.Fatalf("handleCreateFilter returned error: %v", err)
+			}
+			assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+			assertStatus(t, rr, http.StatusNoContent)
+		})
+	}
+}
+
+// As for retrieval, the two forms are alternatives, and a bad structure is the
+// client's mistake rather than a server fault.
+func TestHandleCreateFilterJSONCondErrors(t *testing.T) {
+	cases := map[string]string{
+		`{"name":"active","cond":"age>18","jsonCond":{"type":"term","field":"age","rel":"gt","value":18}}`: `only one of 'cond' and 'jsonCond' may be supplied`,
+		`{"name":"active","jsonCond":{"type":"xyzzy"}}`:                                                    `unknown clause type "xyzzy"`,
+		`{"name":"active","jsonCond":{"type":"term","field":"age; drop filter x","rel":"gt","value":18}}`:  `invalid field identifier`,
+	}
+	for body, wantErr := range cases {
+		t.Run(wantErr, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
+
+			err := server.handleCreateFilter(httptest.NewRecorder(), jsonRequest(body, nil), "create filter")
+			if err == nil {
+				t.Fatalf("expected an error for body %s", body)
+			}
+			assertHTTPStatus(t, err, http.StatusBadRequest)
+			assertErrContains(t, err, wantErr)
+			if fake.lastCmd != "" {
+				t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+			}
+		})
+	}
+}
+
+// The template names another filter, so it must be an identifier and cannot be
+// used to append anything else to the command.
+func TestHandleCreateFilterTemplate(t *testing.T) {
+	t.Run("qualified name survives intact", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"name":"korea_lit.jurassic","cond":"age>18","template":"korea_lit.mesozoic"}`
+		err := server.handleCreateFilter(httptest.NewRecorder(), jsonRequest(body, nil), "create filter")
+		if err != nil {
+			t.Fatalf("handleCreateFilter returned error: %v", err)
+		}
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"create filter korea_lit.jurassic where age>18 template korea_lit.mesozoic;")
+	})
+
+	for _, template := range []string{
+		"mesozoic; drop filter x",
+		"mesozoic where 1=1",
+		"mesozoic'",
+		"1mesozoic",
+		"meso zoic",
+	} {
+		t.Run(template, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
+
+			body, mErr := json.Marshal(CreateFilter{Name: "active", Cond: "age>18", Template: template})
+			if mErr != nil {
+				t.Fatal(mErr)
+			}
+			err := server.handleCreateFilter(httptest.NewRecorder(), jsonRequest(string(body), nil), "create filter")
+			if err == nil {
+				t.Fatalf("template %q should have been rejected", template)
+			}
+			assertHTTPStatus(t, err, http.StatusBadRequest)
+			assertErrContains(t, err, fmt.Sprintf("invalid filter template identifier: %q", template))
+			if fake.lastCmd != "" {
+				t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+			}
+		})
+	}
+}
+
+// An explicit null is not a condition, and must not be mistaken for one.
+func TestHandleCreateFilterNullJSONCond(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	body := `{"name":"active","cond":"age>18","jsonCond":null}`
+	err := server.handleCreateFilter(rr, jsonRequest(body, nil), "create filter")
+	if err != nil {
+		t.Fatalf("handleCreateFilter returned error: %v", err)
+	}
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18;")
 }
 
 func TestHandleDeleteFilter(t *testing.T) {

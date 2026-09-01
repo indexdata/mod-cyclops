@@ -9,7 +9,11 @@
     },
     "cond": {
       "type": "string",
-      "description": "An SQL-like WHERE condition"
+      "description": "An SQL-like WHERE condition. Deprecated in favour of jsonCond, which cannot be used to inject arbitrary commands."
+    },
+    "jsonCond": {
+      "description": "A WHERE condition expressed as a structure rather than in CCMS's command language. The service validates it and generates the condition itself, so values are never interpreted as syntax.",
+      "$ref": "cond-schema.json"
     },
     "template": {
       "type": "string",
@@ -18,7 +22,16 @@
   },
   "additionalProperties": false,
   "required": [
-    "name",
-    "cond"
+    "name"
+  ],
+  "oneOf": [
+    {
+      "description": "The condition in CCMS's command language",
+      "required": ["cond"]
+    },
+    {
+      "description": "The condition as a structure",
+      "required": ["jsonCond"]
+    }
   ]
 }
