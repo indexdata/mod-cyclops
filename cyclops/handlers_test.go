@@ -187,6 +187,60 @@ func assertHTTPStatus(t *testing.T, err error, want int) {
 	}
 }
 
+// The status an *HTTPError carries must be the status the client is actually
+// sent. Handlers wrap the errors they return, so this only holds if
+// runWithErrorHandling unwraps rather than type-asserting; when it did not,
+// every 400 below reached the client as a 500.
+func TestClientSeesHTTPErrorStatus(t *testing.T) {
+	jsonCond := url.QueryEscape(`{"type":"xyzzy"}`)
+	cases := []struct {
+		name string
+		run  func(*ModCyclopsServer, *httptest.ResponseRecorder)
+		want int
+	}{
+		{"retrieve with a bad jsonCond", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := retrieveRequest("users", "fields=id&jsonCond="+jsonCond)
+			s.runWithErrorHandling(rr, req, s.handleRetrieve, "retrieve")
+		}, http.StatusBadRequest},
+
+		{"create filter with a bad jsonCond", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := jsonRequest(`{"name":"active","jsonCond":{"type":"xyzzy"}}`, nil)
+			s.runWithErrorHandling(rr, req, s.handleCreateFilter, "create filter")
+		}, http.StatusBadRequest},
+
+		{"add objects with a bad jsonCond", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := jsonRequest(`{"from":"src","jsonCond":{"type":"xyzzy"}}`, map[string]string{"setName": "dest"})
+			s.runWithErrorHandling(rr, req, s.handleAddObjects, "add objects")
+		}, http.StatusBadRequest},
+
+		{"remove objects with a bad jsonCond", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := jsonRequest(`{"jsonCond":{"type":"xyzzy"}}`, map[string]string{"setName": "dest"})
+			s.runWithErrorHandling(rr, req, s.handleRemoveObjects, "remove objects")
+		}, http.StatusBadRequest},
+
+		{"create filter with a bad template", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := jsonRequest(`{"name":"active","cond":"age>18","template":"x; drop filter y"}`, nil)
+			s.runWithErrorHandling(rr, req, s.handleCreateFilter, "create filter")
+		}, http.StatusBadRequest},
+
+		// An error that carries no status is still a server fault.
+		{"CCMS unreachable", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
+			req := retrieveRequest("users", "fields=id")
+			s.runWithErrorHandling(rr, req, s.handleRetrieve, "retrieve")
+		}, http.StatusInternalServerError},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse(), err: errors.New("connection refused")}
+			server := newTestServer(fake)
+			rr := httptest.NewRecorder()
+			c.run(server, rr)
+			assertStatus(t, rr, c.want)
+		})
+	}
+}
+
 // retrieveCommandFor runs handleRetrieve over the given query string and returns
 // the command that reached CCMS.
 func retrieveCommandFor(t *testing.T, rawQuery string) string {

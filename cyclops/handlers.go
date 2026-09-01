@@ -609,14 +609,42 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 
 // -----------------------------------------------------------------------------
 
-type AddRecords struct {
-	From     string          `json:"from"`
+// RecordSelection is the set of records that an operation applies to: a
+// condition, in either of the two forms, narrowed by a filter and by tags.
+// Neither operation sorts or pages, so the sort and offset that the clause
+// builders accept are always empty here.
+type RecordSelection struct {
 	Cond     string          `json:"cond"`
 	JSONCond json.RawMessage `json:"jsonCond"`
 	Filter   string          `json:"filter"`
 	Tag      string          `json:"tag"`
 	OmitTag  string          `json:"omitTag"`
-	Limit    string          `json:"limit"`
+}
+
+// conditional renders the selection as the conditional part of a command. A
+// limit of "*" omits the limit from the command altogether.
+func (s *RecordSelection) conditional(limit string) (string, error) {
+	cond, err := resolveCond(s.Cond, s.JSONCond)
+	if err != nil {
+		return "", err
+	}
+	return makeConditionalClause(cond, s.Filter, s.Tag, s.OmitTag, "", limit, "")
+}
+
+// selectFrom renders the selection as a "select * from <set>" over the named
+// set, which is how records to be added are identified.
+func (s *RecordSelection) selectFrom(from, limit string) (string, error) {
+	cond, err := resolveCond(s.Cond, s.JSONCond)
+	if err != nil {
+		return "", err
+	}
+	return makeSelectClause("*", from, cond, s.Filter, s.Tag, s.OmitTag, "", limit, "")
+}
+
+type AddRecords struct {
+	From string `json:"from"`
+	RecordSelection
+	Limit string `json:"limit"`
 }
 
 func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -631,26 +659,11 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	cond, err := resolveCond(params.Cond, params.JSONCond)
-	if err != nil {
-		return err
-	}
-
 	limit := params.Limit
 	if limit == "" {
 		limit = "*" // Omit "limit" from the command when the request did not specify one
 	}
-	clause, err := makeSelectClause(
-		"*",
-		params.From,
-		cond,
-		params.Filter,
-		params.Tag,
-		params.OmitTag,
-		"",    // Sort
-		limit, // "*" omits "limit" completely when none was requested
-		"",    // Offset
-	)
+	clause, err := params.selectFrom(params.From, limit)
 	if err != nil {
 		return fmt.Errorf("could not make select clause: %w", err)
 	}
@@ -668,14 +681,7 @@ func (server *ModCyclopsServer) handleAddObjects(w http.ResponseWriter, req *htt
 
 // -----------------------------------------------------------------------------
 
-type RemoveRecords struct {
-	Cond     string          `json:"cond"`
-	JSONCond json.RawMessage `json:"jsonCond"`
-	Filter   string          `json:"filter"`
-	Tag      string          `json:"tag"`
-	OmitTag  string          `json:"omitTag"`
-	Limit    string          `json:"limit"`
-}
+type RemoveRecords = RecordSelection
 
 func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *http.Request, caption string) error {
 	setName, err := ident("set", chi.URLParam(req, "setName"))
@@ -689,20 +695,8 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	cond, err := resolveCond(params.Cond, params.JSONCond)
-	if err != nil {
-		return err
-	}
-
-	clause, err := makeConditionalClause(
-		cond,
-		params.Filter,
-		params.Tag,
-		params.OmitTag,
-		"",  // Sort
-		"*", // Special-case value to omit "limit" completely
-		"",  // Offset
-	)
+	// "*" omits the limit from the command completely: removal has no limit.
+	clause, err := params.conditional("*")
 	if err != nil {
 		return fmt.Errorf("could not make conditional clause: %w", err)
 	}
