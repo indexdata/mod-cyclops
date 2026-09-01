@@ -228,6 +228,64 @@ func TestCondLimits(t *testing.T) {
 	}
 }
 
+// With AllowAnyField set, a field that the schema does not declare is admitted
+// and its type is unknown, so any scalar may be compared against it. Fields the
+// schema does declare keep their types, and are still checked.
+func TestCondAllowAnyField(t *testing.T) {
+	permissive := &CondSchema{
+		Fields:         map[string]FieldKind{"holdings_count": FieldNumber},
+		AllowAnyField:  true,
+		AllowAnyFilter: true,
+	}
+
+	accepted := map[string]string{
+		`{"type":"term","field":"undeclared","rel":"eq","value":"x"}`:       `undeclared = 'x'`,
+		`{"type":"term","field":"undeclared","rel":"ge","value":3}`:         `undeclared >= 3`,
+		`{"type":"term","field":"undeclared","rel":"eq","value":true}`:      `undeclared = true`,
+		`{"type":"term","field":"undeclared","rel":"contains","value":"x"}`: `undeclared ilike '%x%'`,
+		`{"type":"filter","name":"undeclared"}`:                             `filter(undeclared)`,
+		// A declared field keeps the type it was declared with.
+		`{"type":"term","field":"holdings_count","rel":"ge","value":3}`: `holdings_count >= 3`,
+	}
+	for doc, want := range accepted {
+		got, err := ParseCond([]byte(doc), permissive)
+		if err != nil {
+			t.Errorf("%s: unexpectedly rejected: %v", doc, err)
+		} else if got != want {
+			t.Errorf("%s:\n got %q\nwant %q", doc, got, want)
+		}
+	}
+
+	// Being permissive about names is not being permissive about syntax: a
+	// field name that is not an identifier is still refused.
+	rejected := map[string]string{
+		`{"type":"term","field":"a; drop set x","rel":"eq","value":"x"}`:        `invalid field identifier`,
+		`{"type":"term","field":"holdings_count","rel":"eq","value":"three"}`:   `needs a numeric value`,
+		`{"type":"term","field":"holdings_count","rel":"contains","value":"x"}`: `cannot be matched with relation`,
+	}
+	for doc, want := range rejected {
+		_, err := ParseCond([]byte(doc), permissive)
+		if err == nil {
+			t.Errorf("%s: unexpectedly accepted", doc)
+		} else if !strings.Contains(err.Error(), want) {
+			t.Errorf("%s: error = %q, want it to contain %q", doc, err, want)
+		}
+	}
+
+	// Without the flag, an undeclared field is not queryable at all.
+	strict := &CondSchema{Fields: map[string]FieldKind{"holdings_count": FieldNumber}}
+	_, err := ParseCond([]byte(`{"type":"term","field":"undeclared","rel":"eq","value":"x"}`), strict)
+	if err == nil {
+		t.Error("an undeclared field was accepted without AllowAnyField")
+	} else if want := `field is not queryable: "undeclared"`; !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %q, want it to contain %q", err, want)
+	}
+
+	if got, want := FieldAny.String(), "any"; got != want {
+		t.Errorf("FieldAny.String() = %q, want %q", got, want)
+	}
+}
+
 func readCase(t *testing.T, path string) []byte {
 	t.Helper()
 	data, err := os.ReadFile(path)

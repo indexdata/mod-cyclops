@@ -40,6 +40,10 @@ const (
 	FieldNumber
 	FieldBoolean
 	FieldDate
+	// FieldAny is the kind of a field whose type is not known, which is the
+	// case for every field when CondSchema.AllowAnyField is set. A value of
+	// any scalar type may be compared against it.
+	FieldAny
 )
 
 // String names the kind for use in error messages. An unrecognised kind is
@@ -55,6 +59,8 @@ func (k FieldKind) String() string {
 		return "boolean"
 	case FieldDate:
 		return "date"
+	case FieldAny:
+		return "any"
 	default:
 		return fmt.Sprintf("FieldKind(%d)", int(k))
 	}
@@ -476,7 +482,7 @@ func (t *Term) render(s *CondSchema, b *strings.Builder) error {
 // renderPattern renders a substring match. The value is escaped as a LIKE
 // pattern, wrapped in whichever wildcards the relation calls for, and quoted.
 func (t *Term) renderPattern(pattern, field string, kind FieldKind, b *strings.Builder) error {
-	if kind != FieldString {
+	if kind != FieldString && kind != FieldAny {
 		return fmt.Errorf("field %q cannot be matched with relation %q", t.Field, t.Rel)
 	}
 	str, ok := t.Value.(string)
@@ -511,31 +517,34 @@ func (t *Term) renderList(op, field string, kind FieldKind, b *strings.Builder) 
 
 // fieldKind resolves the declared type of the term's field, which is also the
 // check that the field may be queried at all. An undeclared field is admitted
-// only when AllowAnyField is set, and is then treated as a string, that being
-// the zero value of FieldKind.
+// only when AllowAnyField is set, and is then of unknown type, so that any
+// scalar may be compared against it.
 func (t *Term) fieldKind(s *CondSchema) (FieldKind, error) {
 	kind, ok := s.Fields[t.Field]
-	if !s.AllowAnyField && !ok {
-		return FieldString, fmt.Errorf("field is not queryable: %q", t.Field)
+	if ok {
+		return kind, nil
 	}
-	return kind, nil
+	if !s.AllowAnyField {
+		return FieldAny, fmt.Errorf("field is not queryable: %q", t.Field)
+	}
+	return FieldAny, nil
 }
 
 // renderLiteral renders a scalar as a CCMS literal of the kind the field expects.
 func renderLiteral(v any, kind FieldKind, field string) (string, error) {
 	switch val := v.(type) {
 	case string:
-		if kind != FieldString && kind != FieldDate {
+		if kind != FieldString && kind != FieldDate && kind != FieldAny {
 			return "", fmt.Errorf("field %q needs a %s value, not a string", field, kind)
 		}
 		return sqlString(val)
 	case json.Number:
-		if kind != FieldNumber {
+		if kind != FieldNumber && kind != FieldAny {
 			return "", fmt.Errorf("field %q needs a %s value, not a number", field, kind)
 		}
 		return renderNumber(val)
 	case bool:
-		if kind != FieldBoolean {
+		if kind != FieldBoolean && kind != FieldAny {
 			return "", fmt.Errorf("field %q needs a %s value, not a boolean", field, kind)
 		}
 		if val {
