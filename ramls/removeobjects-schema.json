@@ -3,10 +3,6 @@
   "description": "A request to remove objects from a set",
   "type": "object",
   "properties": {
-    "cond": {
-      "type": "string",
-      "description": "An SQL-like WHERE condition specifying the selection of records to be deleted. Deprecated in favour of jsonCond, which cannot be used to inject arbitrary commands."
-    },
     "jsonCond": {
       "description": "The selection of records to be deleted, expressed as a structure rather than in CCMS's command language. The service validates it and generates the condition itself, so values are never interpreted as syntax.",
       "$ref": "cond-schema.json"
@@ -24,9 +20,5 @@
       "description": "A comma-separated list of the names of tags, specifying that only those selected records without any of the tags will be deleted"
     }
   },
-  "additionalProperties": false,
-  "not": {
-    "description": "cond and jsonCond are alternatives: at most one may be supplied",
-    "required": ["cond", "jsonCond"]
-  }
+  "additionalProperties": false
 }

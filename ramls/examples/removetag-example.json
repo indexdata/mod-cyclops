@@ -1,5 +1,10 @@
 {
   "op": "remove",
-  "cond": "author LIKE \"%taylor%\"",
+  "jsonCond": {
+    "type": "term",
+    "field": "author",
+    "rel": "contains",
+    "value": "taylor"
+  },
   "filter": "cretaceous"
 }

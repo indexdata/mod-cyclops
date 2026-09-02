@@ -133,6 +133,8 @@ func (server *ModCyclopsServer) handleShowFilters(w http.ResponseWriter, req *ht
 
 // -----------------------------------------------------------------------------
 
+// Cond is the withdrawn raw CCMS condition, kept only so that a client
+// still sending one is refused rather than quietly obeyed in part.
 type CreateFilter struct {
 	Name     string          `json:"name"`
 	Cond     string          `json:"cond"`
@@ -159,10 +161,6 @@ func (server *ModCyclopsServer) handleCreateFilter(w http.ResponseWriter, req *h
 
 	command := "create filter " + name
 	if cond != "" {
-		// XXX injection risk, but only by way of the 'cond' member, which is
-		// interpolated unchanged. A condition arriving as 'jsonCond' has been
-		// built by ParseCond from a validated structure and is safe. The risk
-		// goes away when 'cond' is withdrawn.
 		command += " where " + cond
 	}
 	if filter.Template != "" {
@@ -337,12 +335,10 @@ func (server *ModCyclopsServer) handleAlterSet(w http.ResponseWriter, req *http.
 func makeConditionalClause(cond, filter, tag, omitTag, sort, limit, offset string) (string, error) {
 	var b strings.Builder
 
+	// Every caller obtains the condition from resolveCond, which builds it from
+	// a validated structure, so it is safe to interpolate.
 	if cond != "" {
 		b.WriteString(" where ")
-		// XXX injection risk, but only by way of 'cond', which every caller
-		// interpolates unchanged. A condition that arrived as 'jsonCond' has
-		// been built by ParseCond from a validated structure and is safe. The
-		// risk goes away when 'cond' is withdrawn.
 		b.WriteString(cond)
 	}
 
@@ -448,27 +444,28 @@ func getCondSchema() *CondSchema {
 	return &CondSchema{AllowAnyField: true, AllowAnyFilter: true}
 }
 
-// resolveCond returns the WHERE condition to use, given the two forms a caller
-// may supply it in: 'cond', a condition already in CCMS's own language, and
-// 'jsonCond', the structured form described by ramls/cond-schema.json. The two
-// are alternatives, so supplying both is an error; supplying neither yields the
-// empty condition, which every caller treats as "unconditional".
+// resolveCond returns the WHERE condition to use, given the 'jsonCond' that the
+// caller supplied: the structured form described by ramls/cond-schema.json. An
+// absent condition yields the empty string, which every caller treats as
+// "unconditional".
 //
-// 'cond' is interpolated into the command unchanged and is therefore an
-// injection risk; 'jsonCond' is validated and rendered by mod-cyclops itself.
-// The intention is to withdraw 'cond' once clients have moved over.
+// Earlier versions also took 'cond', a condition already in CCMS's own
+// language, which was interpolated into the command unchanged and so let a
+// client inject arbitrary CCMS. It is gone, but still recognised here: a client
+// that has not moved over is told so rather than having its condition silently
+// ignored, which for a deletion would mean deleting far more than it asked for.
 func resolveCond(cond string, jsonCond json.RawMessage) (string, error) {
-	// An absent member and an explicit null are alike: neither is a condition.
-	hasJSON := len(jsonCond) > 0 && string(jsonCond) != "null"
-
-	if cond != "" && hasJSON {
+	if cond != "" {
 		return "", &HTTPError{
-			status:  http.StatusBadRequest,
-			message: "only one of 'cond' and 'jsonCond' may be supplied",
+			status: http.StatusBadRequest,
+			message: "the 'cond' parameter has been withdrawn: supply the " +
+				"condition as 'jsonCond', the structure described by cond-schema.json",
 		}
 	}
-	if !hasJSON {
-		return cond, nil
+
+	// An absent member and an explicit null are alike: neither is a condition.
+	if len(jsonCond) == 0 || string(jsonCond) == "null" {
+		return "", nil
 	}
 
 	rendered, err := ParseCond(jsonCond, getCondSchema())
@@ -610,9 +607,12 @@ func (server *ModCyclopsServer) handleDropSet(w http.ResponseWriter, req *http.R
 // -----------------------------------------------------------------------------
 
 // RecordSelection is the set of records that an operation applies to: a
-// condition, in either of the two forms, narrowed by a filter and by tags.
-// Neither operation sorts or pages, so the sort and offset that the clause
-// builders accept are always empty here.
+// condition, narrowed by a filter and by tags. Neither operation sorts or
+// pages, so the sort and offset that the clause builders accept are always
+// empty here.
+//
+// Cond is the withdrawn raw CCMS condition, kept only so that a client
+// still sending one is refused rather than quietly obeyed in part.
 type RecordSelection struct {
 	Cond     string          `json:"cond"`
 	JSONCond json.RawMessage `json:"jsonCond"`

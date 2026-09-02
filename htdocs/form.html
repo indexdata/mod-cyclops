@@ -48,8 +48,9 @@
 	<input type="text" id="search-name" value="test.mike" />
 	<label for="search-fields">Fields:</label>
 	<input type="text" id="search-fields" value="*" />
-	<label for="search-fields">Cond:</label>
-	<input type="text" id="search-cond" value="author='Adams, John'" />
+	<label for="search-fields">jsonCond:</label>
+	<input type="text" id="search-cond" size="60"
+	       value='{"type":"term","field":"author","rel":"eq","value":"Adams, John"}' />
 	<label for="search-fields">Sort:</label>
 	<input type="text" id="search-sort" value="title" />
 	<label for="search-fields">Limit:</label>
@@ -69,7 +70,7 @@
 	  const searchOffset = document.getElementById('search-offset').value
 	  const url = ('/cyclops/sets/' + searchName +
 		       '?fields=' + searchFields +
-		       '&cond=' + searchCond +
+		       '&jsonCond=' + encodeURIComponent(searchCond) +
 		       '&sort=' + searchSort +
 		       '&limit=' + searchLimit +
 		       '&offset=' + searchOffset)

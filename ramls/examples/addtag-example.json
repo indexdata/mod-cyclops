@@ -1,5 +1,10 @@
 {
   "op": "add",
-  "cond": "title LIKE \"%saur\"",
+  "jsonCond": {
+    "type": "term",
+    "field": "title",
+    "rel": "endsWith",
+    "value": "saur"
+  },
   "filter": "jurassic"
 }

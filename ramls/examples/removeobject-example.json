@@ -1,5 +1,10 @@
 {
-  "cond": "date < \"2025-01-01\"",
+  "jsonCond": {
+    "type": "term",
+    "field": "date",
+    "rel": "lt",
+    "value": "2025-01-01"
+  },
   "filter": "cretaceous",
   "tag": "dino",
   "omitTag": "ptero,croc"

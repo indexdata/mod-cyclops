@@ -219,7 +219,7 @@ func TestClientSeesHTTPErrorStatus(t *testing.T) {
 		}, http.StatusBadRequest},
 
 		{"create filter with a bad template", func(s *ModCyclopsServer, rr *httptest.ResponseRecorder) {
-			req := jsonRequest(`{"name":"active","cond":"age>18","template":"x; drop filter y"}`, nil)
+			req := jsonRequest(`{"name":"active","template":"x; drop filter y"}`, nil)
 			s.runWithErrorHandling(rr, req, s.handleCreateFilter, "create filter")
 		}, http.StatusBadRequest},
 
@@ -282,34 +282,37 @@ func TestHandleRetrieveJSONCond(t *testing.T) {
 	}
 }
 
-// The old parameter keeps working untouched while it remains.
-func TestHandleRetrieveCondStillInterpolated(t *testing.T) {
-	got := retrieveCommandFor(t, "fields=id&cond="+url.QueryEscape("title ilike '%world%'"))
-	assertEqual(t, "command sent to CCMS", got, "select id from users where title ilike '%world%' limit 100;")
-}
-
-// Neither parameter means an unconditional retrieval, exactly as before.
+// No condition at all means an unconditional retrieval.
 func TestHandleRetrieveNoCond(t *testing.T) {
 	got := retrieveCommandFor(t, "fields=id")
 	assertEqual(t, "command sent to CCMS", got, "select id from users limit 100;")
 }
 
-// The two parameters are alternatives, so supplying both is a client error and
-// no command is sent.
-func TestHandleRetrieveBothConds(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
+// 'cond' is withdrawn: a client still sending one must be told so, rather than
+// have its condition ignored and be given records it did not ask for. The
+// second case is the only one anywhere that pairs the two parameters, and pins
+// that a 'cond' is refused even when a usable 'jsonCond' accompanies it; the
+// other entry points test the refusal itself, which is the same code path.
+func TestHandleRetrieveCondWithdrawn(t *testing.T) {
+	for _, rawQuery := range []string{
+		"fields=id&cond=" + url.QueryEscape("title = 'x'"),
+		"fields=id&cond=" + url.QueryEscape("title = 'x'") +
+			"&jsonCond=" + url.QueryEscape(`{"type":"filter","name":"target"}`),
+	} {
+		t.Run(rawQuery, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
 
-	rawQuery := "fields=id&cond=" + url.QueryEscape("title = 'x'") +
-		"&jsonCond=" + url.QueryEscape(`{"type":"filter","name":"target"}`)
-	err := server.handleRetrieve(httptest.NewRecorder(), retrieveRequest("users", rawQuery), "retrieve")
-	if err == nil {
-		t.Fatal("expected an error when both 'cond' and 'jsonCond' are supplied")
-	}
-	assertHTTPStatus(t, err, http.StatusBadRequest)
-	assertErrContains(t, err, "only one of 'cond' and 'jsonCond' may be supplied")
-	if fake.lastCmd != "" {
-		t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+			err := server.handleRetrieve(httptest.NewRecorder(), retrieveRequest("users", rawQuery), "retrieve")
+			if err == nil {
+				t.Fatal("expected an error when 'cond' is supplied")
+			}
+			assertHTTPStatus(t, err, http.StatusBadRequest)
+			assertErrContains(t, err, "'cond' parameter has been withdrawn")
+			if fake.lastCmd != "" {
+				t.Errorf("a command was sent despite the bad request: %q", fake.lastCmd)
+			}
+		})
 	}
 }
 
@@ -814,21 +817,6 @@ func TestHandleBatchUpdate(t *testing.T) {
 	})
 }
 
-func TestHandleCreateFilter(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
-
-	body := `{"name":"active","cond":"age>18","template":"tmpl"}`
-	rr := httptest.NewRecorder()
-	err := server.handleCreateFilter(rr, jsonRequest(body, nil), "create filter")
-	if err != nil {
-		t.Fatalf("handleCreateFilter returned error: %v", err)
-	}
-
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18 template tmpl;")
-	assertStatus(t, rr, http.StatusNoContent)
-}
-
 func TestHandleCreateFilterNameOnly(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
@@ -869,13 +857,13 @@ func TestHandleCreateFilterJSONCond(t *testing.T) {
 	}
 }
 
-// As for retrieval, the two forms are alternatives, and a bad structure is the
+// As for retrieval, a withdrawn 'cond' is refused, and a bad structure is the
 // client's mistake rather than a server fault.
 func TestHandleCreateFilterJSONCondErrors(t *testing.T) {
 	cases := map[string]string{
-		`{"name":"active","cond":"age>18","jsonCond":{"type":"term","field":"age","rel":"gt","value":18}}`: `only one of 'cond' and 'jsonCond' may be supplied`,
-		`{"name":"active","jsonCond":{"type":"xyzzy"}}`:                                                    `unknown clause type "xyzzy"`,
-		`{"name":"active","jsonCond":{"type":"term","field":"age; drop filter x","rel":"gt","value":18}}`:  `invalid field identifier`,
+		`{"name":"active","cond":"age>18"}`:                                                               `'cond' parameter has been withdrawn`,
+		`{"name":"active","jsonCond":{"type":"xyzzy"}}`:                                                   `unknown clause type "xyzzy"`,
+		`{"name":"active","jsonCond":{"type":"term","field":"age; drop filter x","rel":"gt","value":18}}`: `invalid field identifier`,
 	}
 	for body, wantErr := range cases {
 		t.Run(wantErr, func(t *testing.T) {
@@ -902,13 +890,14 @@ func TestHandleCreateFilterTemplate(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
 		server := newTestServer(fake)
 
-		body := `{"name":"korea_lit.jurassic","cond":"age>18","template":"korea_lit.mesozoic"}`
+		body := `{"name":"korea_lit.jurassic","jsonCond":{"type":"term","field":"age","rel":"gt","value":18},` +
+			`"template":"korea_lit.mesozoic"}`
 		err := server.handleCreateFilter(httptest.NewRecorder(), jsonRequest(body, nil), "create filter")
 		if err != nil {
 			t.Fatalf("handleCreateFilter returned error: %v", err)
 		}
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
-			"create filter korea_lit.jurassic where age>18 template korea_lit.mesozoic;")
+			"create filter korea_lit.jurassic where age > 18 template korea_lit.mesozoic;")
 	})
 
 	for _, template := range []string{
@@ -922,7 +911,11 @@ func TestHandleCreateFilterTemplate(t *testing.T) {
 			fake := &fakeCCMS{resp: okResponse()}
 			server := newTestServer(fake)
 
-			body, mErr := json.Marshal(CreateFilter{Name: "active", Cond: "age>18", Template: template})
+			body, mErr := json.Marshal(CreateFilter{
+				Name:     "active",
+				JSONCond: json.RawMessage(`{"type":"term","field":"age","rel":"gt","value":18}`),
+				Template: template,
+			})
 			if mErr != nil {
 				t.Fatal(mErr)
 			}
@@ -945,12 +938,12 @@ func TestHandleCreateFilterNullJSONCond(t *testing.T) {
 	server := newTestServer(fake)
 
 	rr := httptest.NewRecorder()
-	body := `{"name":"active","cond":"age>18","jsonCond":null}`
+	body := `{"name":"active","jsonCond":null}`
 	err := server.handleCreateFilter(rr, jsonRequest(body, nil), "create filter")
 	if err != nil {
 		t.Fatalf("handleCreateFilter returned error: %v", err)
 	}
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active where age>18;")
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create filter active;")
 }
 
 func TestHandleDeleteFilter(t *testing.T) {
@@ -1168,51 +1161,30 @@ func TestHandleDeleteFund(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+// The condition itself is covered by TestHandleObjectsJSONCond below; what is
+// under test here is the limit, which the command carries only when the request
+// asked for one.
 func TestHandleAddObjects(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
-
-	body := `{"from":"src","cond":"age>18","limit":"5"}`
-	rr := httptest.NewRecorder()
-	err := server.handleAddObjects(rr, jsonRequest(body, map[string]string{"setName": "dest"}), "add objects")
-	if err != nil {
-		t.Fatalf("handleAddObjects returned error: %v", err)
+	cases := map[string]string{
+		`,"limit":"5"`: "insert into dest select * from src where age > 18 limit 5;",
+		``:             "insert into dest select * from src where age > 18;",
 	}
+	for limit, want := range cases {
+		t.Run(want, func(t *testing.T) {
+			fake := &fakeCCMS{resp: okResponse()}
+			server := newTestServer(fake)
 
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "insert into dest select * from src where age>18 limit 5;")
-	assertStatus(t, rr, http.StatusNoContent)
-}
+			body := `{"from":"src","jsonCond":{"type":"term","field":"age","rel":"gt","value":18}` + limit + `}`
+			rr := httptest.NewRecorder()
+			err := server.handleAddObjects(rr, jsonRequest(body, map[string]string{"setName": "dest"}), "add objects")
+			if err != nil {
+				t.Fatalf("handleAddObjects returned error: %v", err)
+			}
 
-func TestHandleAddObjectsNoLimit(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
-
-	// When the request omits "limit", the command must not specify one either.
-	body := `{"from":"src","cond":"age>18"}`
-	rr := httptest.NewRecorder()
-	err := server.handleAddObjects(rr, jsonRequest(body, map[string]string{"setName": "dest"}), "add objects")
-	if err != nil {
-		t.Fatalf("handleAddObjects returned error: %v", err)
+			assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+			assertStatus(t, rr, http.StatusNoContent)
+		})
 	}
-
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "insert into dest select * from src where age>18;")
-	assertStatus(t, rr, http.StatusNoContent)
-}
-
-func TestHandleRemoveObjects(t *testing.T) {
-	fake := &fakeCCMS{resp: okResponse()}
-	server := newTestServer(fake)
-
-	rr := httptest.NewRecorder()
-	err := server.handleRemoveObjects(rr, jsonRequest(`{"cond":"age<10"}`, map[string]string{"setName": "dest"}), "remove objects")
-	if err != nil {
-		t.Fatalf("handleRemoveObjects returned error: %v", err)
-	}
-
-	// Note the double space: command is "delete from <set> " + clause, and the
-	// conditional clause itself begins with a leading space (" where ...").
-	assertEqual(t, "command sent to CCMS", fake.lastCmd, "delete from dest  where age<10;")
-	assertStatus(t, rr, http.StatusNoContent)
 }
 
 // handlerUnderTest is one of the body-carrying handlers that accepts a
@@ -1241,13 +1213,14 @@ var condHandlers = []condHandler{
 			return s.handleRemoveObjects(rr, req, "remove objects")
 		},
 		params: map[string]string{"setName": "dest"},
-		// The double space is as in TestHandleRemoveObjects above.
+		// Note the double space: the command is "delete from <set> " + clause,
+		// and the conditional clause itself begins with a leading space.
 		wantFmt: "delete from dest  where %s;",
 	},
 }
 
-// Both handlers accept a structured condition in place of the CCMS one, and
-// render it through the same code the other entry points use.
+// Both handlers take the condition as a structure, rendered through the same
+// code the other entry points use.
 func TestHandleObjectsJSONCond(t *testing.T) {
 	cases := map[string]string{
 		`{"type":"term","field":"age","rel":"gt","value":18}`:                             `age > 18`,
@@ -1275,7 +1248,7 @@ func TestHandleObjectsJSONCond(t *testing.T) {
 // And both reject the same client mistakes, without sending a command.
 func TestHandleObjectsJSONCondErrors(t *testing.T) {
 	cases := map[string]string{
-		`"cond":"age>18","jsonCond":{"type":"term","field":"age","rel":"gt","value":18}`: `only one of 'cond' and 'jsonCond' may be supplied`,
+		`"cond":"age>18"`:             `'cond' parameter has been withdrawn`,
 		`"jsonCond":{"type":"xyzzy"}`: `unknown clause type "xyzzy"`,
 		`"jsonCond":{"type":"term","field":"age; drop set x","rel":"gt","value":18}`: `invalid field identifier`,
 	}
@@ -1578,10 +1551,11 @@ func TestMakeRetrieveCommand(t *testing.T) {
 			expectedErr: "no 'fields' parameter supplied",
 		},
 		{
-			name:        "with condition and filter",
-			url:         "/test?fields=id&cond=age>18&filter=active",
+			name: "with condition and filter",
+			url: "/test?fields=id&filter=active&jsonCond=" +
+				url.QueryEscape(`{"type":"term","field":"age","rel":"gt","value":18}`),
 			setName:     "users",
-			expected:    "select id from users where age>18 filter active limit 100;",
+			expected:    "select id from users where age > 18 filter active limit 100;",
 			expectedErr: "",
 		},
 		{
