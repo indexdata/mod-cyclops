@@ -67,84 +67,32 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root 
 			}
 		}
 	})
-	r.Get("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowTags, "show tags")
-	})
-	r.Post("/cyclops/tags", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDefineTag, "define tag")
-	})
-	r.Get("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowFilters, "show filters")
-	})
-	r.Post("/cyclops/filters", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleCreateFilter, "create filter")
-	})
-	r.Delete("/cyclops/filters/{filterId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDeleteFilter, "delete filter")
-	})
-	r.Get("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowSets, "show sets")
-	})
-	r.Post("/cyclops/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleCreateSet, "create set")
-	})
-	r.Get("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleRetrieve, "retrieve")
-	})
-	r.Delete("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDropSet, "drop set")
-	})
-	r.Put("/cyclops/sets/{setName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleAlterSet, "alter set")
-	})
-	r.Post("/cyclops/sets/{setName}/add", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleAddObjects, "add objects")
-	})
-	r.Post("/cyclops/sets/{setName}/remove", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleRemoveObjects, "remove objects")
-	})
-	r.Post("/cyclops/sets/{setName}/tags/{tagName}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleAddRemoveTags, "add/remove tags")
-	})
-	r.Post("/cyclops/sets/{setName}/batch", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleBatchUpdate, "batch update")
-	})
-	r.Post("/cyclops/sets/{setName}/{recordId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleUpdateRecord, "update record")
-	})
-	r.Get("/cyclops/projects", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowProjects, "show projects")
-	})
-	r.Get("/cyclops/projects/{projectId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleFetchProject, "fetch project")
-	})
-	r.Post("/cyclops/projects", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleCreateProject, "create project")
-	})
-	r.Delete("/cyclops/projects/{projectId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDeleteProject, "delete project")
-	})
-	r.Put("/cyclops/projects/{projectId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleUpdateProject, "update project")
-	})
-	r.Get("/cyclops/projects/{projectId}/sets", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowSetsInProject, "show sets in project")
-	})
-	r.Get("/cyclops/funds", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleShowFunds, "show funds")
-	})
-	r.Post("/cyclops/funds", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleCreateFund, "create fund")
-	})
-	r.Get("/cyclops/funds/{fundId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleFetchFund, "fetch fund")
-	})
-	r.Put("/cyclops/funds/{fundId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleUpdateFund, "update fund")
-	})
-	r.Delete("/cyclops/funds/{fundId}", func(w http.ResponseWriter, req *http.Request) {
-		server.runWithErrorHandling(w, req, server.handleDeleteFund, "delete fund")
-	})
+	r.Get("/cyclops/tags", server.handler(server.handleShowTags, "show tags"))
+	r.Post("/cyclops/tags", server.handler(server.handleDefineTag, "define tag"))
+	r.Get("/cyclops/filters", server.handler(server.handleShowFilters, "show filters"))
+	r.Post("/cyclops/filters", server.handler(server.handleCreateFilter, "create filter"))
+	r.Delete("/cyclops/filters/{filterId}", server.handler(server.handleDeleteFilter, "delete filter"))
+	r.Get("/cyclops/sets", server.handler(server.handleShowSets, "show sets"))
+	r.Post("/cyclops/sets", server.handler(server.handleCreateSet, "create set"))
+	r.Get("/cyclops/sets/{setName}", server.handler(server.handleRetrieve, "retrieve"))
+	r.Delete("/cyclops/sets/{setName}", server.handler(server.handleDropSet, "drop set"))
+	r.Put("/cyclops/sets/{setName}", server.handler(server.handleAlterSet, "alter set"))
+	r.Post("/cyclops/sets/{setName}/add", server.handler(server.handleAddObjects, "add objects"))
+	r.Post("/cyclops/sets/{setName}/remove", server.handler(server.handleRemoveObjects, "remove objects"))
+	r.Post("/cyclops/sets/{setName}/tags/{tagName}", server.handler(server.handleAddRemoveTags, "add/remove tags"))
+	r.Post("/cyclops/sets/{setName}/batch", server.handler(server.handleBatchUpdate, "batch update"))
+	r.Post("/cyclops/sets/{setName}/{recordId}", server.handler(server.handleUpdateRecord, "update record"))
+	r.Get("/cyclops/projects", server.handler(server.handleShowProjects, "show projects"))
+	r.Get("/cyclops/projects/{projectId}", server.handler(server.handleFetchProject, "fetch project"))
+	r.Post("/cyclops/projects", server.handler(server.handleCreateProject, "create project"))
+	r.Delete("/cyclops/projects/{projectId}", server.handler(server.handleDeleteProject, "delete project"))
+	r.Put("/cyclops/projects/{projectId}", server.handler(server.handleUpdateProject, "update project"))
+	r.Get("/cyclops/projects/{projectId}/sets", server.handler(server.handleShowSetsInProject, "show sets in project"))
+	r.Get("/cyclops/funds", server.handler(server.handleShowFunds, "show funds"))
+	r.Post("/cyclops/funds", server.handler(server.handleCreateFund, "create fund"))
+	r.Get("/cyclops/funds/{fundId}", server.handler(server.handleFetchFund, "fetch fund"))
+	r.Put("/cyclops/funds/{fundId}", server.handler(server.handleUpdateFund, "update fund"))
+	r.Delete("/cyclops/funds/{fundId}", server.handler(server.handleDeleteFund, "delete fund"))
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
 		message := http.StatusText(status)
@@ -170,6 +118,13 @@ func (server *ModCyclopsServer) Launch(host string, port int) error {
 }
 
 type handlerFn func(w http.ResponseWriter, req *http.Request, caption string) error
+
+// handler adapts a handlerFn into an http.HandlerFunc for route registration.
+func (server *ModCyclopsServer) handler(f handlerFn, caption string) http.HandlerFunc {
+	return func(w http.ResponseWriter, req *http.Request) {
+		server.runWithErrorHandling(w, req, f, caption)
+	}
+}
 
 func (server *ModCyclopsServer) runWithErrorHandling(w http.ResponseWriter, req *http.Request, f handlerFn, caption string) {
 	sent, err := server.respondWithDummy(w, caption)
