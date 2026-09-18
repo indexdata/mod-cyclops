@@ -1,0 +1,16 @@
+{
+  "tracks": [
+    {
+      "id": "standard",
+      "name": "Standard review track"
+    },
+    {
+      "id": "expedited_review",
+      "name": "Expedited review track"
+    },
+    {
+      "id": "rare_materials",
+      "name": "Rare materials track"
+    }
+  ]
+}

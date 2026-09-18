@@ -1,0 +1,19 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "description": "A track in a CYCLOPS system",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "The short machine-readable identifier of the track"
+    },
+    "name": {
+      "type": "string",
+      "description": "The human-readable name of the track"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "id"
+  ]
+}

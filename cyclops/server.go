@@ -93,6 +93,11 @@ func MakeModCyclopsServer(logger *catlogger.Logger, ccmsClient CCMSClient, root 
 	r.Get("/cyclops/funds/{fundId}", server.handler(server.handleFetchFund, "fetch fund"))
 	r.Put("/cyclops/funds/{fundId}", server.handler(server.handleUpdateFund, "update fund"))
 	r.Delete("/cyclops/funds/{fundId}", server.handler(server.handleDeleteFund, "delete fund"))
+	r.Get("/cyclops/tracks", server.handler(server.handleShowTracks, "show tracks"))
+	r.Post("/cyclops/tracks", server.handler(server.handleCreateTrack, "create track"))
+	r.Get("/cyclops/tracks/{trackId}", server.handler(server.handleFetchTrack, "fetch track"))
+	r.Put("/cyclops/tracks/{trackId}", server.handler(server.handleUpdateTrack, "update track"))
+	r.Delete("/cyclops/tracks/{trackId}", server.handler(server.handleDeleteTrack, "delete track"))
 	r.NotFound(func(w http.ResponseWriter, req *http.Request) {
 		status := http.StatusNotFound
 		message := http.StatusText(status)

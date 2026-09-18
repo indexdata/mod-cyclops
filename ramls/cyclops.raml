@@ -337,3 +337,50 @@ types:
         responses:
           204:
             description: No content is returned.
+  /tracks:
+    description: "Tracks that can be associated with a project or assigned to a spectre"
+    get:
+      description: "Return a list of all known tracks"
+      responses:
+        200:
+          body:
+            application/json:
+              type: !include tracks-schema.json
+              example: !include examples/show-tracks-example.json
+    post:
+      description: "Create a new track"
+      body:
+        application/json:
+          type: !include track-schema.json
+          example: !include examples/track-example.json
+      responses:
+        204:
+          description: No content is returned.
+    /{trackId}:
+      uriParameters:
+        trackId:
+          description: The machine-readable identifier of the track
+          type: string
+          required: true
+      get:
+        description: "Show a single track in full"
+        responses:
+          200:
+            body:
+              application/json:
+                type: !include track-schema.json
+                example: !include examples/track-example.json
+      put:
+        description: "Alter an existing track"
+        body:
+          application/json:
+            type: !include track-schema.json
+            example: !include examples/track-example.json
+        responses:
+          204:
+            description: No content is returned.
+      delete:
+        description: "Drop an existing track"
+        responses:
+          204:
+            description: No content is returned.

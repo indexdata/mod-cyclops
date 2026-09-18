@@ -29,6 +29,8 @@ schemalint:
 	z-schema projects-schema.json
 	z-schema fund-schema.json
 	z-schema funds-schema.json
+	z-schema track-schema.json
+	z-schema tracks-schema.json
 	z-schema cond-schema.json
 
 examplelint:
@@ -50,6 +52,8 @@ examplelint:
 	z-schema projects-schema.json examples/show-projects-example.json
 	z-schema fund-schema.json examples/fund-example.json
 	z-schema funds-schema.json examples/show-funds-example.json
+	z-schema track-schema.json examples/track-example.json
+	z-schema tracks-schema.json examples/show-tracks-example.json
 	z-schema cond-schema.json examples/cond.json
 
 condtest:

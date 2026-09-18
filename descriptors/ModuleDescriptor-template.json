@@ -250,6 +250,51 @@
           "permissionsRequired": [
             "cyclops.funds.item.delete"
           ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/tracks",
+          "permissionsRequired": [
+            "cyclops.tracks.collection.get"
+          ]
+        },
+        {
+          "methods": [
+            "POST"
+          ],
+          "pathPattern": "/cyclops/tracks",
+          "permissionsRequired": [
+            "cyclops.tracks.item.post"
+          ]
+        },
+        {
+          "methods": [
+            "GET"
+          ],
+          "pathPattern": "/cyclops/tracks/{trackId}",
+          "permissionsRequired": [
+            "cyclops.tracks.item.get"
+          ]
+        },
+        {
+          "methods": [
+            "PUT"
+          ],
+          "pathPattern": "/cyclops/tracks/{trackId}",
+          "permissionsRequired": [
+            "cyclops.tracks.item.put"
+          ]
+        },
+        {
+          "methods": [
+            "DELETE"
+          ],
+          "pathPattern": "/cyclops/tracks/{trackId}",
+          "permissionsRequired": [
+            "cyclops.tracks.item.delete"
+          ]
         }
       ]
     }
@@ -369,6 +414,26 @@
     {
       "permissionName": "cyclops.funds.item.delete",
       "displayName": "CYCLOPS: Delete fund"
+    },
+    {
+      "permissionName": "cyclops.tracks.collection.get",
+      "displayName": "CYCLOPS: Read list of tracks"
+    },
+    {
+      "permissionName": "cyclops.tracks.item.post",
+      "displayName": "CYCLOPS: Create track"
+    },
+    {
+      "permissionName": "cyclops.tracks.item.get",
+      "displayName": "CYCLOPS: Read full track"
+    },
+    {
+      "permissionName": "cyclops.tracks.item.put",
+      "displayName": "CYCLOPS: Modify track"
+    },
+    {
+      "permissionName": "cyclops.tracks.item.delete",
+      "displayName": "CYCLOPS: Delete track"
     }
   ],
   "launchDescriptor": {

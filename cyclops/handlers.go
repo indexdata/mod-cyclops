@@ -1349,6 +1349,164 @@ func (server *ModCyclopsServer) handleDeleteFund(w http.ResponseWriter, req *htt
 
 // -----------------------------------------------------------------------------
 
+type Track struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
+	// More to come, surely
+}
+
+type TrackList struct {
+	Tracks []Track `json:"tracks"`
+	// No other elements yet, but use a structure for future expansion
+}
+
+func (server *ModCyclopsServer) handleShowTracks(w http.ResponseWriter, req *http.Request, caption string) error {
+	resp, err := server.sendToCCMS(caption, "show tracks;")
+	if err != nil {
+		return err
+	}
+
+	result := readResults(resp)[0]
+	tracks := make([]Track, 0)
+	for val := range result.Data() {
+		values := val.Values()
+		tracks = append(tracks, Track{
+			Id:   mustString(values[0]),
+			Name: mustString(values[1]),
+		})
+	}
+	trackList := TrackList{Tracks: tracks}
+	return server.respondWithJSON(w, trackList, caption)
+}
+
+// -----------------------------------------------------------------------------
+
+type CreateTrack struct {
+	Id string `json:"id"`
+}
+
+func (server *ModCyclopsServer) handleCreateTrack(w http.ResponseWriter, req *http.Request, caption string) error {
+	var track CreateTrack
+	err := unmarshalBody(req, &track)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	id, err := ident("track", track.Id)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "create track " + id + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+track.Id, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) fetchTrack(caption string, id string) (Track, error) {
+	command := "show track " + id + ";"
+	server.Log("command", command)
+	resp, err := server.sendToCCMS(caption, command)
+	if err != nil {
+		return Track{}, err
+	}
+
+	result := readResults(resp)[0]
+	track := Track{
+		Id: id,
+	}
+
+	for val := range result.Data() {
+		pair := val.Values()
+		key := mustString(pair[0])
+		value := pair[1]
+
+		switch key {
+		case "title":
+			track.Name = mustString(value)
+		default:
+			server.Log("data", "unrecognised Track field", key, "=", fmt.Sprintf("%+v", value))
+		}
+	}
+
+	return track, nil
+}
+
+func (server *ModCyclopsServer) handleFetchTrack(w http.ResponseWriter, req *http.Request, caption string) error {
+	id, err := ident("track", chi.URLParam(req, "trackId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	track, err := server.fetchTrack(caption, id)
+	if err != nil {
+		return err
+	}
+
+	return server.respondWithJSON(w, track, caption)
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleUpdateTrack(w http.ResponseWriter, req *http.Request, caption string) error {
+	id, err := ident("track", chi.URLParam(req, "trackId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	var track Track
+	err = unmarshalBody(req, &track)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	name, err := sqlString(track.Name)
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "alter track " + id + " alter property title set " + name + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+id, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
+func (server *ModCyclopsServer) handleDeleteTrack(w http.ResponseWriter, req *http.Request, caption string) error {
+	id, err := ident("track", chi.URLParam(req, "trackId"))
+	if err != nil {
+		return fmt.Errorf("%s: %w", caption, err)
+	}
+
+	command := "drop track " + id + ";"
+	server.Log("command", command)
+
+	_, err = server.sendToCCMS(caption+" "+id, command)
+	if err != nil {
+		return err
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+	return nil
+}
+
+// -----------------------------------------------------------------------------
+
 func unmarshalBody[T any](req *http.Request, data *T) error {
 	b, err := io.ReadAll(req.Body)
 	if err != nil {

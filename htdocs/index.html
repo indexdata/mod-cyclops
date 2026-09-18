@@ -47,6 +47,13 @@
    <li><button class="link-button" onclick="deleteObject('/cyclops/funds/palci_development')">drop fund "palci_development"</button></li>
   </ul>
   <ul>
+   <li><a href="/cyclops/tracks">list of tracks</a></li>
+   <li><button class="link-button" onclick="postData('/cyclops/tracks', { id: 'expedited_review', name: 'Expedited review track' })">define track "expedited_review"</button></li>
+   <li><a href="/cyclops/tracks/expedited_review">full track "expedited_review"</a></li>
+   <li><button class="link-button" onclick="putData('/cyclops/tracks/expedited_review', { id: 'expedited_review', name: 'Expedited review and approval track' })">alter track "expedited_review"</button></li>
+   <li><button class="link-button" onclick="deleteObject('/cyclops/tracks/expedited_review')">drop track "expedited_review"</button></li>
+  </ul>
+  <ul>
    <li><a href="/cyclops/projects">list of projects</a></li>
    <li><button class="link-button" onclick="postData('/cyclops/projects', { id: 'korea_lit', name: 'Literature of North Korea', action: { id: 'Acquire' } })">create project "literature of North Korea"</button></li>
    <li><a href="/cyclops/projects/korea_lit">full project</a></li>

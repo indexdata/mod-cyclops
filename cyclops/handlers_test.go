@@ -615,6 +615,37 @@ func TestHandleShowFunds(t *testing.T) {
 	}
 }
 
+func TestHandleShowTracks(t *testing.T) {
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"general", "General Track"})
+	result.AddData([]any{"standard", "Standard Track"})
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+	fake := &fakeCCMS{resp: resp}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleShowTracks(rr, jsonRequest("", nil), "show tracks")
+	if err != nil {
+		t.Fatalf("handleShowTracks returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show tracks;")
+
+	var got TrackList
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	want := TrackList{Tracks: []Track{
+		{Id: "general", Name: "General Track"},
+		{Id: "standard", Name: "Standard Track"},
+	}}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
 func TestHandleShowProjects(t *testing.T) {
 	result := ccms.NewResult("ok")
 	result.AddData([]any{"alpha", "Project Alpha"})
@@ -1096,6 +1127,20 @@ func TestHandleCreateFund(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
+func TestHandleCreateTrack(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleCreateTrack(rr, jsonRequest(`{"id":"standard"}`, nil), "create track")
+	if err != nil {
+		t.Fatalf("handleCreateTrack returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "create track standard;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
 func TestHandleUpdateFund(t *testing.T) {
 	t.Run("success", func(t *testing.T) {
 		fake := &fakeCCMS{resp: okResponse()}
@@ -1147,6 +1192,57 @@ func TestHandleUpdateFund(t *testing.T) {
 	})
 }
 
+func TestHandleUpdateTrack(t *testing.T) {
+	t.Run("success", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"id":"standard","name":"Standard Track"}`
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateTrack(rr, jsonRequest(body, map[string]string{"trackId": "standard"}), "update track")
+		if err != nil {
+			t.Fatalf("handleUpdateTrack returned error: %v", err)
+		}
+
+		// The URL's track id drives the command; the body's "id" is ignored.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter track standard alter property title set 'Standard Track';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// A name containing a single quote must be escaped by doubling it.
+	t.Run("name with apostrophe is escaped", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		body := `{"name":"Director's Track"}`
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateTrack(rr, jsonRequest(body, map[string]string{"trackId": "directors"}), "update track")
+		if err != nil {
+			t.Fatalf("handleUpdateTrack returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"alter track directors alter property title set 'Director''s Track';")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("malformed JSON body", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateTrack(rr, jsonRequest(`{"name":`, map[string]string{"trackId": "standard"}), "update track")
+		if err == nil {
+			t.Fatal("expected an error for malformed JSON, got nil")
+		}
+		assertErrContains(t, err, "deserialize JSON")
+
+		// The handler must bail before sending anything to CCMS.
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
+}
+
 func TestHandleDeleteFund(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
@@ -1158,6 +1254,20 @@ func TestHandleDeleteFund(t *testing.T) {
 	}
 
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop fund endowment;")
+	assertStatus(t, rr, http.StatusNoContent)
+}
+
+func TestHandleDeleteTrack(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleDeleteTrack(rr, jsonRequest("", map[string]string{"trackId": "standard"}), "delete track")
+	if err != nil {
+		t.Fatalf("handleDeleteTrack returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "drop track standard;")
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
@@ -1505,6 +1615,36 @@ func TestHandleFetchFund(t *testing.T) {
 	}
 	// The id comes from the URL param, the name from the CCMS response.
 	want := Fund{Id: "endowment", Name: "Endowment Fund"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
+	}
+}
+
+func TestHandleFetchTrack(t *testing.T) {
+	result := ccms.NewResult("ok")
+	result.AddData([]any{"title", "Standard Track"})
+	result.AddData([]any{"bogus", "ignored"}) // exercises the default branch
+	resp := ccms.NewResponse()
+	resp.AddResult(result)
+
+	fake := &fakeCCMS{resp: resp}
+	server := newTestServer(fake)
+
+	rr := httptest.NewRecorder()
+	err := server.handleFetchTrack(rr, jsonRequest("", map[string]string{"trackId": "standard"}), "fetch track")
+	if err != nil {
+		t.Fatalf("handleFetchTrack returned error: %v", err)
+	}
+
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "show track standard;")
+
+	var got Track
+	err = json.Unmarshal(rr.Body.Bytes(), &got)
+	if err != nil {
+		t.Fatalf("could not decode response body %q: %v", rr.Body.String(), err)
+	}
+	// The id comes from the URL param, the name from the CCMS response.
+	want := Track{Id: "standard", Name: "Standard Track"}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)
 	}
