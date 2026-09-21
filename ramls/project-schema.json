@@ -98,10 +98,10 @@
     },
     "tracks": {
       "type": "array",
-      "description": "The tracks within the project that a given spectre can be associated with",
+      "description": "A list of the project's tracks, with which spectres can be associated",
       "items": {
         "type": "object",
-        "description": "A singe track within the project",
+        "description": "A single track within the project",
         "required": [
           "id",
           "name"

@@ -1403,7 +1403,7 @@ func TestHandleCreateProject(t *testing.T) {
 
 	body := `{"id":"p1","name":"T","action":{"id":"approve"},"mou_link":"m",` +
 		`"funds":[{"id":"f1"},{"id":"f2"}],"origins":[{"id":"o1"},{"id":"o2"}],` +
-		`"destinations":[{"id":"d1"}]}`
+		`"destinations":[{"id":"d1"}],"tracks":[{"id":"t1"},{"id":"t2"}]}`
 	rr := httptest.NewRecorder()
 	err := server.handleCreateProject(rr, jsonRequest(body, nil), "create project")
 	if err != nil {
@@ -1420,7 +1420,9 @@ func TestHandleCreateProject(t *testing.T) {
 		"alter project p1 alter property origins add o1;\n" +
 		"alter project p1 alter property origins add o2;\n" +
 		"alter project p1 alter property destinations drop all;\n" +
-		"alter project p1 alter property destinations add d1;\n"
+		"alter project p1 alter property destinations add d1;\n" +
+		"alter project p1 alter property tracks add t1;\n" +
+		"alter project p1 alter property tracks add t2;\n"
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
 	assertStatus(t, rr, http.StatusNoContent)
 }
@@ -1440,6 +1442,22 @@ func TestHandleCreateProjectNoId(t *testing.T) {
 	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
 }
 
+func TestHandleCreateProjectInvalidTrack(t *testing.T) {
+	fake := &fakeCCMS{resp: okResponse()}
+	server := newTestServer(fake)
+
+	body := `{"id":"p1","name":"T","action":{"id":"a"},"tracks":[{"id":"t1; drop project p1"}]}`
+	rr := httptest.NewRecorder()
+	err := server.handleCreateProject(rr, jsonRequest(body, nil), "create project")
+	if err == nil {
+		t.Fatal("expected an error for an invalid track identifier, got nil")
+	}
+	assertErrContains(t, err, "invalid track identifier")
+
+	// The handler must bail before sending anything to CCMS.
+	assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+}
+
 func TestHandleUpdateProject(t *testing.T) {
 	fake := &fakeCCMS{resp: okResponse()}
 	server := newTestServer(fake)
@@ -1451,7 +1469,8 @@ func TestHandleUpdateProject(t *testing.T) {
 		t.Fatalf("handleUpdateProject returned error: %v", err)
 	}
 
-	// With no existing funds and no new funds, no fund commands are emitted.
+	// With no existing funds or tracks and no new ones, no fund or track
+	// commands are emitted.
 	want := "alter project p1 alter property title set 'T';\n" +
 		"alter project p1 alter property action set a;\n" +
 		"alter project p1 alter property mou_link set '';\n" +
@@ -1461,89 +1480,99 @@ func TestHandleUpdateProject(t *testing.T) {
 	assertStatus(t, rr, http.StatusNoContent)
 }
 
-// TestHandleUpdateProjectFundDiff checks that updating a project's funds emits
-// the minimal set of add/drop commands by comparing the existing funds against
-// the new ones: only genuinely added or removed funds produce commands, and
-// funds present in both lists are left untouched.
-func TestHandleUpdateProjectFundDiff(t *testing.T) {
+// TestHandleUpdateProjectItemDiff checks that updating a project's funds or
+// tracks emits the minimal set of add/drop commands by comparing the existing
+// items against the new ones: only genuinely added or removed items produce
+// commands, and items present in both lists are left untouched.
+func TestHandleUpdateProjectItemDiff(t *testing.T) {
 	tests := []struct {
 		name      string
-		existing  string   // CCMS-style "id:desc|id:desc" list of current funds
-		newFunds  []string // fund ids in the update request
-		fundLines []string // expected fund commands, in order
+		existing  string   // CCMS-style "id:desc|id:desc" list of current items
+		newItems  []string // item ids in the update request
+		itemLines []string // expected item commands (without property name), in order
 	}{
 		{
-			name:      "no funds at all",
+			name:      "no items at all",
 			existing:  "",
-			newFunds:  nil,
-			fundLines: nil,
+			newItems:  nil,
+			itemLines: nil,
 		},
 		{
-			name:      "unchanged funds emit nothing",
-			existing:  "f1:Fund One|f2:Fund Two",
-			newFunds:  []string{"f1", "f2"},
-			fundLines: nil,
+			name:      "unchanged items emit nothing",
+			existing:  "i1:Item One|i2:Item Two",
+			newItems:  []string{"i1", "i2"},
+			itemLines: nil,
 		},
 		{
 			name:      "add only",
 			existing:  "",
-			newFunds:  []string{"f1", "f2"},
-			fundLines: []string{"funds add f1", "funds add f2"},
+			newItems:  []string{"i1", "i2"},
+			itemLines: []string{"add i1", "add i2"},
 		},
 		{
 			name:      "drop only",
-			existing:  "f1:Fund One|f2:Fund Two",
-			newFunds:  nil,
-			fundLines: []string{"funds drop f1", "funds drop f2"},
+			existing:  "i1:Item One|i2:Item Two",
+			newItems:  nil,
+			itemLines: []string{"drop i1", "drop i2"},
 		},
 		{
 			name:      "add and drop, keeping overlap",
-			existing:  "f1:Fund One|f2:Fund Two",
-			newFunds:  []string{"f2", "f3"},
-			fundLines: []string{"funds add f3", "funds drop f1"},
+			existing:  "i1:Item One|i2:Item Two",
+			newItems:  []string{"i2", "i3"},
+			itemLines: []string{"add i3", "drop i1"},
 		},
 		{
 			name:      "complete replacement",
-			existing:  "f1:Fund One",
-			newFunds:  []string{"f2"},
-			fundLines: []string{"funds add f2", "funds drop f1"},
+			existing:  "i1:Item One",
+			newItems:  []string{"i2"},
+			itemLines: []string{"add i2", "drop i1"},
 		},
 	}
 
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			result := ccms.NewResult("ok")
-			result.AddData([]any{"funds", tc.existing})
-			resp := ccms.NewResponse()
-			resp.AddResult(result)
-			fake := &fakeCCMS{resp: resp}
-			server := newTestServer(fake)
+	for _, property := range []string{"funds", "tracks"} {
+		for _, tc := range tests {
+			t.Run(property+"/"+tc.name, func(t *testing.T) {
+				result := ccms.NewResult("ok")
+				result.AddData([]any{property, tc.existing})
+				resp := ccms.NewResponse()
+				resp.AddResult(result)
+				fake := &fakeCCMS{resp: resp}
+				server := newTestServer(fake)
 
-			funds := make([]string, len(tc.newFunds))
-			for i, id := range tc.newFunds {
-				funds[i] = fmt.Sprintf("{\"id\":%q}", id)
-			}
-			body := fmt.Sprintf(`{"name":"T","action":{"id":"a"},"funds":[%s]}`,
-				strings.Join(funds, ","))
+				items := make([]string, len(tc.newItems))
+				for i, id := range tc.newItems {
+					items[i] = fmt.Sprintf("{\"id\":%q}", id)
+				}
+				body := fmt.Sprintf(`{"name":"T","action":{"id":"a"},%q:[%s]}`,
+					property, strings.Join(items, ","))
 
-			rr := httptest.NewRecorder()
-			err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
-			if err != nil {
-				t.Fatalf("handleUpdateProject returned error: %v", err)
-			}
+				rr := httptest.NewRecorder()
+				err := server.handleUpdateProject(rr, jsonRequest(body, map[string]string{"projectId": "p1"}), "update project")
+				if err != nil {
+					t.Fatalf("handleUpdateProject returned error: %v", err)
+				}
 
-			want := "alter project p1 alter property title set 'T';\n" +
-				"alter project p1 alter property action set a;\n" +
-				"alter project p1 alter property mou_link set '';\n"
-			for _, line := range tc.fundLines {
-				want += "alter project p1 alter property " + line + ";\n"
-			}
-			want += "alter project p1 alter property origins drop all;\n" +
-				"alter project p1 alter property destinations drop all;\n"
+				var itemCommands string
+				for _, line := range tc.itemLines {
+					itemCommands += "alter project p1 alter property " + property + " " + line + ";\n"
+				}
 
-			assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
-			assertStatus(t, rr, http.StatusNoContent)
-		})
+				want := "alter project p1 alter property title set 'T';\n" +
+					"alter project p1 alter property action set a;\n" +
+					"alter project p1 alter property mou_link set '';\n"
+				if property == "funds" {
+					want += itemCommands
+				}
+				want += "alter project p1 alter property origins drop all;\n" +
+					"alter project p1 alter property destinations drop all;\n"
+				if property == "tracks" {
+					want += itemCommands
+				}
+
+				assertEqual(t, "command sent to CCMS", fake.lastCmd, want)
+				assertStatus(t, rr, http.StatusNoContent)
+			})
+		}
 	}
 }
 
@@ -1557,6 +1586,7 @@ func TestHandleFetchProject(t *testing.T) {
 	result.AddData([]any{"funds", "f1:Fund One|f2:Fund Two"})
 	result.AddData([]any{"origins", "seoul:Seoul"})
 	result.AddData([]any{"destinations", ""})
+	result.AddData([]any{"tracks", "t1:Track One|t2:Track Two"})
 	result.AddData([]any{"bogus", "ignored"}) // exercises the default branch
 	resp := ccms.NewResponse()
 	resp.AddResult(result)
@@ -1584,6 +1614,7 @@ func TestHandleFetchProject(t *testing.T) {
 		Funds:        []ProjectFund{{Id: "f1", Name: "Fund One"}, {Id: "f2", Name: "Fund Two"}},
 		Origins:      []ProjectLocation{{Id: "seoul", Name: "Seoul"}},
 		Destinations: []ProjectLocation{},
+		Tracks:       []ProjectTrack{{Id: "t1", Name: "Track One"}, {Id: "t2", Name: "Track Two"}},
 	}
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("translated response:\n got %+v\nwant %+v", got, want)

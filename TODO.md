@@ -79,6 +79,7 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Return a structure of { name, title } when listing funds
 * **DONE** mod-cyclops should handle "id:name" strings consistently
 * **DONE** Add CRUD support for funds
+* **DONE** Add CRUD support for tracks, and support them in projects as for funds
 * **DONE** Change project and fund structures so all `{id, name}` pairs use those fieldnames
 * **DONE** Change project `altName` field to `id` (discarding old Id)
 * **DONE** Support new batch-update WSAPI

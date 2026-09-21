@@ -983,6 +983,8 @@ func (server *ModCyclopsServer) fetchProject(caption string, projectId string) (
 			project.Origins = string2array(mustString(value))
 		case "destinations":
 			project.Destinations = string2array(mustString(value))
+		case "tracks":
+			project.Tracks = string2array(mustString(value))
 		default:
 			server.Log("data", "unrecognised Project field", key, "=", fmt.Sprintf("%+v", value))
 		}
@@ -1026,8 +1028,8 @@ func (server *ModCyclopsServer) handleCreateProject(w http.ResponseWriter, req *
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	// A freshly created project has no funds yet.
-	body, err := project2command(id, project, nil)
+	// A freshly created project has no funds or tracks yet.
+	body, err := project2command(id, project, Project{})
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
@@ -1063,7 +1065,42 @@ func (server *ModCyclopsServer) handleDeleteProject(w http.ResponseWriter, req *
 
 // -----------------------------------------------------------------------------
 
-func project2command(projectId string, project Project, existingFunds []ProjectFund) (string, error) {
+// diffItems writes the minimal set of commands to change the list-valued
+// property from the existing items to the new ones, by comparing the two
+// lists rather than dropping all and re-adding.
+func diffItems(b *strings.Builder, projectId string, property string, caption string, existing []ProjectItem, items []ProjectItem) error {
+	oldIds := make(map[string]bool)
+	for _, item := range existing {
+		itemId, err := ident(caption, item.Id)
+		if err != nil {
+			return err
+		}
+		oldIds[itemId] = true
+	}
+	newIds := make(map[string]bool)
+	for _, item := range items {
+		itemId, err := ident(caption, item.Id)
+		if err != nil {
+			return err
+		}
+		newIds[itemId] = true
+	}
+	for _, item := range items {
+		itemId, _ := ident(caption, item.Id)
+		if !oldIds[itemId] {
+			b.WriteString("alter project " + projectId + " alter property " + property + " add " + itemId + ";\n")
+		}
+	}
+	for _, item := range existing {
+		itemId, _ := ident(caption, item.Id)
+		if !newIds[itemId] {
+			b.WriteString("alter project " + projectId + " alter property " + property + " drop " + itemId + ";\n")
+		}
+	}
+	return nil
+}
+
+func project2command(projectId string, project Project, existing Project) (string, error) {
 	id, err := ident("project", projectId)
 	if err != nil {
 		return "", err
@@ -1085,55 +1122,31 @@ func project2command(projectId string, project Project, existingFunds []ProjectF
 	b.WriteString("alter project " + id + " alter property title set " + name + ";\n")
 	b.WriteString("alter project " + id + " alter property action set " + action + ";\n")
 	b.WriteString("alter project " + id + " alter property mou_link set " + mouLink + ";\n")
-	// Compute the minimal set of fund changes by comparing the
-	// existing list of funds against the new one, rather than dropping
-	// all and re-adding.
-	oldFunds := make(map[string]bool)
-	for _, fund := range existingFunds {
-		fundId, err := ident("fund", fund.Id)
-		if err != nil {
-			return "", err
-		}
-		oldFunds[fundId] = true
-	}
-	newFunds := make(map[string]bool)
-	for _, fund := range project.Funds {
-		fundId, err := ident("fund", fund.Id)
-		if err != nil {
-			return "", err
-		}
-		newFunds[fundId] = true
-	}
-	for _, fund := range project.Funds {
-		fundId, _ := ident("fund", fund.Id)
-		if !oldFunds[fundId] {
-			b.WriteString("alter project " + id + " alter property funds add " + fundId + ";\n")
-		}
-	}
-	for _, fund := range existingFunds {
-		fundId, _ := ident("fund", fund.Id)
-		if !newFunds[fundId] {
-			b.WriteString("alter project " + id + " alter property funds drop " + fundId + ";\n")
-		}
+	err = diffItems(&b, id, "funds", "fund", existing.Funds, project.Funds)
+	if err != nil {
+		return "", err
 	}
 	// b.WriteString("alter project " + id + " alter property people set '" + project.People + "';\n")
 	b.WriteString("alter project " + id + " alter property origins drop all;\n")
 	for _, location := range project.Origins {
-		locId, err := ident("origin", location.Id)
-		if err != nil {
-			return "", err
+		locId, locErr := ident("origin", location.Id)
+		if locErr != nil {
+			return "", locErr
 		}
 		b.WriteString("alter project " + id + " alter property origins add " + locId + ";\n")
 	}
 	b.WriteString("alter project " + id + " alter property destinations drop all;\n")
 	for _, location := range project.Destinations {
-		locId, err := ident("destination", location.Id)
-		if err != nil {
-			return "", err
+		locId, locErr := ident("destination", location.Id)
+		if locErr != nil {
+			return "", locErr
 		}
 		b.WriteString("alter project " + id + " alter property destinations add " + locId + ";\n")
 	}
-	// b.WriteString("alter project " + id + " alter property tracks set '" + project.Tracks + "'\n")
+	err = diffItems(&b, id, "tracks", "track", existing.Tracks, project.Tracks)
+	if err != nil {
+		return "", err
+	}
 	return b.String(), nil
 }
 
@@ -1149,13 +1162,14 @@ func (server *ModCyclopsServer) handleUpdateProject(w http.ResponseWriter, req *
 	}
 
 	// Fetch the current state of the project so that we can generate a
-	// minimal set of fund changes rather than dropping all and re-adding.
+	// minimal set of fund and track changes rather than dropping all and
+	// re-adding.
 	existing, err := server.fetchProject(caption, projectId)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command, err := project2command(projectId, project, existing.Funds)
+	command, err := project2command(projectId, project, existing)
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
