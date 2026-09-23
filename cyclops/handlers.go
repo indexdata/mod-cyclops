@@ -745,26 +745,20 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	assignments := fmt.Sprintf("decision = %v", record.Decision)
-	// An empty fund or track is treated as absent.
-	if record.Fund != "" {
-		validFund, fundErr := ident("fund", record.Fund)
-		if fundErr != nil {
-			return fmt.Errorf("%s: %w", caption, fundErr)
+	assignments := []string{fmt.Sprintf("decision = %v", record.Decision)}
+	// The fund and track are optional. Empty values are treated as absent.
+	for _, f := range [][2]string{{"fund", record.Fund}, {"track", record.Track}} {
+		assignment, fieldErr := optionalAssignment(f[0], f[1])
+		if fieldErr != nil {
+			return fmt.Errorf("%s: %w", caption, fieldErr)
 		}
-		assignments += ", fund = " + validFund
-	}
-	// The track is optional, so that clients which predate tracks still work.
-	if record.Track != "" {
-		validTrack, trackErr := ident("track", record.Track)
-		if trackErr != nil {
-			return fmt.Errorf("%s: %w", caption, trackErr)
+		if assignment != "" {
+			assignments = append(assignments, assignment)
 		}
-		assignments += ", track = " + validTrack
 	}
 
 	command := fmt.Sprintf("update %s set %s where id = %s;",
-		validSet, assignments, validId)
+		validSet, strings.Join(assignments, ", "), validId)
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+setName+"/"+recordId, command)
@@ -834,21 +828,15 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 		assignments = append(assignments,
 			fmt.Sprintf("decision = %v", *batch.Changes.Decision))
 	}
-	if batch.Changes.Fund != nil && *batch.Changes.Fund != "" {
-		validFund, fundErr := ident("fund", *batch.Changes.Fund)
-		if fundErr != nil {
-			return fmt.Errorf("%s: %w", caption, fundErr)
+	// An omitted or empty fund or track is left unchanged.
+	for _, f := range [][2]string{{"fund", deref(batch.Changes.Fund)}, {"track", deref(batch.Changes.Track)}} {
+		assignment, fieldErr := optionalAssignment(f[0], f[1])
+		if fieldErr != nil {
+			return fmt.Errorf("%s: %w", caption, fieldErr)
 		}
-		assignments = append(assignments,
-			fmt.Sprintf("fund = %s", validFund))
-	}
-	if batch.Changes.Track != nil && *batch.Changes.Track != "" {
-		validTrack, trackErr := ident("track", *batch.Changes.Track)
-		if trackErr != nil {
-			return fmt.Errorf("%s: %w", caption, trackErr)
+		if assignment != "" {
+			assignments = append(assignments, assignment)
 		}
-		assignments = append(assignments,
-			fmt.Sprintf("track = %s", validTrack))
 	}
 	if len(assignments) == 0 {
 		return fmt.Errorf("%s: no changes specified", caption)
@@ -1617,6 +1605,27 @@ func ident(caption string, s string) (string, error) {
 		return "", fmt.Errorf("invalid %s identifier: %q", caption, s)
 	}
 	return s, nil
+}
+
+// optionalAssignment returns a "field = value" assignment, or "" if the value
+// is empty: CCMS should never be sent an empty identifier.
+func optionalAssignment(field string, value string) (string, error) {
+	if value == "" {
+		return "", nil
+	}
+	validValue, err := ident(field, value)
+	if err != nil {
+		return "", err
+	}
+	return field + " = " + validValue, nil
+}
+
+// deref returns the string that p points to, or "" if p is nil.
+func deref(p *string) string {
+	if p == nil {
+		return ""
+	}
+	return *p
 }
 
 // intRe matches a decimal integer, following the same grammar as CCMS's
