@@ -715,8 +715,9 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 // -----------------------------------------------------------------------------
 
 type UpdateRecord struct {
-	Decision bool   `json:"decision"`
-	Fund     string `json:"fund"`
+	Decision bool    `json:"decision"`
+	Fund     string  `json:"fund"`
+	Track    *string `json:"track"`
 }
 
 func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -749,8 +750,18 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 		return fmt.Errorf("%s: %w", caption, err)
 	}
 
-	command := fmt.Sprintf("update %s set decision = %v, fund = %s where id = %s;",
-		validSet, record.Decision, validFund, validId)
+	assignments := fmt.Sprintf("decision = %v, fund = %s", record.Decision, validFund)
+	// The track is optional, so that clients which predate tracks still work.
+	if record.Track != nil {
+		validTrack, trackErr := ident("track", *record.Track)
+		if trackErr != nil {
+			return fmt.Errorf("%s: %w", caption, trackErr)
+		}
+		assignments += ", track = " + validTrack
+	}
+
+	command := fmt.Sprintf("update %s set %s where id = %s;",
+		validSet, assignments, validId)
 	server.Log("command", command)
 
 	_, err = server.sendToCCMS(caption+" "+setName+"/"+recordId, command)
@@ -767,6 +778,7 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 type BatchChanges struct {
 	Decision *bool   `json:"decision"`
 	Fund     *string `json:"fund"`
+	Track    *string `json:"track"`
 }
 
 type BatchUpdate struct {
@@ -826,6 +838,14 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 		}
 		assignments = append(assignments,
 			fmt.Sprintf("fund = %s", validFund))
+	}
+	if batch.Changes.Track != nil {
+		validTrack, trackErr := ident("track", *batch.Changes.Track)
+		if trackErr != nil {
+			return fmt.Errorf("%s: %w", caption, trackErr)
+		}
+		assignments = append(assignments,
+			fmt.Sprintf("track = %s", validTrack))
 	}
 	if len(assignments) == 0 {
 		return fmt.Errorf("%s: no changes specified", caption)

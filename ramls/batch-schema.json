@@ -21,6 +21,10 @@
         "fund": {
           "type": "string",
           "description": "The name of the fund associated with the records"
+        },
+        "track": {
+          "type": "string",
+          "description": "The name of the track associated with the records"
         }
       },
       "additionalProperties": false

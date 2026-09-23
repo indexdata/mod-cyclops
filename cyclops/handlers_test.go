@@ -782,6 +782,37 @@ func TestHandleUpdateRecord(t *testing.T) {
 			"update foo.object set decision = true, fund = palci where id = 42;")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
+
+	t.Run("with track", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike", "recordId": "17"}
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci","track":"expedited_review"}`, params), "update record")
+		if err != nil {
+			t.Fatalf("handleUpdateRecord returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true, fund = palci, track = expedited_review where id = 17;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("invalid track is rejected", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike", "recordId": "17"}
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":true,"fund":"palci","track":"x; drop set mike"}`, params), "update record")
+		if err == nil {
+			t.Fatal("expected an error for an invalid track, got nil")
+		}
+		assertErrContains(t, err, "invalid track identifier")
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
+	})
 }
 
 func TestHandleBatchUpdate(t *testing.T) {
@@ -815,6 +846,38 @@ func TestHandleBatchUpdate(t *testing.T) {
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
 			"update mike set decision = false, fund = palci where id IN (7, 8);")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("track only", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike"}
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7","8"],"changes":{"track":"expedited_review"}}`, params), "batch update")
+		if err != nil {
+			t.Fatalf("handleBatchUpdate returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set track = expedited_review where id IN (7, 8);")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("decision, fund and track", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike"}
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7"],"changes":{"decision":true,"fund":"palci","track":"expedited_review"}}`, params), "batch update")
+		if err != nil {
+			t.Fatalf("handleBatchUpdate returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true, fund = palci, track = expedited_review where id IN (7);")
 		assertStatus(t, rr, http.StatusNoContent)
 	})
 

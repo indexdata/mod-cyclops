@@ -1,6 +1,7 @@
 {
   "ids": ["7", "8", "9"],
   "changes": {
-    "decision": true
+    "decision": true,
+    "track": "expedited_review"
   }
 }
