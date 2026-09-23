@@ -813,6 +813,23 @@ func TestHandleUpdateRecord(t *testing.T) {
 
 		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
 	})
+
+	// An empty fund or track is treated as though it had been omitted.
+	t.Run("empty fund and track are omitted", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike", "recordId": "17"}
+		rr := httptest.NewRecorder()
+		err := server.handleUpdateRecord(rr, jsonRequest(`{"decision":false,"fund":"","track":""}`, params), "update record")
+		if err != nil {
+			t.Fatalf("handleUpdateRecord returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = false where id = 17;")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
 }
 
 func TestHandleBatchUpdate(t *testing.T) {
@@ -879,6 +896,37 @@ func TestHandleBatchUpdate(t *testing.T) {
 		assertEqual(t, "command sent to CCMS", fake.lastCmd,
 			"update mike set decision = true, fund = palci, track = expedited_review where id IN (7);")
 		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	// An empty fund or track is treated as though it had been omitted.
+	t.Run("empty fund and track are omitted", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		params := map[string]string{"setName": "mike"}
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7"],"changes":{"decision":true,"fund":"","track":""}}`, params), "batch update")
+		if err != nil {
+			t.Fatalf("handleBatchUpdate returned error: %v", err)
+		}
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd,
+			"update mike set decision = true where id IN (7);")
+		assertStatus(t, rr, http.StatusNoContent)
+	})
+
+	t.Run("only empty fund and track is rejected", func(t *testing.T) {
+		fake := &fakeCCMS{resp: okResponse()}
+		server := newTestServer(fake)
+
+		rr := httptest.NewRecorder()
+		err := server.handleBatchUpdate(rr, jsonRequest(`{"ids":["7"],"changes":{"fund":"","track":""}}`, map[string]string{"setName": "mike"}), "batch update")
+		if err == nil {
+			t.Fatal("expected an error when only empty changes are specified, got nil")
+		}
+		assertErrContains(t, err, "no changes specified")
+
+		assertEqual(t, "command sent to CCMS", fake.lastCmd, "")
 	})
 
 	t.Run("empty ids list is rejected", func(t *testing.T) {

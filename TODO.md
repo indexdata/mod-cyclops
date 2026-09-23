@@ -91,6 +91,7 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** Actually add title when creating a set, now-existent `alter set`
 * **DONE** Add WSAPI endpoint for changing a set's title using `alter set`
 * **DONE** Protect conditions in generated SQL-like commands from injection: conditions are now supplied only as the structured `jsonCond`, and the raw `cond` is withdrawn.
+* **DONE** When updating a spectre, empty funds and tracks are treated as absent
 * **FIXED**: when inserting into a set, limit should be omitted
 * **NO** Consider making Retrieve responses into regular JSON records
 * **N/A** Support new `holdings_count` attribute

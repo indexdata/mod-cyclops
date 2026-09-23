@@ -715,9 +715,9 @@ func (server *ModCyclopsServer) handleRemoveObjects(w http.ResponseWriter, req *
 // -----------------------------------------------------------------------------
 
 type UpdateRecord struct {
-	Decision bool    `json:"decision"`
-	Fund     string  `json:"fund"`
-	Track    *string `json:"track"`
+	Decision bool   `json:"decision"`
+	Fund     string `json:"fund"`
+	Track    string `json:"track"`
 }
 
 func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *http.Request, caption string) error {
@@ -745,15 +745,18 @@ func (server *ModCyclopsServer) handleUpdateRecord(w http.ResponseWriter, req *h
 	if err != nil {
 		return fmt.Errorf("%s: %w", caption, err)
 	}
-	validFund, err := ident("fund", record.Fund)
-	if err != nil {
-		return fmt.Errorf("%s: %w", caption, err)
+	assignments := fmt.Sprintf("decision = %v", record.Decision)
+	// An empty fund or track is treated as absent.
+	if record.Fund != "" {
+		validFund, fundErr := ident("fund", record.Fund)
+		if fundErr != nil {
+			return fmt.Errorf("%s: %w", caption, fundErr)
+		}
+		assignments += ", fund = " + validFund
 	}
-
-	assignments := fmt.Sprintf("decision = %v, fund = %s", record.Decision, validFund)
 	// The track is optional, so that clients which predate tracks still work.
-	if record.Track != nil {
-		validTrack, trackErr := ident("track", *record.Track)
+	if record.Track != "" {
+		validTrack, trackErr := ident("track", record.Track)
 		if trackErr != nil {
 			return fmt.Errorf("%s: %w", caption, trackErr)
 		}
@@ -831,7 +834,7 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 		assignments = append(assignments,
 			fmt.Sprintf("decision = %v", *batch.Changes.Decision))
 	}
-	if batch.Changes.Fund != nil {
+	if batch.Changes.Fund != nil && *batch.Changes.Fund != "" {
 		validFund, fundErr := ident("fund", *batch.Changes.Fund)
 		if fundErr != nil {
 			return fmt.Errorf("%s: %w", caption, fundErr)
@@ -839,7 +842,7 @@ func (server *ModCyclopsServer) handleBatchUpdate(w http.ResponseWriter, req *ht
 		assignments = append(assignments,
 			fmt.Sprintf("fund = %s", validFund))
 	}
-	if batch.Changes.Track != nil {
+	if batch.Changes.Track != nil && *batch.Changes.Track != "" {
 		validTrack, trackErr := ident("track", *batch.Changes.Track)
 		if trackErr != nil {
 			return fmt.Errorf("%s: %w", caption, trackErr)
