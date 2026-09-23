@@ -80,6 +80,7 @@ CCMS v0.0.29 updated in test instance:
 * **DONE** mod-cyclops should handle "id:name" strings consistently
 * **DONE** Add CRUD support for funds
 * **DONE** Add CRUD support for tracks, and support them in projects as for funds
+* **DONE** Allow the track of a spectre to be set, singly or in batch, as for funds
 * **DONE** Change project and fund structures so all `{id, name}` pairs use those fieldnames
 * **DONE** Change project `altName` field to `id` (discarding old Id)
 * **DONE** Support new batch-update WSAPI
@@ -100,4 +101,16 @@ CCMS v0.0.29 updated in test instance:
 
 * `create user`/`show users` -- I'm not yet sure what users do in CCMS
 * `show version`
+
+
+## Notes on differentiated holdings
+
+From Mallory [on Slack](https://indexdata.slack.com/archives/C0ATJTLEEQZ/p1789410285505789):
+
+* We discussed the different types of holdings (library physical holdings, online holdings, vendor holdings)
+  * Ideally we'd have separate columns for each type, with column display configurable
+  * We'd like to filter by the different types of holdings (so be able to get # of holdings per owner)
+  * The different holdings types / counts should be displayed in the Details screen of the Spectre
+  * To verify the 3 new holdings counts (library 11, online 12, vendor 13), consider exposing the original XML Reservoir record from a Spectre
+    * Nassib will look into backend support
 
